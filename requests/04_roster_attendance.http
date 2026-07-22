@@ -1,0 +1,44 @@
+### 04. Roster & Attendance API Requests
+@baseUrl = http://localhost:8080
+@authToken = {{login.response.body.data.token}}
+
+# @name login
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "angel@unggul.co.id",
+  "password": "admin123"
+}
+
+### Get All Rosters
+GET {{baseUrl}}/api/v1/rosters/
+Authorization: Bearer {{authToken}}
+
+### Export Roster File
+GET {{baseUrl}}/api/v1/rosters/jul/export
+Authorization: Bearer {{authToken}}
+
+### Get Attendance Today
+GET {{baseUrl}}/api/v1/attendance/today
+Authorization: Bearer {{authToken}}
+
+### Record Check-In
+POST {{baseUrl}}/api/v1/attendance/checkin
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "nik": "503264133",
+  "machine": "FP-01 · Office"
+}
+
+### Record Check-Out
+POST {{baseUrl}}/api/v1/attendance/checkout
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "nik": "503264133",
+  "machine": "FP-01 · Office"
+}

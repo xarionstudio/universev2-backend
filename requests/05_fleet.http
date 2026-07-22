@@ -1,0 +1,38 @@
+### 05. Assets & Fleet API Requests
+@baseUrl = http://localhost:8080
+@authToken = {{login.response.body.data.token}}
+
+# @name login
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "angel@unggul.co.id",
+  "password": "admin123"
+}
+
+### Get Fleet Settings
+GET {{baseUrl}}/api/v1/fleet/settings
+Authorization: Bearer {{authToken}}
+
+### Get Unit Statuses
+GET {{baseUrl}}/api/v1/units/status
+Authorization: Bearer {{authToken}}
+
+### Update Unit Status
+PUT {{baseUrl}}/api/v1/units/DT5108/status
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "status": "ready",
+  "loc": "Panel East Tengah"
+}
+
+### Get Unit History
+GET {{baseUrl}}/api/v1/units/DT5108/history
+Authorization: Bearer {{authToken}}
+
+### Get Unit Database
+GET {{baseUrl}}/api/v1/units/db
+Authorization: Bearer {{authToken}}

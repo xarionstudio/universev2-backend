@@ -1,33 +1,41 @@
 package middleware
 
 import (
+	"strings"
+
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
+
+	"universev2-backend/internal/config"
+	"universev2-backend/internal/pkg"
 )
 
-func AuthProtected(secret string) fiber.Handler {
+func AuthMiddleware(cfg *config.Config) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		token := c.Get("Authorization")
-		if token == "" {
+		authHeader := c.Get("Authorization")
+		if authHeader == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"success": false,
-				"message": "Missing authorization header",
+				"error": "Missing authorization header",
 			})
 		}
 
-		if len(token) > 7 && token[:7] == "Bearer " {
-			token = token[7:]
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Invalid authorization header format",
+			})
 		}
 
-		claims := &jwt.MapClaims{}
-		_, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
-			return []byte(secret), nil
+		tokenStr := parts[1]
+		claims := &pkg.JWTCustomClaims{}
+
+		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+			return []byte(cfg.JWTSecret), nil
 		})
 
-		if err != nil {
+		if err != nil || !token.Valid {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"success": false,
-				"message": "Invalid or expired token",
+				"error": "Invalid or expired token",
 			})
 		}
 

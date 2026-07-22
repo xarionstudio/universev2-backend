@@ -1,0 +1,48 @@
+### 01. Auth & Profile API Requests
+@baseUrl = http://localhost:8080
+@authToken = {{login.response.body.data.token}}
+
+### Health Check
+GET {{baseUrl}}/health
+
+### Login (Obtain JWT Token)
+# @name login
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "angel@unggul.co.id",
+  "password": "admin123"
+}
+
+### Refresh Token
+POST {{baseUrl}}/api/v1/auth/refresh
+Content-Type: application/json
+
+### Logout
+POST {{baseUrl}}/api/v1/auth/logout
+Authorization: Bearer {{authToken}}
+
+### Get User Profile
+GET {{baseUrl}}/api/v1/profile/
+Authorization: Bearer {{authToken}}
+
+### Update Profile
+PUT {{baseUrl}}/api/v1/profile/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "First Angel Paustine",
+  "phone": "+62 812-5501-2233"
+}
+
+### Update Password
+PUT {{baseUrl}}/api/v1/profile/password
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "oldPassword": "admin123",
+  "newPassword": "newpassword123"
+}

@@ -1,0 +1,27 @@
+-- Migration Down: Drop UniverseV2 PostgreSQL Schema
+
+DROP TABLE IF EXISTS display_devices CASCADE;
+DROP TABLE IF EXISTS audio_schedule_displays CASCADE;
+DROP TABLE IF EXISTS audio_schedules CASCADE;
+DROP TABLE IF EXISTS notifications CASCADE;
+DROP TABLE IF EXISTS prestasi_badges CASCADE;
+DROP TABLE IF EXISTS prestasi_scores CASCADE;
+DROP TABLE IF EXISTS fleet_allocation_operators CASCADE;
+DROP TABLE IF EXISTS fleet_allocations CASCADE;
+DROP TABLE IF EXISTS fleet_setting_units CASCADE;
+DROP TABLE IF EXISTS fleet_settings CASCADE;
+DROP TABLE IF EXISTS unit_status_histories CASCADE;
+DROP TABLE IF EXISTS unit_statuses CASCADE;
+DROP TABLE IF EXISTS ftw_logs CASCADE;
+DROP TABLE IF EXISTS attendance_logs CASCADE;
+DROP TABLE IF EXISTS roster_revisions CASCADE;
+DROP TABLE IF EXISTS roster_schedules CASCADE;
+DROP TABLE IF EXISTS roster_files CASCADE;
+DROP TABLE IF EXISTS units_db CASCADE;
+DROP TABLE IF EXISTS master_entries CASCADE;
+DROP TABLE IF EXISTS employee_competencies CASCADE;
+DROP TABLE IF EXISTS employees CASCADE;
+DROP TABLE IF EXISTS role_permissions CASCADE;
+DROP TABLE IF EXISTS user_roles CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS roles CASCADE;
