@@ -36,7 +36,7 @@ migrate-create:
 
 # Run database migrations
 migrate-up:
-	migrate -path migrations -database "postgres://localhost:5432/universev2?sslmode=disable" up
+	go run ./cmd/migrate
 
 # Rollback database migrations
 migrate-down:

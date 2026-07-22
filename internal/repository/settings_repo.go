@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"encoding/json"
+
 	"gorm.io/gorm"
 
 	"universev2-backend/internal/model"
@@ -12,6 +14,60 @@ type SettingsRepo struct {
 
 func NewSettingsRepo(db *gorm.DB) *SettingsRepo {
 	return &SettingsRepo{db: db}
+}
+
+type AppSettingsDB struct {
+	ID          string `gorm:"column:id;primaryKey"`
+	AppName     string `gorm:"column:app_name"`
+	AppEnv      string `gorm:"column:app_env"`
+	CompanyLogo string `gorm:"column:company_logo"`
+	Theme       string `gorm:"column:theme"`
+	Lang        string `gorm:"column:lang"`
+	MenuVisJSON string `gorm:"column:menu_vis_json"`
+}
+
+func (AppSettingsDB) TableName() string { return "app_settings" }
+
+func (r *SettingsRepo) GetAppSettings() (model.AppSettings, error) {
+	var dbRow AppSettingsDB
+	err := r.db.Where("id = ?", "default").First(&dbRow).Error
+	if err != nil {
+		defaultVis := map[string]bool{
+			"display": true, "roster": true, "employees": true, "ftw": true,
+			"asset": true, "prestasi": true, "master": true, "users": true, "settings": true,
+		}
+		return model.AppSettings{
+			AppName: "universev2-backend", AppEnv: "development", CompanyLogo: "",
+			Theme: "dark", Lang: "id", MenuVis: defaultVis,
+		}, nil
+	}
+
+	var menuVis map[string]bool
+	_ = json.Unmarshal([]byte(dbRow.MenuVisJSON), &menuVis)
+
+	return model.AppSettings{
+		AppName:     dbRow.AppName,
+		AppEnv:      dbRow.AppEnv,
+		CompanyLogo: dbRow.CompanyLogo,
+		Theme:       dbRow.Theme,
+		Lang:        dbRow.Lang,
+		MenuVis:     menuVis,
+	}, nil
+}
+
+func (r *SettingsRepo) UpdateAppSettings(s model.AppSettings) error {
+	visBytes, _ := json.Marshal(s.MenuVis)
+	dbRow := AppSettingsDB{
+		ID:          "default",
+		AppName:     s.AppName,
+		AppEnv:      s.AppEnv,
+		CompanyLogo: s.CompanyLogo,
+		Theme:       s.Theme,
+		Lang:        s.Lang,
+		MenuVisJSON: string(visBytes),
+	}
+
+	return r.db.Save(&dbRow).Error
 }
 
 // Audio Schedules

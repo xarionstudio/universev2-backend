@@ -3,6 +3,7 @@ package export
 import (
 	"bytes"
 	"fmt"
+	"time"
 
 	"github.com/xuri/excelize/v2"
 
@@ -15,7 +16,7 @@ func GenerateRosterExcel(key string, month string, dept string, rows []model.Ros
 	defer f.Close()
 
 	if month == "" {
-		month = "2026-07"
+		month = time.Now().Format("2006-01")
 	}
 	if dept == "" {
 		dept = "All Department"

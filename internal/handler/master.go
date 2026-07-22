@@ -18,6 +18,10 @@ func NewMasterHandler(repo *repository.MasterRepo) *MasterHandler {
 
 func (h *MasterHandler) GetMasterByCategory(c fiber.Ctx) error {
 	cat := c.Params("category")
+	if isTrimmedEmpty(cat) {
+		return response.Error(c, fiber.StatusBadRequest, "Category parameter is required")
+	}
+
 	entries, err := h.repo.GetByCategory(cat)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch master entries: "+err.Error())
@@ -27,10 +31,19 @@ func (h *MasterHandler) GetMasterByCategory(c fiber.Ctx) error {
 
 func (h *MasterHandler) CreateMasterEntry(c fiber.Ctx) error {
 	cat := c.Params("category")
+	if isTrimmedEmpty(cat) {
+		return response.Error(c, fiber.StatusBadRequest, "Category parameter is required")
+	}
+
 	var entry model.MdEntry
 	if err := c.Bind().JSON(&entry); err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}
+
+	if isTrimmedEmpty(entry.Name) {
+		return sendValidationError(c, "name", "Name is required")
+	}
+
 	entry.Cat = model.MdCat(cat)
 	if err := h.repo.Create(&entry); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to create master entry: "+err.Error())
@@ -40,10 +53,19 @@ func (h *MasterHandler) CreateMasterEntry(c fiber.Ctx) error {
 
 func (h *MasterHandler) UpdateMasterEntry(c fiber.Ctx) error {
 	id := c.Params("id")
+	if isTrimmedEmpty(id) {
+		return response.Error(c, fiber.StatusBadRequest, "Entry ID is required")
+	}
+
 	var entry model.MdEntry
 	if err := c.Bind().JSON(&entry); err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}
+
+	if isTrimmedEmpty(entry.Name) {
+		return sendValidationError(c, "name", "Name is required")
+	}
+
 	if err := h.repo.Update(id, &entry); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update master entry: "+err.Error())
 	}
@@ -52,6 +74,10 @@ func (h *MasterHandler) UpdateMasterEntry(c fiber.Ctx) error {
 
 func (h *MasterHandler) DeleteMasterEntry(c fiber.Ctx) error {
 	id := c.Params("id")
+	if isTrimmedEmpty(id) {
+		return response.Error(c, fiber.StatusBadRequest, "Entry ID is required")
+	}
+
 	if err := h.repo.Delete(id); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete master entry: "+err.Error())
 	}

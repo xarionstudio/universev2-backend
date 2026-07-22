@@ -22,13 +22,14 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
 	settingsRepo := repository.NewSettingsRepo(db)
 	prestasiRepo := repository.NewPrestasiRepo(db)
 	masterRepo := repository.NewMasterRepo(db)
+	attRepo := repository.NewAttendanceRepo(db)
 
 	// Initialize Handlers with Repositories
 	authH := handler.NewAuthHandler(cfg, userRepo, roleRepo)
 	empH := handler.NewEmployeeHandler(empRepo)
 	ftwH := handler.NewFitworkHandler(ftwRepo)
 	rosterH := handler.NewRosterHandler(rosterRepo)
-	attH := handler.NewAttendanceHandler()
+	attH := handler.NewAttendanceHandler(attRepo)
 	fleetH := handler.NewFleetHandler(fleetRepo)
 	prestasiH := handler.NewPrestasiHandler(prestasiRepo)
 	masterH := handler.NewMasterHandler(masterRepo)
@@ -36,8 +37,8 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
 	roleH := handler.NewRoleHandler(roleRepo)
 	notifH := handler.NewNotificationHandler(notifRepo)
 	settingsH := handler.NewSettingsHandler(settingsRepo)
-	fpH := handler.NewFingerprintHandler()
-	profileH := handler.NewProfileHandler()
+	fpH := handler.NewFingerprintHandler(cfg, settingsRepo)
+	profileH := handler.NewProfileHandler(userRepo)
 	weatherH := handler.NewWeatherHandler()
 
 	// API v1 group

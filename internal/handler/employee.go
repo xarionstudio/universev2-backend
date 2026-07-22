@@ -37,6 +37,10 @@ func (h *EmployeeHandler) GetEmployees(c fiber.Ctx) error {
 
 func (h *EmployeeHandler) GetEmployeeByNIK(c fiber.Ctx) error {
 	nik := c.Params("nik")
+	if !isValidNIK(nik) {
+		return sendValidationError(c, "nik", "NIK must be exactly 9 digits")
+	}
+
 	emp, err := h.repo.GetByNIK(nik)
 	if err != nil {
 		return response.Error(c, fiber.StatusNotFound, "Employee not found")
@@ -60,6 +64,18 @@ func (h *EmployeeHandler) CreateEmployee(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}
 
+	if !isValidNIK(emp.NIK) {
+		return sendValidationError(c, "nik", "NIK must be exactly 9 digits")
+	}
+	if isTrimmedEmpty(emp.Name) {
+		return sendValidationError(c, "name", "Name is required")
+	}
+
+	existing, _ := h.repo.GetByNIK(emp.NIK)
+	if existing != nil {
+		return response.Error(c, fiber.StatusConflict, "Employee with this NIK already exists")
+	}
+
 	newEmp := &model.Employee{
 		NIK: emp.NIK, Name: emp.Name, Dept: emp.Dept, Pos: emp.Pos,
 		Simper: emp.Simper, Status: emp.Status, Company: emp.Company,
@@ -73,10 +89,24 @@ func (h *EmployeeHandler) CreateEmployee(c fiber.Ctx) error {
 
 func (h *EmployeeHandler) UpdateEmployee(c fiber.Ctx) error {
 	nik := c.Params("nik")
+	if !isValidNIK(nik) {
+		return sendValidationError(c, "nik", "NIK must be exactly 9 digits")
+	}
+
+	existing, err := h.repo.GetByNIK(nik)
+	if err != nil || existing == nil {
+		return response.Error(c, fiber.StatusNotFound, "Employee not found")
+	}
+
 	var emp model.Employee
 	if err := c.Bind().JSON(&emp); err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}
+
+	if isTrimmedEmpty(emp.Name) {
+		return sendValidationError(c, "name", "Name is required")
+	}
+
 	if err := h.repo.Update(nik, &emp); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update employee: "+err.Error())
 	}
@@ -85,6 +115,15 @@ func (h *EmployeeHandler) UpdateEmployee(c fiber.Ctx) error {
 
 func (h *EmployeeHandler) DeleteEmployee(c fiber.Ctx) error {
 	nik := c.Params("nik")
+	if !isValidNIK(nik) {
+		return sendValidationError(c, "nik", "NIK must be exactly 9 digits")
+	}
+
+	existing, err := h.repo.GetByNIK(nik)
+	if err != nil || existing == nil {
+		return response.Error(c, fiber.StatusNotFound, "Employee not found")
+	}
+
 	if err := h.repo.Delete(nik); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete employee: "+err.Error())
 	}

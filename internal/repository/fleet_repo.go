@@ -1,6 +1,9 @@
 package repository
 
 import (
+	"fmt"
+	"time"
+
 	"gorm.io/gorm"
 
 	"universev2-backend/internal/model"
@@ -124,6 +127,38 @@ func (r *FleetRepo) GetAllocations(date, shift string) ([]model.FleetAlloc, erro
 	}
 	err := q.Order("id ASC").Find(&allocs).Error
 	return allocs, err
+}
+
+func (r *FleetRepo) AutoAllocate(date, shift string) error {
+	if date == "" {
+		date = time.Now().Format("2006-01-02")
+	}
+	if shift == "" {
+		shift = "siang"
+	}
+
+	fleets, err := r.GetFleetSettings()
+	if err != nil {
+		return err
+	}
+
+	for _, f := range fleets {
+		if !f.Active {
+			continue
+		}
+		allocID := fmt.Sprintf("alloc-%s-%s-%s", date, shift, f.ID)
+		alloc := model.FleetAlloc{
+			ID:     allocID,
+			Date:   date,
+			Shift:  shift,
+			FlID:   f.ID,
+			Digger: f.Digger,
+			Loc:    f.Loc,
+			Bus:    f.Bus,
+		}
+		r.db.Where("id = ?", allocID).FirstOrCreate(&alloc)
+	}
+	return nil
 }
 
 func (r *FleetRepo) GetUnitDB() ([]model.UnitDb, error) {

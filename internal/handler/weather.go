@@ -1,30 +1,54 @@
 package handler
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/gofiber/fiber/v3"
+
 	"universev2-backend/pkg/response"
 )
 
-type WeatherHandler struct{}
+type WeatherHandler struct {
+	client *http.Client
+}
 
 func NewWeatherHandler() *WeatherHandler {
-	return &WeatherHandler{}
+	return &WeatherHandler{
+		client: &http.Client{Timeout: 10 * time.Second},
+	}
 }
 
 func (h *WeatherHandler) GetCurrentWeather(c fiber.Ctx) error {
-	// Mock proxy response from Open-Meteo
-	data := fiber.Map{
-		"current": fiber.Map{
-			"temperature_2m": 31.5,
-			"relative_humidity_2m": 65,
-			"weather_code": 3,
-			"wind_speed_10m": 12.4,
-		},
-		"hourly": fiber.Map{
-			"time": []string{"2026-07-22T10:00", "2026-07-22T11:00"},
-			"temperature_2m": []float64{31.5, 32.1},
-			"precipitation_probability": []int{10, 20},
-		},
+	lat := c.Query("lat", "-0.5021")
+	lon := c.Query("lon", "117.1536")
+
+	url := fmt.Sprintf(
+		"https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&hourly=temperature_2m,precipitation_probability&timezone=Asia%%2FMakassar",
+		lat, lon,
+	)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to create weather request: "+err.Error())
 	}
-	return response.Success(c, fiber.StatusOK, "Success fetch weather", data)
+
+	resp, err := h.client.Do(req)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadGateway, "Weather service unavailable: "+err.Error())
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return response.Error(c, resp.StatusCode, "Weather API error response")
+	}
+
+	var data map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to parse weather data: "+err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Success fetch weather from Open-Meteo", data)
 }

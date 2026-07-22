@@ -85,6 +85,20 @@ func (r *UserRepo) Delete(id string) error {
 	return r.db.Where("id = ?", id).Delete(&model.User{}).Error
 }
 
+func (r *UserRepo) ExistsByEmail(email string) bool {
+	var count int64
+	r.db.Model(&model.User{}).Where("LOWER(email) = LOWER(?)", email).Count(&count)
+	return count > 0
+}
+
+func (r *UserRepo) UpdatePassword(id, hash, salt string) error {
+	return r.db.Model(&model.User{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"password_hash": hash,
+		"password_salt": salt,
+	}).Error
+}
+
+
 // RoleRepo
 
 type RoleRepo struct {
@@ -139,6 +153,28 @@ func (r *RoleRepo) Delete(id string) error {
 	r.db.Where("role_id = ?", id).Delete(&model.RolePermission{})
 	return r.db.Where("id = ?", id).Delete(&model.Role{}).Error
 }
+
+func (r *RoleRepo) GetByID(id string) (*model.Role, error) {
+	var role model.Role
+	if err := r.db.Where("id = ?", id).First(&role).Error; err != nil {
+		return nil, err
+	}
+	var perms []model.RolePermission
+	r.db.Where("role_id = ?", id).Find(&perms)
+	pMap := make(map[string]string)
+	for _, p := range perms {
+		pMap[p.ModuleName] = p.PermissionLevel
+	}
+	role.Perms = pMap
+	return &role, nil
+}
+
+func (r *RoleRepo) CountUsersByRoleID(roleID string) (int64, error) {
+	var count int64
+	err := r.db.Model(&model.UserRole{}).Where("role_id = ?", roleID).Count(&count).Error
+	return count, err
+}
+
 
 func (r *RoleRepo) GetPermissionsForRoles(roleIDs []string) (map[string]string, error) {
 	var perms []model.RolePermission

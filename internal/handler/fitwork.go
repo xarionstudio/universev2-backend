@@ -42,6 +42,13 @@ func (h *FitworkHandler) SubmitLog(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}
 
+	if isTrimmedEmpty(req.NIK) {
+		return sendValidationError(c, "nik", "NIK is required")
+	}
+	if isTrimmedEmpty(req.Shift) {
+		return sendValidationError(c, "shift", "Shift is required")
+	}
+
 	rec := &model.FTWRecord{
 		NIK: req.NIK, Shift: req.Shift, SleepMin: req.SleepMin,
 		Sleep: req.Sleep, SendTime: req.SendTime,
@@ -55,7 +62,7 @@ func (h *FitworkHandler) SubmitLog(c fiber.Ctx) error {
 
 func (h *FitworkHandler) GetHistory(c fiber.Ctx) error {
 	nik := c.Query("nik")
-	if nik == "" {
+	if isTrimmedEmpty(nik) {
 		return response.Error(c, fiber.StatusBadRequest, "Query parameter 'nik' is required")
 	}
 
