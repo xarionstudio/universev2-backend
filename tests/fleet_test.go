@@ -32,7 +32,7 @@ func TestFleetAndUnitsEndpoints(t *testing.T) {
 	})
 
 	t.Run("PUT /api/v1/fleet/settings/:id", func(t *testing.T) {
-		body, _ := json.Marshal(map[string]interface{}{"loc": "Panel West"})
+		body, _ := json.Marshal(map[string]interface{}{"digger": "EX5002", "loc": "Panel West"})
 		req := httptest.NewRequest("PUT", "/api/v1/fleet/settings/fl-EX5002", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
@@ -61,7 +61,9 @@ func TestFleetAndUnitsEndpoints(t *testing.T) {
 	})
 
 	t.Run("POST /api/v1/fleet/allocations/auto", func(t *testing.T) {
-		req := httptest.NewRequest("POST", "/api/v1/fleet/allocations/auto", nil)
+		body, _ := json.Marshal(map[string]string{"date": "2026-07-23", "shift": "pagi"})
+		req := httptest.NewRequest("POST", "/api/v1/fleet/allocations/auto", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -141,7 +143,7 @@ func TestFleetAndUnitsEndpoints(t *testing.T) {
 	})
 
 	t.Run("DELETE /api/v1/units/db", func(t *testing.T) {
-		req := httptest.NewRequest("DELETE", "/api/v1/units/db", nil)
+		req := httptest.NewRequest("DELETE", "/api/v1/units/db?id=DT9999", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {

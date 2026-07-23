@@ -22,7 +22,14 @@ func TestAuthEndpoints(t *testing.T) {
 	})
 
 	t.Run("POST /api/v1/auth/register", func(t *testing.T) {
-		body, _ := json.Marshal(map[string]string{"email": "newuser@unggul.co.id", "name": "New User"})
+		body, _ := json.Marshal(map[string]string{
+			"email":    "newuser@unggul.co.id",
+			"name":     "New User",
+			"nik":      "503264111",
+			"password": "password1",
+			"dept":     "Operation",
+			"pos":      "Operator",
+		})
 		req := httptest.NewRequest("POST", "/api/v1/auth/register", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		resp, _ := app.Test(req)
@@ -33,6 +40,7 @@ func TestAuthEndpoints(t *testing.T) {
 
 	t.Run("POST /api/v1/auth/refresh", func(t *testing.T) {
 		req := httptest.NewRequest("POST", "/api/v1/auth/refresh", nil)
+		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected 200, got %d", resp.StatusCode)
@@ -73,7 +81,11 @@ func TestProfileEndpoints(t *testing.T) {
 	})
 
 	t.Run("PUT /api/v1/profile/password", func(t *testing.T) {
-		body, _ := json.Marshal(map[string]string{"oldPassword": "admin123", "newPassword": "newpassword123"})
+		body, _ := json.Marshal(map[string]string{
+			"oldPassword":     "admin123",
+			"newPassword":     "newpassword1",
+			"confirmPassword": "newpassword1",
+		})
 		req := httptest.NewRequest("PUT", "/api/v1/profile/password", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)

@@ -43,6 +43,9 @@ func (h *FleetHandler) UpdateUnitStatus(c fiber.Ctx) error {
 	if isTrimmedEmpty(string(req.Status)) {
 		return sendValidationError(c, "status", "Status is required")
 	}
+	if req.Status != model.UnitStatusReady && req.Status != model.UnitStatusBreakdown && req.Status != model.UnitStatusStandby {
+		return sendValidationError(c, "status", "Status must be one of: ready, breakdown, standby")
+	}
 
 	if err := h.repo.UpdateUnitStatus(code, req.Status, req.Note); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update unit status: "+err.Error())
@@ -175,7 +178,16 @@ func (h *FleetHandler) AutoAllocate(c fiber.Ctx) error {
 		Date  string `json:"date"`
 		Shift string `json:"shift"`
 	}
-	_ = c.Bind().JSON(&req)
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
+	}
+
+	if isTrimmedEmpty(req.Date) {
+		return sendValidationError(c, "date", "Date is required")
+	}
+	if isTrimmedEmpty(req.Shift) {
+		return sendValidationError(c, "shift", "Shift is required")
+	}
 
 	if err := h.repo.AutoAllocate(req.Date, req.Shift); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to auto allocate fleets: "+err.Error())

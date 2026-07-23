@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"strings"
+
 	"github.com/gofiber/fiber/v3"
 
 	"universev2-backend/internal/model"
@@ -141,6 +143,10 @@ func (h *EmployeeHandler) GetCompetencies(c fiber.Ctx) error {
 
 func (h *EmployeeHandler) UpdateCompetencies(c fiber.Ctx) error {
 	nik := c.Params("nik")
+	if !isValidNIK(nik) {
+		return sendValidationError(c, "nik", "NIK must be exactly 9 digits")
+	}
+
 	var comps []model.Competency
 	if err := c.Bind().JSON(&comps); err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
@@ -153,18 +159,34 @@ func (h *EmployeeHandler) UpdateCompetencies(c fiber.Ctx) error {
 
 func (h *EmployeeHandler) UploadPhoto(c fiber.Ctx) error {
 	nik := c.Params("nik")
+	if !isValidNIK(nik) {
+		return sendValidationError(c, "nik", "NIK must be exactly 9 digits")
+	}
+
 	file, err := c.FormFile("photo")
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Photo file is required")
 	}
 
 	// Validate file type
-	if file.Header.Get("Content-Type") != "image/jpeg" && file.Header.Get("Content-Type") != "image/png" {
+	contentType := file.Header.Get("Content-Type")
+	if contentType != "image/jpeg" && contentType != "image/png" {
 		return response.Error(c, fiber.StatusBadRequest, "Only JPEG and PNG files are allowed")
 	}
 
+	// Validate file size (max 5MB)
+	const maxFileSize = 5 << 20 // 5MB
+	if file.Size > maxFileSize {
+		return response.Error(c, fiber.StatusBadRequest, "File size exceeds maximum limit of 5MB")
+	}
+
+	// Sanitize filename to prevent path traversal
+	safeFilename := strings.ReplaceAll(file.Filename, "..", "")
+	safeFilename = strings.ReplaceAll(safeFilename, "/", "")
+	safeFilename = strings.ReplaceAll(safeFilename, "\\", "")
+
 	// Save to uploads directory
-	photoPath := "uploads/photos/" + nik + "_" + file.Filename
+	photoPath := "uploads/photos/" + nik + "_" + safeFilename
 	if err := c.SaveFile(file, photoPath); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to save photo: "+err.Error())
 	}

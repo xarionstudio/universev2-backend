@@ -29,12 +29,21 @@ func TestRostersAndAttendanceEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("POST /api/v1/rosters/upload", func(t *testing.T) {
-		req := httptest.NewRequest("POST", "/api/v1/rosters/upload", nil)
+	t.Run("GET /api/v1/rosters/:key/detail", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/v1/rosters/jul/detail", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected 200, got %d", resp.StatusCode)
+		}
+	})
+
+	t.Run("POST /api/v1/rosters/upload - missing file returns 400", func(t *testing.T) {
+		req := httptest.NewRequest("POST", "/api/v1/rosters/upload", nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		resp, _ := app.Test(req)
+		if resp.StatusCode != http.StatusBadRequest {
+			t.Errorf("Expected 400 (missing file), got %d", resp.StatusCode)
 		}
 	})
 
@@ -57,7 +66,7 @@ func TestRostersAndAttendanceEndpoints(t *testing.T) {
 	})
 
 	t.Run("POST /api/v1/rosters/revisions/batch", func(t *testing.T) {
-		body, _ := json.Marshal(map[string]interface{}{"revisions": []interface{}{}})
+		body, _ := json.Marshal(map[string]interface{}{"sid": "SID-001", "revisions": []interface{}{}})
 		req := httptest.NewRequest("POST", "/api/v1/rosters/revisions/batch", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)

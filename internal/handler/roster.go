@@ -157,6 +157,11 @@ func (h *RosterHandler) SubmitBatchRevision(c fiber.Ctx) error {
 	if err := c.Bind().JSON(&rev); err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}
+
+	if isTrimmedEmpty(rev.SubmissionID) {
+		return sendValidationError(c, "sid", "Submission ID is required")
+	}
+
 	rev.Status = "pending"
 	if err := h.repo.CreateRevision(&rev); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to submit revision: "+err.Error())
@@ -166,7 +171,11 @@ func (h *RosterHandler) SubmitBatchRevision(c fiber.Ctx) error {
 
 func (h *RosterHandler) DeleteRevision(c fiber.Ctx) error {
 	idStr := c.Params("id")
-	id, _ := strconv.Atoi(idStr)
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid revision ID")
+	}
+
 	if err := h.repo.DeleteRevision(id); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete revision: "+err.Error())
 	}
@@ -175,7 +184,11 @@ func (h *RosterHandler) DeleteRevision(c fiber.Ctx) error {
 
 func (h *RosterHandler) ApproveRevision(c fiber.Ctx) error {
 	idStr := c.Params("id")
-	id, _ := strconv.Atoi(idStr)
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid revision ID")
+	}
+
 	if err := h.repo.ApproveRevision(id, "Disetujui oleh Supervisor", "Approved by Supervisor"); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to approve revision: "+err.Error())
 	}
@@ -184,11 +197,18 @@ func (h *RosterHandler) ApproveRevision(c fiber.Ctx) error {
 
 func (h *RosterHandler) ApproveRevisionWithNote(c fiber.Ctx) error {
 	idStr := c.Params("id")
-	id, _ := strconv.Atoi(idStr)
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid revision ID")
+	}
+
 	var req struct {
 		Note string `json:"note"`
 	}
-	_ = c.Bind().JSON(&req)
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
+	}
+
 	note := req.Note
 	if note == "" {
 		note = "Disetujui dengan catatan"
@@ -201,7 +221,11 @@ func (h *RosterHandler) ApproveRevisionWithNote(c fiber.Ctx) error {
 
 func (h *RosterHandler) RejectRevision(c fiber.Ctx) error {
 	idStr := c.Params("id")
-	id, _ := strconv.Atoi(idStr)
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid revision ID")
+	}
+
 	if err := h.repo.RejectRevision(id, "Ditolak", "Rejected"); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to reject revision: "+err.Error())
 	}

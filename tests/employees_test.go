@@ -59,4 +59,39 @@ func TestEmployeesEndpoints(t *testing.T) {
 			t.Errorf("Expected 200, got %d", resp.StatusCode)
 		}
 	})
+
+	t.Run("GET /api/v1/employees/:nik/competencies", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/v1/employees/503264133/competencies", nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		resp, _ := app.Test(req)
+		if resp.StatusCode != http.StatusOK {
+			t.Errorf("Expected 200, got %d", resp.StatusCode)
+		}
+	})
+
+	t.Run("PUT /api/v1/employees/:nik/competencies", func(t *testing.T) {
+		body, _ := json.Marshal([]interface{}{
+			map[string]interface{}{
+				"type":     "simper",
+				"category": "A",
+				"expiry":   "2026-12-31",
+			},
+		})
+		req := httptest.NewRequest("PUT", "/api/v1/employees/503264133/competencies", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+token)
+		resp, _ := app.Test(req)
+		if resp.StatusCode != http.StatusOK {
+			t.Errorf("Expected 200, got %d", resp.StatusCode)
+		}
+	})
+
+	t.Run("POST /api/v1/employees/:nik/photo - missing file returns 400", func(t *testing.T) {
+		req := httptest.NewRequest("POST", "/api/v1/employees/503264133/photo", nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		resp, _ := app.Test(req)
+		if resp.StatusCode != http.StatusBadRequest {
+			t.Errorf("Expected 400 (missing file), got %d", resp.StatusCode)
+		}
+	})
 }

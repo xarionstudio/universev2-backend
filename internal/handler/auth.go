@@ -62,6 +62,9 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 	if isTrimmedEmpty(req.Email) || req.Password == "" {
 		return response.Error(c, fiber.StatusBadRequest, "Email and password are required")
 	}
+	if !isValidEmail(req.Email) {
+		return sendValidationError(c, "email", "Invalid email format")
+	}
 
 	if h.userRepo == nil {
 		return response.Error(c, fiber.StatusInternalServerError, "User repository unavailable")
@@ -121,8 +124,8 @@ func (h *AuthHandler) Register(c fiber.Ctx) error {
 	if isTrimmedEmpty(req.Name) {
 		return sendValidationError(c, "name", "Name is required")
 	}
-	if isTrimmedEmpty(req.NIK) {
-		return sendValidationError(c, "nik", "NIK is required")
+	if !isValidNIK(req.NIK) {
+		return sendValidationError(c, "nik", "NIK must be exactly 9 digits")
 	}
 	if isTrimmedEmpty(req.Dept) {
 		return sendValidationError(c, "dept", "Department is required")
@@ -135,6 +138,15 @@ func (h *AuthHandler) Register(c fiber.Ctx) error {
 	}
 	if !isPasswordStrong(req.Password) {
 		return sendValidationError(c, "password", "Password must be at least 8 characters and contain both letters and numbers")
+	}
+	if len(req.Password) > 72 {
+		return sendValidationError(c, "password", "Password must not exceed 72 characters")
+	}
+	if len(req.Name) > 100 {
+		return sendValidationError(c, "name", "Name must not exceed 100 characters")
+	}
+	if len(req.NIK) > 9 {
+		return sendValidationError(c, "nik", "NIK must not exceed 9 characters")
 	}
 
 	if h.userRepo.ExistsByEmail(req.Email) {

@@ -88,7 +88,7 @@ func TestNotificationsAndSettings(t *testing.T) {
 	})
 
 	t.Run("PUT /api/v1/settings/displays/:id", func(t *testing.T) {
-		body, _ := json.Marshal(map[string]string{"name": "TV Gate Selatan"})
+		body, _ := json.Marshal(map[string]string{"name": "TV Gate Selatan", "loc": "Gate Selatan"})
 		req := httptest.NewRequest("PUT", "/api/v1/settings/displays/DSP-A01", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
@@ -118,6 +118,37 @@ func TestNotificationsAndSettings(t *testing.T) {
 
 	t.Run("GET /api/v1/fingerprint/devices", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/api/v1/fingerprint/devices", nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		resp, _ := app.Test(req)
+		if resp.StatusCode != http.StatusOK {
+			t.Errorf("Expected 200, got %d", resp.StatusCode)
+		}
+	})
+
+	t.Run("POST /api/v1/settings/audio", func(t *testing.T) {
+		body, _ := json.Marshal(map[string]string{"title": "Morning Bell", "when": "07:00"})
+		req := httptest.NewRequest("POST", "/api/v1/settings/audio", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+token)
+		resp, _ := app.Test(req)
+		if resp.StatusCode != http.StatusCreated {
+			t.Errorf("Expected 201, got %d", resp.StatusCode)
+		}
+	})
+
+	t.Run("PUT /api/v1/settings/audio/:id", func(t *testing.T) {
+		body, _ := json.Marshal(map[string]string{"title": "Updated Bell", "when": "08:00"})
+		req := httptest.NewRequest("PUT", "/api/v1/settings/audio/audio-1", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+token)
+		resp, _ := app.Test(req)
+		if resp.StatusCode != http.StatusOK {
+			t.Errorf("Expected 200, got %d", resp.StatusCode)
+		}
+	})
+
+	t.Run("DELETE /api/v1/settings/audio/:id", func(t *testing.T) {
+		req := httptest.NewRequest("DELETE", "/api/v1/settings/audio/audio-1", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
