@@ -158,7 +158,16 @@ func (h *FleetHandler) GetAllocations(c fiber.Ctx) error {
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch allocations: "+err.Error())
 	}
-	return response.Success(c, fiber.StatusOK, "Success fetch allocations", allocs)
+
+	// Transform to FE FaAlloc format: { "2026-07-23": { "pagi": { "EX7001": "503264133", ... }, "malam": { ... } } }
+	result := make(model.FleetAllocResponse)
+	for _, a := range allocs {
+		if result[a.Date] == nil {
+			result[a.Date] = make(map[string]map[string]string)
+		}
+		result[a.Date][a.Shift] = a.Units
+	}
+	return response.Success(c, fiber.StatusOK, "Success fetch allocations", result)
 }
 
 func (h *FleetHandler) AutoAllocate(c fiber.Ctx) error {

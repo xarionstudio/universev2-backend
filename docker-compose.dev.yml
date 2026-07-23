@@ -1,0 +1,17 @@
+# Development overrides for docker compose
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+services:
+  backend:
+    build:
+      args:
+        APP_ENV: development
+    environment:
+      APP_ENV: development
+      LOG_LEVEL: debug
+    volumes:
+      # Hot-reload: mount source code so changes reflect immediately
+      - .:/app
+      # Exclude binary dir from mount to not overwrite the compiled binary
+      - /app/bin
+    # Override command to use air for hot reload
+    command: air

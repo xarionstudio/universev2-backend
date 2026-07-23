@@ -24,6 +24,9 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
 	masterRepo := repository.NewMasterRepo(db)
 	attRepo := repository.NewAttendanceRepo(db)
 
+	// Initialize RBAC Middleware
+	rbac := middleware.NewRBACMiddleware(roleRepo)
+
 	// Initialize Handlers with Repositories
 	authH := handler.NewAuthHandler(cfg, userRepo, roleRepo)
 	empH := handler.NewEmployeeHandler(empRepo)
@@ -64,88 +67,97 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
 	protected.Get("/weather/current", weatherH.GetCurrentWeather)
 
 	// Employees module
-	empGroup := protected.Group("/employees", middleware.RequirePermission("employees", "view"))
+	empGroup := protected.Group("/employees", rbac.RequirePermission("employees", "view"))
 	empGroup.Get("/", empH.GetEmployees)
 	empGroup.Get("/:nik", empH.GetEmployeeByNIK)
-	empGroup.Post("/", middleware.RequirePermission("employees", "manage"), empH.CreateEmployee)
-	empGroup.Put("/:nik", middleware.RequirePermission("employees", "manage"), empH.UpdateEmployee)
-	empGroup.Delete("/:nik", middleware.RequirePermission("employees", "manage"), empH.DeleteEmployee)
+	empGroup.Post("/", rbac.RequirePermission("employees", "manage"), empH.CreateEmployee)
+	empGroup.Put("/:nik", rbac.RequirePermission("employees", "manage"), empH.UpdateEmployee)
+	empGroup.Delete("/:nik", rbac.RequirePermission("employees", "manage"), empH.DeleteEmployee)
+
+	// Employee competencies
+	empGroup.Get("/:nik/competencies", rbac.RequirePermission("employees", "view"), empH.GetCompetencies)
+	empGroup.Put("/:nik/competencies", rbac.RequirePermission("employees", "manage"), empH.UpdateCompetencies)
+
+	// Employee photo
+	empGroup.Post("/:nik/photo", rbac.RequirePermission("employees", "manage"), empH.UploadPhoto)
 
 	// Fit To Work module
-	ftwGroup := protected.Group("/ftw", middleware.RequirePermission("ftw", "view"))
+	ftwGroup := protected.Group("/ftw", rbac.RequirePermission("ftw", "view"))
 	ftwGroup.Get("/today", ftwH.GetTodayLog)
 	ftwGroup.Get("/history", ftwH.GetHistory)
-	ftwGroup.Post("/submit", middleware.RequirePermission("ftw", "manage"), ftwH.SubmitLog)
+	ftwGroup.Post("/submit", rbac.RequirePermission("ftw", "manage"), ftwH.SubmitLog)
 
 	// Roster module
-	rosterGroup := protected.Group("/rosters", middleware.RequirePermission("roster", "view"))
+	rosterGroup := protected.Group("/rosters", rbac.RequirePermission("roster", "view"))
 	rosterGroup.Get("/", rosterH.GetRosters)
 	rosterGroup.Get("/:key/export", rosterH.ExportRoster)
-	rosterGroup.Post("/upload", middleware.RequirePermission("roster", "manage"), rosterH.UploadRoster)
+	rosterGroup.Get("/:key/detail", rosterH.GetRosterDetail)
+	rosterGroup.Post("/upload", rbac.RequirePermission("roster", "manage"), rosterH.UploadRoster)
 
 	rosterGroup.Get("/revisions", rosterH.GetRevisions)
 	rosterGroup.Get("/revisions/codes", rosterH.GetRevisionCodes)
-	rosterGroup.Post("/revisions/batch", middleware.RequirePermission("roster", "manage"), rosterH.SubmitBatchRevision)
-	rosterGroup.Delete("/revisions/:id", middleware.RequirePermission("roster", "manage"), rosterH.DeleteRevision)
+	rosterGroup.Post("/revisions/batch", rbac.RequirePermission("roster", "manage"), rosterH.SubmitBatchRevision)
+	rosterGroup.Delete("/revisions/:id", rbac.RequirePermission("roster", "manage"), rosterH.DeleteRevision)
 
-	rosterGroup.Put("/approvals/:id/approve", middleware.RequirePermission("roster", "manage"), rosterH.ApproveRevision)
-	rosterGroup.Patch("/approvals/:id/note", middleware.RequirePermission("roster", "manage"), rosterH.ApproveRevisionWithNote)
-	rosterGroup.Put("/approvals/:id/reject", middleware.RequirePermission("roster", "manage"), rosterH.RejectRevision)
+	rosterGroup.Put("/approvals/:id/approve", rbac.RequirePermission("roster", "manage"), rosterH.ApproveRevision)
+	rosterGroup.Patch("/approvals/:id/note", rbac.RequirePermission("roster", "manage"), rosterH.ApproveRevisionWithNote)
+	rosterGroup.Put("/approvals/:id/reject", rbac.RequirePermission("roster", "manage"), rosterH.RejectRevision)
 
 	rosterGroup.Get("/attendance", rosterH.GetAttendance)
 
 	// Standalone Attendance module
-	attGroup := protected.Group("/attendance", middleware.RequirePermission("roster", "view"))
+	attGroup := protected.Group("/attendance", rbac.RequirePermission("roster", "view"))
 	attGroup.Get("/today", attH.GetAttendanceToday)
 	attGroup.Get("/date", attH.GetAttendanceByDate)
 	attGroup.Get("/range", attH.GetAttendanceRange)
-	attGroup.Post("/checkin", middleware.RequirePermission("roster", "manage"), attH.RecordCheckIn)
-	attGroup.Post("/checkout", middleware.RequirePermission("roster", "manage"), attH.RecordCheckOut)
+	attGroup.Post("/checkin", rbac.RequirePermission("roster", "manage"), attH.RecordCheckIn)
+	attGroup.Post("/checkout", rbac.RequirePermission("roster", "manage"), attH.RecordCheckOut)
 
 	// Assets / Fleet module
-	fleetGroup := protected.Group("/fleet", middleware.RequirePermission("asset", "view"))
+	fleetGroup := protected.Group("/fleet", rbac.RequirePermission("asset", "view"))
 	fleetGroup.Get("/settings", fleetH.GetFleetSettings)
-	fleetGroup.Post("/settings", middleware.RequirePermission("asset", "manage"), fleetH.CreateFleetSetting)
-	fleetGroup.Put("/settings/:id", middleware.RequirePermission("asset", "manage"), fleetH.UpdateFleetSetting)
-	fleetGroup.Delete("/settings/:id", middleware.RequirePermission("asset", "manage"), fleetH.DeleteFleetSetting)
+	fleetGroup.Post("/settings", rbac.RequirePermission("asset", "manage"), fleetH.CreateFleetSetting)
+	fleetGroup.Put("/settings/:id", rbac.RequirePermission("asset", "manage"), fleetH.UpdateFleetSetting)
+	fleetGroup.Delete("/settings/:id", rbac.RequirePermission("asset", "manage"), fleetH.DeleteFleetSetting)
 
 	fleetGroup.Get("/allocations", fleetH.GetAllocations)
-	fleetGroup.Post("/allocations/auto", middleware.RequirePermission("asset", "manage"), fleetH.AutoAllocate)
+	fleetGroup.Post("/allocations/auto", rbac.RequirePermission("asset", "manage"), fleetH.AutoAllocate)
 
-	protected.Get("/units/status", middleware.RequirePermission("asset", "view"), fleetH.GetUnitStatuses)
-	protected.Put("/units/:code/status", middleware.RequirePermission("asset", "manage"), fleetH.UpdateUnitStatus)
-	protected.Post("/units/:code/status-report", middleware.RequirePermission("asset", "manage"), fleetH.ReportUnitBreakdown)
-	protected.Get("/units/:code/history", middleware.RequirePermission("asset", "view"), fleetH.GetUnitHistory)
+	protected.Get("/units/status", rbac.RequirePermission("asset", "view"), fleetH.GetUnitStatuses)
+	protected.Put("/units/:code/status", rbac.RequirePermission("asset", "manage"), fleetH.UpdateUnitStatus)
+	protected.Post("/units/:code/status-report", rbac.RequirePermission("asset", "manage"), fleetH.ReportUnitBreakdown)
+	protected.Get("/units/:code/history", rbac.RequirePermission("asset", "view"), fleetH.GetUnitHistory)
 
 	// Unit DB inside Assets
-	protected.Get("/units/db", middleware.RequirePermission("asset", "view"), fleetH.GetUnitDB)
-	protected.Post("/units/db", middleware.RequirePermission("asset", "manage"), fleetH.CreateUnitDB)
-	protected.Put("/units/db", middleware.RequirePermission("asset", "manage"), fleetH.UpdateUnitDB)
-	protected.Delete("/units/db", middleware.RequirePermission("asset", "manage"), fleetH.DeleteUnitDB)
+	protected.Get("/units/db", rbac.RequirePermission("asset", "view"), fleetH.GetUnitDB)
+	protected.Post("/units/db", rbac.RequirePermission("asset", "manage"), fleetH.CreateUnitDB)
+	protected.Put("/units/db", rbac.RequirePermission("asset", "manage"), fleetH.UpdateUnitDB)
+	protected.Delete("/units/db", rbac.RequirePermission("asset", "manage"), fleetH.DeleteUnitDB)
 
 	// Prestasi module
-	prestasiGroup := protected.Group("/prestasi", middleware.RequirePermission("prestasi", "view"))
+	prestasiGroup := protected.Group("/prestasi", rbac.RequirePermission("prestasi", "view"))
 	prestasiGroup.Get("/leaderboard", prestasiH.GetLeaderboard)
+	prestasiGroup.Get("/:nik/history", prestasiH.GetOperatorHistory)
 
 	// Master Data module
-	masterGroup := protected.Group("/master", middleware.RequirePermission("master", "view"))
+	masterGroup := protected.Group("/master", rbac.RequirePermission("master", "view"))
 	masterGroup.Get("/:category", masterH.GetMasterByCategory)
-	masterGroup.Post("/:category", middleware.RequirePermission("master", "manage"), masterH.CreateMasterEntry)
-	masterGroup.Put("/:category/:id", middleware.RequirePermission("master", "manage"), masterH.UpdateMasterEntry)
-	masterGroup.Delete("/:category/:id", middleware.RequirePermission("master", "manage"), masterH.DeleteMasterEntry)
+	masterGroup.Post("/:category", rbac.RequirePermission("master", "manage"), masterH.CreateMasterEntry)
+	masterGroup.Put("/:category/:id", rbac.RequirePermission("master", "manage"), masterH.UpdateMasterEntry)
+	masterGroup.Delete("/:category/:id", rbac.RequirePermission("master", "manage"), masterH.DeleteMasterEntry)
 
 	// User & Role Management module
-	userGroup := protected.Group("/users", middleware.RequirePermission("users", "view"))
+	userGroup := protected.Group("/users", rbac.RequirePermission("users", "view"))
 	userGroup.Get("/", userH.GetUsers)
-	userGroup.Post("/", middleware.RequirePermission("users", "manage"), userH.CreateUser)
-	userGroup.Put("/:id", middleware.RequirePermission("users", "manage"), userH.UpdateUser)
-	userGroup.Delete("/:id", middleware.RequirePermission("users", "manage"), userH.DeleteUser)
+	userGroup.Post("/", rbac.RequirePermission("users", "manage"), userH.CreateUser)
+	userGroup.Put("/:id", rbac.RequirePermission("users", "manage"), userH.UpdateUser)
+	userGroup.Delete("/:id", rbac.RequirePermission("users", "manage"), userH.DeleteUser)
 
-	roleGroup := protected.Group("/roles", middleware.RequirePermission("users", "view"))
+	roleGroup := protected.Group("/roles", rbac.RequirePermission("users", "view"))
 	roleGroup.Get("/", roleH.GetRoles)
-	roleGroup.Post("/", middleware.RequirePermission("users", "manage"), roleH.CreateRole)
-	roleGroup.Put("/:id", middleware.RequirePermission("users", "manage"), roleH.UpdateRole)
-	roleGroup.Delete("/:id", middleware.RequirePermission("users", "manage"), roleH.DeleteRole)
+	roleGroup.Post("/", rbac.RequirePermission("users", "manage"), roleH.CreateRole)
+	roleGroup.Put("/:id", rbac.RequirePermission("users", "manage"), roleH.UpdateRole)
+	roleGroup.Delete("/:id", rbac.RequirePermission("users", "manage"), roleH.DeleteRole)
 
 	// Notifications
 	notifGroup := protected.Group("/notifications")
@@ -154,19 +166,19 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
 	notifGroup.Put("/read-all", notifH.MarkAllRead)
 
 	// Settings & Display TV
-	settingsGroup := protected.Group("/settings", middleware.RequirePermission("settings", "view"))
+	settingsGroup := protected.Group("/settings", rbac.RequirePermission("settings", "view"))
 	settingsGroup.Get("/", settingsH.GetSettings)
-	settingsGroup.Put("/", middleware.RequirePermission("settings", "manage"), settingsH.UpdateSettings)
+	settingsGroup.Put("/", rbac.RequirePermission("settings", "manage"), settingsH.UpdateSettings)
 
 	settingsGroup.Get("/audio", settingsH.GetAudioSchedules)
-	settingsGroup.Post("/audio", middleware.RequirePermission("settings", "manage"), settingsH.CreateAudioSchedule)
-	settingsGroup.Put("/audio/:id", middleware.RequirePermission("settings", "manage"), settingsH.UpdateAudioSchedule)
-	settingsGroup.Delete("/audio/:id", middleware.RequirePermission("settings", "manage"), settingsH.DeleteAudioSchedule)
+	settingsGroup.Post("/audio", rbac.RequirePermission("settings", "manage"), settingsH.CreateAudioSchedule)
+	settingsGroup.Put("/audio/:id", rbac.RequirePermission("settings", "manage"), settingsH.UpdateAudioSchedule)
+	settingsGroup.Delete("/audio/:id", rbac.RequirePermission("settings", "manage"), settingsH.DeleteAudioSchedule)
 
 	settingsGroup.Get("/displays", settingsH.GetDisplays)
-	settingsGroup.Post("/displays", middleware.RequirePermission("settings", "manage"), settingsH.CreateDisplay)
-	settingsGroup.Put("/displays/:id", middleware.RequirePermission("settings", "manage"), settingsH.UpdateDisplay)
-	settingsGroup.Delete("/displays/:id", middleware.RequirePermission("settings", "manage"), settingsH.DeleteDisplay)
+	settingsGroup.Post("/displays", rbac.RequirePermission("settings", "manage"), settingsH.CreateDisplay)
+	settingsGroup.Put("/displays/:id", rbac.RequirePermission("settings", "manage"), settingsH.UpdateDisplay)
+	settingsGroup.Delete("/displays/:id", rbac.RequirePermission("settings", "manage"), settingsH.DeleteDisplay)
 
 	// Display Heartbeat
 	api.Get("/displays/:id/heartbeat", settingsH.GetDisplayHeartbeat)

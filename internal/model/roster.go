@@ -11,7 +11,7 @@ type RosterMeta struct {
 	Emp       string    `json:"emp" gorm:"column:total_employees"`
 	Rows      string    `json:"rows" gorm:"column:total_rows"`
 	By        string    `json:"by" gorm:"column:created_by"`
-	Date      string    `json:"date" gorm:"-"`
+	Date      string    `json:"date" gorm:"column:date_iso"`
 	DateISO   string    `json:"dateISO" gorm:"column:date_iso"`
 	Status    string    `json:"status" gorm:"column:status"`
 	CreatedAt time.Time `json:"createdAt" gorm:"column:created_at"`
@@ -47,17 +47,17 @@ type RosterSchedule struct {
 func (RosterSchedule) TableName() string { return "roster_schedules" }
 
 type AttendanceRow struct {
-	ID    uint   `json:"-" gorm:"primaryKey;autoIncrement"`
-	Name  string `json:"name" gorm:"-"`
-	NIK   string `json:"nik" gorm:"column:employee_nik"`
-	Dept  string `json:"dept" gorm:"-"`
-	Code  string `json:"code" gorm:"column:shift_code"`
-	In    string `json:"in" gorm:"column:check_in"`
-	InM   string `json:"inM" gorm:"column:check_in_machine"`
-	Out   string `json:"out" gorm:"column:check_out"`
-	OutM  string `json:"outM" gorm:"column:check_out_machine"`
-	St    string `json:"st" gorm:"column:status"`
-	Date  string `json:"date,omitempty" gorm:"column:attendance_date"`
+	ID   uint   `json:"-" gorm:"primaryKey;autoIncrement"`
+	Name string `json:"name" gorm:"-"`
+	NIK  string `json:"nik" gorm:"column:employee_nik"`
+	Dept string `json:"dept" gorm:"-"`
+	Code string `json:"code" gorm:"column:shift_code"`
+	In   string `json:"in" gorm:"column:check_in"`
+	InM  string `json:"inM" gorm:"column:check_in_machine"`
+	Out  string `json:"out" gorm:"column:check_out"`
+	OutM string `json:"outM" gorm:"column:check_out_machine"`
+	St   string `json:"st" gorm:"column:status"`
+	Date string `json:"date,omitempty" gorm:"column:attendance_date"`
 }
 
 func (AttendanceRow) TableName() string { return "attendance_logs" }

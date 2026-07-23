@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -25,6 +27,19 @@ func main() {
 		log.Printf("[Warning] Database connection failed: %v.", err)
 	}
 
+	// Run migrations automatically
+	if db != nil {
+		cwd, _ := os.Getwd()
+		migrationsDir := filepath.Join(cwd, "migrations")
+		if _, err := os.Stat(migrationsDir); os.IsNotExist(err) {
+			migrationsDir = "../migrations"
+		}
+		log.Printf("[Server] Running migrations from %s ...", migrationsDir)
+		if err := database.RunMigrations(db, migrationsDir); err != nil {
+			log.Printf("[Warning] Migration failed: %v", err)
+		}
+	}
+
 	app := fiber.New(fiber.Config{
 		AppName: cfg.AppName,
 	})
@@ -32,7 +47,7 @@ func main() {
 	app.Use(recover.New())
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: []string{cfg.CORSAllowedOrigins, "*"},
+		AllowOrigins: []string{cfg.CORSAllowedOrigins},
 		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization"},
 	}))

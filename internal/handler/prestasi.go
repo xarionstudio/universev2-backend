@@ -27,3 +27,15 @@ func (h *PrestasiHandler) GetLeaderboard(c fiber.Ctx) error {
 	}
 	return response.Success(c, fiber.StatusOK, "Success fetch leaderboard", records)
 }
+
+func (h *PrestasiHandler) GetOperatorHistory(c fiber.Ctx) error {
+	nik := c.Params("nik")
+	daysStr := c.Query("days", "90")
+	days, _ := strconv.Atoi(daysStr)
+
+	history, err := h.repo.GetOperatorHistory(nik, days)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch operator history: "+err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Success fetch operator history", history)
+}

@@ -50,6 +50,15 @@ func (r *AttendanceRepo) GetLogsByDate(dateStr string) ([]model.AttendanceRow, e
 	return rows, nil
 }
 
+func deriveShiftCode() string {
+	hour := time.Now().Hour()
+	// Day shift: 04:00 - 17:59, Night shift: 18:00 - 03:59
+	if hour >= 4 && hour < 18 {
+		return "D"
+	}
+	return "N"
+}
+
 func (r *AttendanceRepo) GetLogsRange(from, to string) ([]model.AttendanceRow, error) {
 	var results []attendanceJoinResult
 	err := r.db.Table("attendance_logs").
@@ -77,17 +86,18 @@ func (r *AttendanceRepo) GetLogsRange(from, to string) ([]model.AttendanceRow, e
 func (r *AttendanceRepo) RecordCheckIn(nik, machine string) (*model.AttendanceRow, error) {
 	today := time.Now().Format("2006-01-02")
 	nowTime := time.Now().Format("15:04")
+	sc := deriveShiftCode()
 
 	var row model.AttendanceRow
 	err := r.db.Where("employee_nik = ? AND attendance_date = ?", nik, today).First(&row).Error
 	if err == gorm.ErrRecordNotFound {
 		row = model.AttendanceRow{
-			NIK:   nik,
-			Date:  today,
-			Code:  "D",
-			In:    nowTime,
-			InM:   machine,
-			St:    "hadir",
+			NIK:  nik,
+			Date: today,
+			Code: sc,
+			In:   nowTime,
+			InM:  machine,
+			St:   "hadir",
 		}
 		if err := r.db.Create(&row).Error; err != nil {
 			return nil, err
@@ -109,17 +119,18 @@ func (r *AttendanceRepo) RecordCheckIn(nik, machine string) (*model.AttendanceRo
 func (r *AttendanceRepo) RecordCheckOut(nik, machine string) (*model.AttendanceRow, error) {
 	today := time.Now().Format("2006-01-02")
 	nowTime := time.Now().Format("15:04")
+	shiftCode := deriveShiftCode()
 
 	var row model.AttendanceRow
 	err := r.db.Where("employee_nik = ? AND attendance_date = ?", nik, today).First(&row).Error
 	if err == gorm.ErrRecordNotFound {
 		row = model.AttendanceRow{
-			NIK:   nik,
-			Date:  today,
-			Code:  "D",
-			Out:   nowTime,
-			OutM:  machine,
-			St:    "hadir",
+			NIK:  nik,
+			Date: today,
+			Code: shiftCode,
+			Out:  nowTime,
+			OutM: machine,
+			St:   "hadir",
 		}
 		if err := r.db.Create(&row).Error; err != nil {
 			return nil, err

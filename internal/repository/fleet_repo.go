@@ -134,7 +134,7 @@ func (r *FleetRepo) AutoAllocate(date, shift string) error {
 		date = time.Now().Format("2006-01-02")
 	}
 	if shift == "" {
-		shift = "siang"
+		shift = "pagi"
 	}
 
 	fleets, err := r.GetFleetSettings()

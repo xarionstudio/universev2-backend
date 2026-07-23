@@ -2,7 +2,10 @@ package handler
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -31,7 +34,58 @@ func (h *RosterHandler) GetRosters(c fiber.Ctx) error {
 }
 
 func (h *RosterHandler) UploadRoster(c fiber.Ctx) error {
-	return response.Success(c, fiber.StatusOK, "Roster uploaded and processed successfully", nil)
+	file, err := c.FormFile("file")
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Roster file is required")
+	}
+
+	// Validate file extension
+	if !strings.HasSuffix(strings.ToLower(file.Filename), ".xlsx") &&
+		!strings.HasSuffix(strings.ToLower(file.Filename), ".xls") &&
+		!strings.HasSuffix(strings.ToLower(file.Filename), ".csv") {
+		return response.Error(c, fiber.StatusBadRequest, "Only .xlsx, .xls, and .csv files are accepted")
+	}
+
+	// Save file to uploads directory
+	uploadDir := "uploads/rosters"
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to create upload directory")
+	}
+
+	savePath := filepath.Join(uploadDir, file.Filename)
+	if err := c.SaveFile(file, savePath); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to save roster file: "+err.Error())
+	}
+
+	// Parse month and dept from form fields
+	month := c.FormValue("month", time.Now().Format("2006-01"))
+	dept := c.FormValue("dept", "Operation")
+	label := c.FormValue("label", month)
+	createdBy := c.FormValue("createdBy", "System")
+
+	// Generate a unique key for the roster
+	key := fmt.Sprintf("%s-%s", strings.ReplaceAll(month, "-", ""), strings.ToLower(dept))
+
+	// Create roster meta entry
+	meta := &model.RosterMeta{
+		ID:      key,
+		Label:   label,
+		Month:   month,
+		Dept:    dept,
+		File:    file.Filename,
+		Emp:     "0",
+		Rows:    "0",
+		By:      createdBy,
+		Date:    time.Now().Format("2006-01-02"),
+		DateISO: time.Now().Format("2006-01-02"),
+		Status:  "aktif",
+	}
+
+	if err := h.repo.CreateRoster(meta); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to save roster metadata: "+err.Error())
+	}
+
+	return response.Success(c, fiber.StatusCreated, "Roster uploaded and processed successfully", meta)
 }
 
 func (h *RosterHandler) ExportRoster(c fiber.Ctx) error {
@@ -152,6 +206,19 @@ func (h *RosterHandler) RejectRevision(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to reject revision: "+err.Error())
 	}
 	return response.Success(c, fiber.StatusOK, "Revision rejected", nil)
+}
+
+func (h *RosterHandler) GetRosterDetail(c fiber.Ctx) error {
+	key := c.Params("key")
+	if key == "" {
+		return response.Error(c, fiber.StatusBadRequest, "Roster key is required")
+	}
+
+	detail, err := h.repo.GetRosterDetail(key)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch roster detail: "+err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Success fetch roster detail", detail)
 }
 
 func (h *RosterHandler) GetAttendance(c fiber.Ctx) error {

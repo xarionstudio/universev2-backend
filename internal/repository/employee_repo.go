@@ -52,3 +52,30 @@ func (r *EmployeeRepo) Update(nik string, emp *model.Employee) error {
 func (r *EmployeeRepo) Delete(nik string) error {
 	return r.db.Where("nik = ?", nik).Delete(&model.Employee{}).Error
 }
+
+func (r *EmployeeRepo) GetCompetencies(nik string) ([]model.Competency, error) {
+	var comps []model.Competency
+	err := r.db.Where("employee_nik = ?", nik).Find(&comps).Error
+	return comps, err
+}
+
+func (r *EmployeeRepo) UpdateCompetencies(nik string, comps []model.Competency) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("employee_nik = ?", nik).Delete(&model.Competency{}).Error; err != nil {
+			return err
+		}
+		for i := range comps {
+			comps[i].EmployeeNIK = nik
+		}
+		if len(comps) > 0 {
+			if err := tx.Create(&comps).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+func (r *EmployeeRepo) UpdatePhoto(nik string, photoURL string) error {
+	return r.db.Model(&model.Employee{}).Where("nik = ?", nik).Update("photo_url", photoURL).Error
+}

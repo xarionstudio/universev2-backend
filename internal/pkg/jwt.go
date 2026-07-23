@@ -13,6 +13,20 @@ type JWTCustomClaims struct {
 	jwt.RegisteredClaims
 }
 
+// ParseToken parses and validates a JWT token string, returning the claims.
+func ParseToken(tokenStr string, secret string) (*JWTCustomClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &JWTCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(secret), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if claims, ok := token.Claims.(*JWTCustomClaims); ok && token.Valid {
+		return claims, nil
+	}
+	return nil, jwt.ErrSignatureInvalid
+}
+
 // GenerateToken generates a signed JWT string for a user.
 func GenerateToken(userID, email string, roles []string, secret string, duration time.Duration) (string, error) {
 	claims := &JWTCustomClaims{
@@ -28,4 +42,3 @@ func GenerateToken(userID, email string, roles []string, secret string, duration
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secret))
 }
-

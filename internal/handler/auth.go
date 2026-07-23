@@ -31,7 +31,7 @@ func NewAuthHandler(cfg *config.Config, userRepo *repository.UserRepo, roleRepo 
 }
 
 func hashPasswordFE(password, salt string) string {
-	data := []byte("sha-256/mock:" + salt + ":" + password)
+	data := []byte(salt + ":" + password)
 	sum := sha256.Sum256(data)
 	return hex.EncodeToString(sum[:])
 }
@@ -154,7 +154,7 @@ func (h *AuthHandler) Register(c fiber.Ctx) error {
 		PasswordHash: hash,
 		PasswordSalt: salt,
 		IsActive:     true,
-		Roles:        []string{"user"},
+		Roles:        []string{"r3"},
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}
@@ -167,7 +167,50 @@ func (h *AuthHandler) Register(c fiber.Ctx) error {
 }
 
 func (h *AuthHandler) RefreshToken(c fiber.Ctx) error {
-	return response.Success(c, fiber.StatusOK, "Token refreshed successfully", nil)
+	// Extract token from Authorization header
+	authHeader := c.Get("Authorization")
+	if authHeader == "" {
+		return response.Error(c, fiber.StatusUnauthorized, "Missing authorization header")
+	}
+
+	parts := splitAuthHeader(authHeader)
+	if parts == nil {
+		return response.Error(c, fiber.StatusUnauthorized, "Invalid authorization header format")
+	}
+
+	oldToken := parts[1]
+	claims, err := pkg.ParseToken(oldToken, h.cfg.JWTSecret)
+	if err != nil {
+		return response.Error(c, fiber.StatusUnauthorized, "Invalid or expired token")
+	}
+
+	// Verify user still exists and is active
+	user, err := h.userRepo.GetByID(claims.UserID)
+	if err != nil || user == nil {
+		return response.Error(c, fiber.StatusUnauthorized, "User not found")
+	}
+	if !user.IsActive {
+		return response.Error(c, fiber.StatusForbidden, "Account is inactive")
+	}
+
+	// Generate new token
+	newToken, err := pkg.GenerateToken(user.ID, user.Email, user.Roles, h.cfg.JWTSecret, h.cfg.JWTExpiration)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to generate new token")
+	}
+
+	var perms map[string]string
+	if h.roleRepo != nil {
+		perms, _ = h.roleRepo.GetPermissionsForRoles(user.Roles)
+	}
+
+	data := fiber.Map{
+		"token": newToken,
+		"user":  user,
+		"perms": perms,
+	}
+
+	return response.Success(c, fiber.StatusOK, "Token refreshed successfully", data)
 }
 
 func (h *AuthHandler) Logout(c fiber.Ctx) error {

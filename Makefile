@@ -42,10 +42,51 @@ migrate-up:
 migrate-down:
 	migrate -path migrations -database "postgres://localhost:5432/universev2?sslmode=disable" down 1
 
-# Docker build
+# ──── Docker Compose ──────────────────────────────────────
+
+# Start full stack (postgres + backend) — production mode
+dc-up:
+	docker compose up -d --build
+
+# Start full stack with development overrides (hot reload)
+dc-dev:
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+
+# Start with custom env file, e.g.:
+#   make dc-env ENV_FILE=.env.staging
+dc-env:
+	docker compose up -d --build
+
+# Stop all containers
+dc-down:
+	docker compose down
+
+# Tail logs
+dc-logs:
+	docker compose logs -f
+
+# Follow logs for dev overrides
+dc-logs-dev:
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml logs -f
+
+# Restart backend only
+dc-restart:
+	docker compose restart backend
+
+# Run migrations inside container
+dc-migrate:
+	docker compose exec backend ./server migrate
+
+# psql inside database
+dc-psql:
+	docker compose exec db psql -U ${POSTGRES_USER:-postgres} ${POSTGRES_DB:-universev2}
+
+# ──── Standalone Docker ──────────────────────────────────
+
+# Build image
 docker-build:
 	docker build -t universev2-backend .
 
-# Docker run
+# Run standalone (requires external postgres)
 docker-run:
 	docker run -p 8080:8080 --env-file .env universev2-backend

@@ -129,3 +129,52 @@ func (h *EmployeeHandler) DeleteEmployee(c fiber.Ctx) error {
 	}
 	return response.Success(c, fiber.StatusOK, "Employee deleted", nil)
 }
+
+func (h *EmployeeHandler) GetCompetencies(c fiber.Ctx) error {
+	nik := c.Params("nik")
+	comps, err := h.repo.GetCompetencies(nik)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch competencies: "+err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Success fetch competencies", comps)
+}
+
+func (h *EmployeeHandler) UpdateCompetencies(c fiber.Ctx) error {
+	nik := c.Params("nik")
+	var comps []model.Competency
+	if err := c.Bind().JSON(&comps); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
+	}
+	if err := h.repo.UpdateCompetencies(nik, comps); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update competencies: "+err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Competencies updated", nil)
+}
+
+func (h *EmployeeHandler) UploadPhoto(c fiber.Ctx) error {
+	nik := c.Params("nik")
+	file, err := c.FormFile("photo")
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Photo file is required")
+	}
+
+	// Validate file type
+	if file.Header.Get("Content-Type") != "image/jpeg" && file.Header.Get("Content-Type") != "image/png" {
+		return response.Error(c, fiber.StatusBadRequest, "Only JPEG and PNG files are allowed")
+	}
+
+	// Save to uploads directory
+	photoPath := "uploads/photos/" + nik + "_" + file.Filename
+	if err := c.SaveFile(file, photoPath); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to save photo: "+err.Error())
+	}
+
+	photoURL := "/" + photoPath
+	if err := h.repo.UpdatePhoto(nik, photoURL); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update photo URL: "+err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Photo uploaded successfully", fiber.Map{
+		"photoUrl": photoURL,
+	})
+}

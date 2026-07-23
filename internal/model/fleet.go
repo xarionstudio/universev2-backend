@@ -78,17 +78,24 @@ type FleetAlloc struct {
 
 func (FleetAlloc) TableName() string { return "fleet_allocations" }
 
+// FleetAllocResponse — matches FE FaAlloc format:
+// { "2026-07-23": { "pagi": { "EX7001": "503264133", ... }, "malam": { ... } } }
+type FleetAllocResponse map[string]map[string]map[string]string
+
 type UnitDb struct {
-	ID        string    `json:"id" gorm:"column:id;primaryKey"`
+	ID        string    `json:"uid" gorm:"column:id;primaryKey"`
 	Code      string    `json:"code" gorm:"column:code;uniqueIndex"`
 	EGI       string    `json:"egi" gorm:"column:egi"`
 	Product   string    `json:"product" gorm:"column:product"`
 	Cls       string    `json:"cls" gorm:"column:class_name"`
+	Category  string    `json:"cat" gorm:"column:category"`
 	Area      string    `json:"area" gorm:"column:work_area"`
 	Active    bool      `json:"active" gorm:"column:is_active"`
 	Standby   bool      `json:"standby" gorm:"column:is_standby"`
 	Breakdown bool      `json:"breakdown" gorm:"column:is_breakdown"`
 	Loc       string    `json:"loc" gorm:"column:location"`
+	Upd       string    `json:"upd" gorm:"column:upd_date"`
+	By        string    `json:"by" gorm:"column:upd_by"`
 	CreatedAt time.Time `json:"createdAt" gorm:"column:created_at"`
 	UpdatedAt time.Time `json:"updatedAt" gorm:"column:updated_at"`
 }

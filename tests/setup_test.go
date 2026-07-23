@@ -21,7 +21,7 @@ func setupTestApp() (*fiber.App, string) {
 		AppEnv:             "test",
 		AppPort:            "8080",
 		JWTSecret:          "testsecretkey12345678901234567890",
-		JWTExpiration:      3600 * 1000000000, // 1 hour
+		JWTExpiration:      1 * 3600 * 1000000000, // 1 hour
 		CORSAllowedOrigins: "*",
 	}
 

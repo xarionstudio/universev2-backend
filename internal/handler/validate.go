@@ -9,6 +9,14 @@ import (
 	"universev2-backend/pkg/response"
 )
 
+func splitAuthHeader(authHeader string) []string {
+	parts := strings.SplitN(authHeader, " ", 2)
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return nil
+	}
+	return parts
+}
+
 var (
 	emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	nikRegex   = regexp.MustCompile(`^\d{9}$`)

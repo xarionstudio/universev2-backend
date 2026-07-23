@@ -4,13 +4,20 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"universev2-backend/internal/pkg"
+	"universev2-backend/internal/repository"
 )
 
+type RBACMiddleware struct {
+	roleRepo *repository.RoleRepo
+}
+
+func NewRBACMiddleware(roleRepo *repository.RoleRepo) *RBACMiddleware {
+	return &RBACMiddleware{roleRepo: roleRepo}
+}
+
 // RequirePermission checks that the authenticated user has the required
-// permission level on the given module. In this initial implementation
-// the check is simplified; a production version would query the DB for
-// the user's effective permissions via their role assignments.
-func RequirePermission(moduleName string, needLevel string) fiber.Handler {
+// permission level on the given module by querying role_permissions from DB.
+func (m *RBACMiddleware) RequirePermission(moduleName string, needLevel string) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		claims, ok := c.Locals("user").(*pkg.JWTCustomClaims)
 		if !ok || claims == nil {
@@ -19,29 +26,31 @@ func RequirePermission(moduleName string, needLevel string) fiber.Handler {
 			})
 		}
 
-		// Superadmin bypass — role "r1" has full access to everything
-		for _, r := range claims.Roles {
-			if r == "r1" {
-				return c.Next()
-			}
-		}
-
-		// Admin role "r2" — manage access on operational modules, none on users/settings
-		for _, r := range claims.Roles {
-			if r == "r2" {
-				if moduleName == "users" || moduleName == "settings" {
-					return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-						"error": "Insufficient permissions for this module",
-					})
-				}
-				return c.Next()
-			}
-		}
-
-		// Viewer role "r3" — view-only, block manage
-		if needLevel == "manage" {
+		if len(claims.Roles) == 0 {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				"error": "Insufficient permissions — view-only access",
+				"error": "Insufficient permissions — no roles assigned",
+			})
+		}
+
+		// Query effective permissions from DB for all user's roles
+		perms, err := m.roleRepo.GetPermissionsForRoles(claims.Roles)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to load permissions",
+			})
+		}
+
+		userLevel, exists := perms[moduleName]
+		if !exists || userLevel == "none" {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "Insufficient permissions for this module",
+			})
+		}
+
+		// "manage" trumps "view" — if user has manage, they can do view-level too
+		if needLevel == "manage" && userLevel != "manage" {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "Insufficient permissions — manage access required",
 			})
 		}
 

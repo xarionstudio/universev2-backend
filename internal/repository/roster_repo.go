@@ -3,6 +3,7 @@ package repository
 import (
 	"time"
 
+	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 
 	"universev2-backend/internal/model"
@@ -125,6 +126,10 @@ func (r *RosterRepo) DeleteRevision(id int) error {
 	return r.db.Where("id = ?", id).Delete(&model.RosterRevision{}).Error
 }
 
+func (r *RosterRepo) CreateRoster(meta *model.RosterMeta) error {
+	return r.db.Create(meta).Error
+}
+
 func (r *RosterRepo) CreateRevision(rev *model.RosterRevision) error {
 	return r.db.Create(rev).Error
 }
@@ -146,3 +151,91 @@ func (r *RosterRepo) GetSchedulesByFile(fileId string) ([]model.RosterSchedule, 
 	return schedules, err
 }
 
+func (r *RosterRepo) GetRosterDetail(key string) (fiber.Map, error) {
+	type detailRow struct {
+		NIK       string `json:"nik"`
+		Name      string `json:"name"`
+		Dept      string `json:"dept"`
+		Pos       string `json:"pos"`
+		Date      string `json:"date"`
+		ShiftCode string `json:"shiftCode"`
+	}
+	var rows []detailRow
+	err := r.db.Table("roster_schedules").
+		Select("employees.nik, employees.name, employees.dept, employees.pos, roster_schedules.schedule_date as date, roster_schedules.shift_code").
+		Joins("JOIN employees ON roster_schedules.employee_nik = employees.nik").
+		Where("roster_schedules.roster_file_id = ?", key).
+		Order("employees.name ASC, roster_schedules.schedule_date ASC").
+		Scan(&rows).Error
+
+	if err != nil || len(rows) == 0 {
+		// Fallback: return empty detail
+		return fiber.Map{
+			"key":   key,
+			"days":  []string{},
+			"rows":  []fiber.Map{},
+			"total": 0,
+		}, nil
+	}
+
+	// Collect unique dates
+	dateSet := make(map[string]bool)
+	for _, r := range rows {
+		dateSet[r.Date] = true
+	}
+	days := make([]string, 0, len(dateSet))
+	for d := range dateSet {
+		days = append(days, d)
+	}
+
+	// Group by employee
+	empMap := make(map[string]*fiber.Map)
+	var empOrder []string
+	for _, r := range rows {
+		if _, exists := empMap[r.NIK]; !exists {
+			empMap[r.NIK] = &fiber.Map{
+				"nik":   r.NIK,
+				"name":  r.Name,
+				"dept":  r.Dept,
+				"pos":   r.Pos,
+				"codes": []fiber.Map{},
+			}
+			empOrder = append(empOrder, r.NIK)
+		}
+	}
+
+	// Build codes per employee per date
+	empCodes := make(map[string]map[string]string)
+	for _, r := range rows {
+		if empCodes[r.NIK] == nil {
+			empCodes[r.NIK] = make(map[string]string)
+		}
+		empCodes[r.NIK][r.Date] = r.ShiftCode
+	}
+
+	resultRows := make([]fiber.Map, 0, len(empOrder))
+	for _, nik := range empOrder {
+		codes := make([]fiber.Map, 0, len(days))
+		for _, d := range days {
+			code := empCodes[nik][d]
+			if code == "" {
+				code = "—"
+			}
+			codes = append(codes, fiber.Map{"date": d, "code": code})
+		}
+		resultRows = append(resultRows, fiber.Map{
+			"nik":   nik,
+			"name":  (*empMap[nik])["name"],
+			"dept":  (*empMap[nik])["dept"],
+			"pos":   (*empMap[nik])["pos"],
+			"codes": codes,
+		})
+	}
+
+	return fiber.Map{
+		"key":   key,
+		"days":  days,
+		"rows":  resultRows,
+		"total": len(resultRows),
+	}, nil
+}

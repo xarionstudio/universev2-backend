@@ -27,7 +27,7 @@ func (r *PrestasiRepo) GetLeaderboard(periodDays int) ([]model.PrestasiRecord, e
 	var records []model.PrestasiRecord
 	for _, s := range scores {
 		var emp model.Employee
-		r.db.Select("name, dept").Where("nik = ?", s.EmployeeNIK).First(&emp)
+		r.db.Select("name, dept, pos").Where("nik = ?", s.EmployeeNIK).First(&emp)
 
 		var badgeRows []model.PrestasiBadge
 		r.db.Where("employee_nik = ?", s.EmployeeNIK).Find(&badgeRows)
@@ -36,22 +36,50 @@ func (r *PrestasiRepo) GetLeaderboard(periodDays int) ([]model.PrestasiRecord, e
 			badges = append(badges, b.BadgeKey)
 		}
 
+		attRate := 0.0
+		if s.AttCount > 0 && s.TotalScheduledDays > 0 {
+			attRate = float64(s.AttCount) / float64(s.TotalScheduledDays)
+		}
+		sleepRate := 0.0
+		if s.SleepOkCount > 0 && s.TotalScheduledDays > 0 {
+			sleepRate = float64(s.SleepOkCount) / float64(s.TotalScheduledDays)
+		}
+
 		records = append(records, model.PrestasiRecord{
-			NIK:          s.EmployeeNIK,
-			Name:         emp.Name,
-			Dept:         emp.Dept,
-			Rank:         s.Rank,
-			PtsTotal:     s.TotalPoints,
-			Streak:       s.StreakDays,
-			AttCount:     s.AttCount,
-			SleepPct:     s.SleepPct,
-			Badges:       badges,
-			LateCount:    s.LateCount,
-			PenaltyCount: s.PenaltyCount,
+			NIK:           s.EmployeeNIK,
+			Name:          emp.Name,
+			Dept:          emp.Dept,
+			Pos:           emp.Pos,
+			Foto:          emp.Foto,
+			Rank:          s.Rank,
+			Points:        s.TotalPoints,
+			BestStreak:    s.StreakDays,
+			CurrentStreak: s.CurrentStreak,
+			AttCount:      s.AttCount,
+			SleepPct:      s.SleepPct,
+			AttRate:       attRate,
+			SleepRate:     sleepRate,
+			AvgSleepMin:   s.AvgSleepMin,
+			Badges:        badges,
+			LateCount:     s.LateCount,
+			PenaltyDays:   s.PenaltyCount,
+			QualifiedDays: s.QualifiedDays,
+			ScheduledDays: s.TotalScheduledDays,
+			CoverDays:     s.CoverDays,
 		})
 	}
 
 	return records, nil
+}
+
+func (r *PrestasiRepo) GetOperatorHistory(nik string, days int) ([]model.PrestasiHistoryEntry, error) {
+	var entries []model.PrestasiHistoryEntry
+	q := r.db.Where("employee_nik = ?", nik)
+	if days > 0 {
+		q = q.Where("period_days = ?", days)
+	}
+	err := q.Order("record_date ASC").Find(&entries).Error
+	return entries, err
 }
 
 type MasterRepo struct {
