@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"universev2-backend/internal/dto"
 	"universev2-backend/internal/model"
 	"universev2-backend/internal/repository"
 	"universev2-backend/pkg/response"
@@ -31,13 +32,7 @@ func (h *FitworkHandler) GetTodayLog(c fiber.Ctx) error {
 }
 
 func (h *FitworkHandler) SubmitLog(c fiber.Ctx) error {
-	var req struct {
-		NIK      string `json:"nik"`
-		Shift    string `json:"shift"`
-		SleepMin *int   `json:"sleepMin"`
-		Sleep    string `json:"sleep"`
-		SendTime string `json:"sendTime"`
-	}
+	var req dto.SubmitFTWLogRequest
 	if err := c.Bind().JSON(&req); err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}

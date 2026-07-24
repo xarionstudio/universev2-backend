@@ -10,6 +10,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"universev2-backend/internal/dto"
 	"universev2-backend/internal/export"
 	"universev2-backend/internal/model"
 	"universev2-backend/internal/repository"
@@ -202,9 +203,7 @@ func (h *RosterHandler) ApproveRevisionWithNote(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid revision ID")
 	}
 
-	var req struct {
-		Note string `json:"note"`
-	}
+	var req dto.ApproveRevisionNoteRequest
 	if err := c.Bind().JSON(&req); err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}

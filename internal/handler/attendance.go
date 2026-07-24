@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"universev2-backend/internal/dto"
 	"universev2-backend/internal/repository"
 	"universev2-backend/pkg/response"
 )
@@ -60,14 +61,9 @@ func (h *AttendanceHandler) GetAttendanceRange(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, "Success fetch attendance range", rows)
 }
 
-type CheckInReq struct {
-	NIK     string `json:"nik"`
-	Machine string `json:"machine"`
-}
-
 // RecordCheckIn — POST /api/v1/attendance/checkin
 func (h *AttendanceHandler) RecordCheckIn(c fiber.Ctx) error {
-	var req CheckInReq
+	var req dto.CheckInOutRequest
 	if err := c.Bind().JSON(&req); err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}
@@ -90,7 +86,7 @@ func (h *AttendanceHandler) RecordCheckIn(c fiber.Ctx) error {
 
 // RecordCheckOut — POST /api/v1/attendance/checkout
 func (h *AttendanceHandler) RecordCheckOut(c fiber.Ctx) error {
-	var req CheckInReq
+	var req dto.CheckInOutRequest
 	if err := c.Bind().JSON(&req); err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}

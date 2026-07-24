@@ -5,17 +5,21 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"universev2-backend/internal/dto"
 	"universev2-backend/internal/model"
 	"universev2-backend/internal/repository"
+	"universev2-backend/internal/service"
 	"universev2-backend/pkg/response"
 )
 
 type EmployeeHandler struct {
-	repo *repository.EmployeeRepo
+	empSvc *service.EmployeeService
 }
 
 func NewEmployeeHandler(repo *repository.EmployeeRepo) *EmployeeHandler {
-	return &EmployeeHandler{repo: repo}
+	return &EmployeeHandler{
+		empSvc: service.NewEmployeeService(repo),
+	}
 }
 
 func (h *EmployeeHandler) GetEmployees(c fiber.Ctx) error {
@@ -23,7 +27,7 @@ func (h *EmployeeHandler) GetEmployees(c fiber.Ctx) error {
 	status := c.Query("status")
 	search := c.Query("q")
 
-	employees, err := h.repo.List(dept, status, search)
+	employees, err := h.empSvc.GetEmployees(dept, status, search)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch employees: "+err.Error())
 	}
@@ -39,102 +43,78 @@ func (h *EmployeeHandler) GetEmployees(c fiber.Ctx) error {
 
 func (h *EmployeeHandler) GetEmployeeByNIK(c fiber.Ctx) error {
 	nik := c.Params("nik")
-	if !isValidNIK(nik) {
-		return sendValidationError(c, "nik", "NIK must be exactly 9 digits")
-	}
-
-	emp, err := h.repo.GetByNIK(nik)
+	emp, err := h.empSvc.GetEmployeeByNIK(nik)
 	if err != nil {
+		msg := err.Error()
+		if msg == "NIK must be exactly 9 digits" {
+			return sendValidationError(c, "nik", msg)
+		}
 		return response.Error(c, fiber.StatusNotFound, "Employee not found")
 	}
 	return response.Success(c, fiber.StatusOK, "Success fetch employee", emp)
 }
 
 func (h *EmployeeHandler) CreateEmployee(c fiber.Ctx) error {
-	var emp struct {
-		NIK     string `json:"nik"`
-		Name    string `json:"name"`
-		Dept    string `json:"dept"`
-		Pos     string `json:"pos"`
-		Simper  string `json:"simper"`
-		Status  string `json:"status"`
-		Company string `json:"company"`
-		Equip   string `json:"equip"`
-		HP      string `json:"hp"`
-	}
-	if err := c.Bind().JSON(&emp); err != nil {
+	var req dto.CreateEmployeeRequest
+	if err := c.Bind().JSON(&req); err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}
 
-	if !isValidNIK(emp.NIK) {
-		return sendValidationError(c, "nik", "NIK must be exactly 9 digits")
-	}
-	if isTrimmedEmpty(emp.Name) {
-		return sendValidationError(c, "name", "Name is required")
-	}
-
-	existing, _ := h.repo.GetByNIK(emp.NIK)
-	if existing != nil {
-		return response.Error(c, fiber.StatusConflict, "Employee with this NIK already exists")
-	}
-
-	newEmp := &model.Employee{
-		NIK: emp.NIK, Name: emp.Name, Dept: emp.Dept, Pos: emp.Pos,
-		Simper: emp.Simper, Status: emp.Status, Company: emp.Company,
-		Equip: emp.Equip, HP: emp.HP,
-	}
-	if err := h.repo.Create(newEmp); err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to create employee: "+err.Error())
+	newEmp, err := h.empSvc.CreateEmployee(req)
+	if err != nil {
+		msg := err.Error()
+		switch msg {
+		case "NIK must be exactly 9 digits":
+			return sendValidationError(c, "nik", msg)
+		case "name is required":
+			return sendValidationError(c, "name", "Name is required")
+		case "employee with this NIK already exists":
+			return response.Error(c, fiber.StatusConflict, msg)
+		default:
+			return response.Error(c, fiber.StatusInternalServerError, msg)
+		}
 	}
 	return response.Success(c, fiber.StatusCreated, "Employee created", newEmp)
 }
 
 func (h *EmployeeHandler) UpdateEmployee(c fiber.Ctx) error {
 	nik := c.Params("nik")
-	if !isValidNIK(nik) {
-		return sendValidationError(c, "nik", "NIK must be exactly 9 digits")
-	}
-
-	existing, err := h.repo.GetByNIK(nik)
-	if err != nil || existing == nil {
-		return response.Error(c, fiber.StatusNotFound, "Employee not found")
-	}
-
-	var emp model.Employee
-	if err := c.Bind().JSON(&emp); err != nil {
+	var req dto.UpdateEmployeeRequest
+	if err := c.Bind().JSON(&req); err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}
 
-	if isTrimmedEmpty(emp.Name) {
-		return sendValidationError(c, "name", "Name is required")
-	}
-
-	if err := h.repo.Update(nik, &emp); err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to update employee: "+err.Error())
+	if err := h.empSvc.UpdateEmployee(nik, req); err != nil {
+		msg := err.Error()
+		switch msg {
+		case "NIK must be exactly 9 digits":
+			return sendValidationError(c, "nik", msg)
+		case "name is required":
+			return sendValidationError(c, "name", "Name is required")
+		case "employee not found":
+			return response.Error(c, fiber.StatusNotFound, "Employee not found")
+		default:
+			return response.Error(c, fiber.StatusInternalServerError, msg)
+		}
 	}
 	return response.Success(c, fiber.StatusOK, "Employee updated", nil)
 }
 
 func (h *EmployeeHandler) DeleteEmployee(c fiber.Ctx) error {
 	nik := c.Params("nik")
-	if !isValidNIK(nik) {
-		return sendValidationError(c, "nik", "NIK must be exactly 9 digits")
-	}
-
-	existing, err := h.repo.GetByNIK(nik)
-	if err != nil || existing == nil {
+	if err := h.empSvc.DeleteEmployee(nik); err != nil {
+		msg := err.Error()
+		if msg == "NIK must be exactly 9 digits" {
+			return sendValidationError(c, "nik", msg)
+		}
 		return response.Error(c, fiber.StatusNotFound, "Employee not found")
-	}
-
-	if err := h.repo.Delete(nik); err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete employee: "+err.Error())
 	}
 	return response.Success(c, fiber.StatusOK, "Employee deleted", nil)
 }
 
 func (h *EmployeeHandler) GetCompetencies(c fiber.Ctx) error {
 	nik := c.Params("nik")
-	comps, err := h.repo.GetCompetencies(nik)
+	comps, err := h.empSvc.GetCompetencies(nik)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch competencies: "+err.Error())
 	}
@@ -143,15 +123,15 @@ func (h *EmployeeHandler) GetCompetencies(c fiber.Ctx) error {
 
 func (h *EmployeeHandler) UpdateCompetencies(c fiber.Ctx) error {
 	nik := c.Params("nik")
-	if !isValidNIK(nik) {
-		return sendValidationError(c, "nik", "NIK must be exactly 9 digits")
-	}
-
 	var comps []model.Competency
 	if err := c.Bind().JSON(&comps); err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}
-	if err := h.repo.UpdateCompetencies(nik, comps); err != nil {
+	if err := h.empSvc.UpdateCompetencies(nik, comps); err != nil {
+		msg := err.Error()
+		if msg == "NIK must be exactly 9 digits" {
+			return sendValidationError(c, "nik", msg)
+		}
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update competencies: "+err.Error())
 	}
 	return response.Success(c, fiber.StatusOK, "Competencies updated", nil)
@@ -192,7 +172,7 @@ func (h *EmployeeHandler) UploadPhoto(c fiber.Ctx) error {
 	}
 
 	photoURL := "/" + photoPath
-	if err := h.repo.UpdatePhoto(nik, photoURL); err != nil {
+	if err := h.empSvc.UpdatePhoto(nik, photoURL); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update photo URL: "+err.Error())
 	}
 
