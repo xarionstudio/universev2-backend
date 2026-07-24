@@ -56,7 +56,7 @@ func (s *EmployeeService) CreateEmployee(req dto.CreateEmployeeRequest) (*model.
 		Equip: req.Equip, HP: req.HP,
 	}
 	if err := s.repo.Create(newEmp); err != nil {
-		return nil, fmt.Errorf("failed to create employee: " + err.Error())
+		return nil, fmt.Errorf("failed to create employee: %w", err)
 	}
 	return newEmp, nil
 }

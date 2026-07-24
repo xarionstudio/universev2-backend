@@ -63,7 +63,7 @@ func (s *UserService) CreateUser(req dto.CreateUserRequest) (*model.User, error)
 	}
 
 	if err := s.userRepo.Create(user); err != nil {
-		return nil, fmt.Errorf("failed to create user: " + err.Error())
+		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 	return user, nil
 }

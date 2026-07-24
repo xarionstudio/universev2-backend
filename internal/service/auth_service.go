@@ -139,7 +139,7 @@ func (s *AuthService) Register(req dto.RegisterRequest) (*RegisterResult, error)
 	}
 
 	if err := s.userRepo.Create(user); err != nil {
-		return nil, fmt.Errorf("failed to create user: " + err.Error())
+		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
 	return &RegisterResult{User: user}, nil

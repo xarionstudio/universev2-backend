@@ -37,7 +37,7 @@ func (s *FleetService) CreateFleetSetting(req dto.CreateFleetSettingRequest) (*m
 		Units:  req.Units,
 	}
 	if err := s.repo.CreateFleetSetting(f); err != nil {
-		return nil, fmt.Errorf("failed to create fleet setting: " + err.Error())
+		return nil, fmt.Errorf("failed to create fleet setting: %w", err)
 	}
 	return f, nil
 }
@@ -157,7 +157,7 @@ func (s *FleetService) CreateUnitDB(req dto.CreateUnitDBRequest) (*model.UnitDb,
 		Code: req.Code,
 	}
 	if err := s.repo.CreateUnitDB(u); err != nil {
-		return nil, fmt.Errorf("failed to create unit DB: " + err.Error())
+		return nil, fmt.Errorf("failed to create unit DB: %w", err)
 	}
 	return u, nil
 }
