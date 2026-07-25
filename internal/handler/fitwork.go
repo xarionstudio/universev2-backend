@@ -44,15 +44,17 @@ func (h *FitworkHandler) SubmitLog(c fiber.Ctx) error {
 		return sendValidationError(c, "shift", "Shift is required")
 	}
 
+	eval := model.EvaluateFTW(req.SleepMin)
 	rec := &model.FTWRecord{
 		NIK: req.NIK, Shift: req.Shift, SleepMin: req.SleepMin,
 		Sleep: req.Sleep, SendTime: req.SendTime,
 		Date: time.Now().Format("2006-01-02"),
+		St:   eval.Status, RestHours: eval.RestHours, CanWork: eval.CanWork,
 	}
 	if err := h.repo.Submit(rec); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to submit FTW log: "+err.Error())
 	}
-	return response.Success(c, fiber.StatusCreated, "FTW log submitted", nil)
+	return response.Success(c, fiber.StatusCreated, "FTW log submitted", rec)
 }
 
 func (h *FitworkHandler) GetHistory(c fiber.Ctx) error {

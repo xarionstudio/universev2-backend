@@ -1,0 +1,1529 @@
+{
+  "info": {
+    "_postman_id": "a3717c5a-1234-5678-90ab-cdef01234567",
+    "name": "UniverseV2 Backend API",
+    "description": "Complete collection of UniverseV2 backend API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "YOUR_JWT_TOKEN",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"nik\": \"503264133\",\n  \"email\": \"john@example.com\",\n  \"password\": \"SecurePass123\",\n  \"dept\": \"Operation\",\n  \"pos\": \"Operator\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "refresh"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"YOUR_REFRESH_TOKEN\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile", ""]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile", ""]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe Updated\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile/password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile", "password"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"oldpass123\",\n  \"newPassword\": \"NewPass123\",\n  \"confirmPassword\": \"NewPass123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Weather",
+      "item": [
+        {
+          "name": "Get Current Weather",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/weather/current",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "weather", "current"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employees",
+      "item": [
+        {
+          "name": "List Employees",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/?dept=Operation&status=aktif&search=John",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", ""]
+            }
+          }
+        },
+        {
+          "name": "Get Employee by NIK",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/503264133",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "503264133"]
+            }
+          }
+        },
+        {
+          "name": "Create Employee",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", ""]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nik\": \"503264199\",\n  \"name\": \"New Employee\",\n  \"dept\": \"Operation\",\n  \"pos\": \"Operator\",\n  \"status\": \"aktif\",\n  \"company\": \"PT Example\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Employee",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/503264133",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "503264133"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"dept\": \"Plant\",\n  \"pos\": \"Supervisor\",\n  \"status\": \"aktif\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Employee",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/503264133",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "503264133"]
+            }
+          }
+        },
+        {
+          "name": "Get Competencies",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/503264133/competencies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "503264133", "competencies"]
+            }
+          }
+        },
+        {
+          "name": "Update Competencies",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/503264133/competencies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "503264133", "competencies"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"className\": \"PC3000\",\n    \"simperNo\": \"S-001\",\n    \"expiryDate\": \"2026-12-31\"\n  }\n]"
+            }
+          }
+        },
+        {
+          "name": "Upload Photo",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employees/503264133/photo",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employees", "503264133", "photo"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "photo",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fit To Work",
+      "item": [
+        {
+          "name": "Get Today FTW Log",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/ftw/today",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "ftw", "today"]
+            }
+          }
+        },
+        {
+          "name": "Get FTW History",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/ftw/history?nik=503264133&startDate=2026-07-01&endDate=2026-07-24",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "ftw", "history"]
+            }
+          }
+        },
+        {
+          "name": "Submit FTW Log",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/ftw/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "ftw", "submit"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nik\": \"503264133\",\n  \"shift\": \"siang\",\n  \"sleepMinutes\": 420,\n  \"sleepFormatted\": \"7 j 0 m\",\n  \"restHours\": 0,\n  \"canWork\": true,\n  \"sendTime\": \"05:30\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Roster",
+      "item": [
+        {
+          "name": "List Rosters",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rosters/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "rosters", ""]
+            }
+          }
+        },
+        {
+          "name": "Export Roster",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rosters/jul/export",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "rosters", "jul", "export"]
+            }
+          }
+        },
+        {
+          "name": "Get Roster Detail",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rosters/jul/detail",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "rosters", "jul", "detail"]
+            }
+          }
+        },
+        {
+          "name": "Upload Roster",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rosters/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "rosters", "upload"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Revisions",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rosters/revisions?status=pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "rosters", "revisions"]
+            }
+          }
+        },
+        {
+          "name": "Get Revision Codes",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rosters/revisions/codes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "rosters", "revisions", "codes"]
+            }
+          }
+        },
+        {
+          "name": "Submit Batch Revision",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rosters/revisions/batch",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "rosters", "revisions", "batch"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"submissionId\": \"sub-101\",\n    \"nik\": \"503264133\",\n    \"whatId\": \"Ganti shift D ke N\",\n    \"whatEn\": \"Shift change D to N\",\n    \"whenId\": \"Tgl 15 Jul\",\n    \"whenEn\": \"15 Jul\"\n  }\n]"
+            }
+          }
+        },
+        {
+          "name": "Delete Revision",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rosters/revisions/sub-101",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "rosters", "revisions", "sub-101"]
+            }
+          }
+        },
+        {
+          "name": "Approve Revision",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rosters/approvals/sub-102/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "rosters", "approvals", "sub-102", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Approve Revision With Note",
+          "request": {
+            "method": "PATCH",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rosters/approvals/sub-102/note",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "rosters", "approvals", "sub-102", "note"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Disetujui dengan catatan\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reject Revision",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rosters/approvals/sub-101/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "rosters", "approvals", "sub-101", "reject"]
+            }
+          }
+        },
+        {
+          "name": "Get Roster Attendance",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/rosters/attendance?date=2026-07-24&dept=Operation",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "rosters", "attendance"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        {
+          "name": "Get Today Attendance",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/attendance/today?dept=Operation&shift=D",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "attendance", "today"]
+            }
+          }
+        },
+        {
+          "name": "Get Attendance By Date",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/attendance/date?date=2026-07-24",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "attendance", "date"]
+            }
+          }
+        },
+        {
+          "name": "Get Attendance Range",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/attendance/range?startDate=2026-07-01&endDate=2026-07-24",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "attendance", "range"]
+            }
+          }
+        },
+        {
+          "name": "Record Check-In",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/attendance/checkin",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "attendance", "checkin"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nik\": \"503264133\",\n  \"time\": \"05:45\",\n  \"machine\": \"FP-01\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Record Check-Out",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/attendance/checkout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "attendance", "checkout"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nik\": \"503264133\",\n  \"time\": \"17:30\",\n  \"machine\": \"FP-01\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fleet",
+      "item": [
+        {
+          "name": "Get Fleet Settings",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fleet/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fleet", "settings"]
+            }
+          }
+        },
+        {
+          "name": "Create Fleet Setting",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fleet/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fleet", "settings"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"digger\": \"EX9001\",\n  \"loc\": \"Workshop New\",\n  \"bus\": \"BUS-01\",\n  \"units\": [\"DT9001\", \"DT9002\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Fleet Setting",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fleet/settings/fl-EX7001",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fleet", "settings", "fl-EX7001"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"digger\": \"EX7001\",\n  \"loc\": \"Workshop Plant\",\n  \"bus\": \"UDBU002\",\n  \"units\": [\"DT114\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Fleet Setting",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fleet/settings/fl-EX7001",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fleet", "settings", "fl-EX7001"]
+            }
+          }
+        },
+        {
+          "name": "Get Allocations",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fleet/allocations?date=2026-07-24&shift=pagi",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fleet", "allocations"]
+            }
+          }
+        },
+        {
+          "name": "Auto Allocate",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fleet/allocations/auto",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fleet", "allocations", "auto"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-07-24\",\n  \"shift\": \"pagi\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Unit Statuses",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/units/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "units", "status"]
+            }
+          }
+        },
+        {
+          "name": "Update Unit Status",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/units/DT114/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "units", "DT114", "status"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ready\",\n  \"note\": \"Checklist harian ok\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Report Unit Breakdown",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/units/DT114/status-report",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "units", "DT114", "status-report"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Hydraulic sistem bocor\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Unit History",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/units/DT114/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "units", "DT114", "history"]
+            }
+          }
+        },
+        {
+          "name": "Get Unit DB",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/units/db",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "units", "db"]
+            }
+          }
+        },
+        {
+          "name": "Create Unit DB",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/units/db",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "units", "db"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"DT9001\",\n  \"egi\": \"EX900\",\n  \"product\": \"Caterpillar\",\n  \"className\": \"PC4000\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Unit DB",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/units/db",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "units", "db"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"DT9001\",\n  \"egi\": \"EX900\",\n  \"product\": \"Caterpillar\",\n  \"className\": \"PC4000\",\n  \"category\": \"dt\",\n  \"location\": \"Workshop\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Unit DB",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/units/db?id=DT9001",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "units", "db"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Prestasi",
+      "item": [
+        {
+          "name": "Get Leaderboard",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/prestasi/leaderboard?periodDays=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "prestasi", "leaderboard"]
+            }
+          }
+        },
+        {
+          "name": "Get Operator History",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/prestasi/503264133/history?periodDays=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "prestasi", "503264133", "history"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Master Data",
+      "item": [
+        {
+          "name": "Get Master By Category",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/master/dept",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "master", "dept"]
+            }
+          }
+        },
+        {
+          "name": "Create Master Entry",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/master/dept",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "master", "dept"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Department\",\n  \"fieldA\": \"\",\n  \"fieldB\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Master Entry",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/master/dept/dept-1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "master", "dept", "dept-1"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Department Updated\",\n  \"fieldA\": \"\",\n  \"fieldB\": \"\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Master Entry",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/master/dept/dept-1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "master", "dept", "dept-1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users & Roles",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", ""]
+            }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", ""]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New User\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"SecurePass123\",\n  \"nik\": \"503264199\",\n  \"roles\": [\"r1\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/u-1234567890",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "u-1234567890"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated User\",\n  \"email\": \"updated@example.com\",\n  \"roles\": [\"r1\", \"r2\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/u-1234567890",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "u-1234567890"]
+            }
+          }
+        },
+        {
+          "name": "Get Roles",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/roles/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "roles", ""]
+            }
+          }
+        },
+        {
+          "name": "Create Role",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/roles/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "roles", ""]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"r6\",\n  \"name\": \"Custom Role\",\n  \"description\": \"Custom operator role\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Role",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/roles/r6",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "roles", "r6"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Custom Role Updated\",\n  \"description\": \"Updated description\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Role",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/roles/r6",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "roles", "r6"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "notifications", ""]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications/n1/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "notifications", "n1", "read"]
+            }
+          }
+        },
+        {
+          "name": "Mark All Read",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications/read-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "notifications", "read-all"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "Get Settings",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/settings/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "settings", ""]
+            }
+          }
+        },
+        {
+          "name": "Update Settings",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/settings/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "settings", ""]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appName\": \"UNIVERSE-2\",\n  \"theme\": \"dark\",\n  \"lang\": \"id\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Audio Schedules",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/settings/audio",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "settings", "audio"]
+            }
+          }
+        },
+        {
+          "name": "Create Audio Schedule",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/settings/audio",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "settings", "audio"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Pengumuman\",\n  \"triggerTime\": \"05:45\",\n  \"frequency\": \"harian\",\n  \"fileName\": \"announcement.mp3\",\n  \"isActive\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Audio Schedule",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/settings/audio/au1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "settings", "audio", "au1"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Pengumuman P5M\",\n  \"triggerTime\": \"05:45\",\n  \"frequency\": \"harian\",\n  \"fileName\": \"p5m_reminder.mp3\",\n  \"isActive\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Audio Schedule",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/settings/audio/au1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "settings", "audio", "au1"]
+            }
+          }
+        },
+        {
+          "name": "Get Display Devices",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/settings/displays",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "settings", "displays"]
+            }
+          }
+        },
+        {
+          "name": "Create Display",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/settings/displays",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "settings", "displays"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"TV Baru\",\n  \"location\": \"Gate 2\",\n  \"contentKind\": \"att\",\n  \"runningText\": \"Patuhi batas kecepatan\",\n  \"isActive\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Display",
+          "request": {
+            "method": "PUT",
+            "auth": {
+              "type": "bearer"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/settings/displays/DSP-A01",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "settings", "displays", "DSP-A01"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"TV Gate Utara\",\n  \"location\": \"Gate utara\",\n  \"contentKind\": \"att\",\n  \"runningText\": \"Utamakan keselamatan\",\n  \"isActive\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Display",
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/settings/displays/DSP-A01",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "settings", "displays", "DSP-A01"]
+            }
+          }
+        },
+        {
+          "name": "Get Display Heartbeat",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/displays/DSP-A01/heartbeat",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "displays", "DSP-A01", "heartbeat"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fingerprint",
+      "item": [
+        {
+          "name": "Get Fingerprint Devices",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fingerprint/devices",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "fingerprint", "devices"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
