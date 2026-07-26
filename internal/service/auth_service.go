@@ -120,6 +120,10 @@ func (s *AuthService) Register(req dto.RegisterRequest) (*RegisterResult, error)
 		return nil, fmt.Errorf("email is already registered")
 	}
 
+	if s.userRepo.ExistsByNIK(req.NIK) {
+		return nil, fmt.Errorf("NIK is already registered")
+	}
+
 	salt := internalpkg.GenerateSalt()
 	hash := internalpkg.HashPasswordFE(req.Password, salt)
 	now := time.Now()

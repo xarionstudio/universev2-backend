@@ -19,6 +19,11 @@
     {
       "key": "baseUrl",
       "value": "http://localhost:8080"
+    },
+    {
+      "key": "token",
+      "value": "YOUR_JWT_TOKEN",
+      "type": "string"
     }
   ],
   "item": [
@@ -28,6 +33,9 @@
         {
           "name": "Login",
           "request": {
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
               {
@@ -36,9 +44,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "login"]
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -49,6 +63,9 @@
         {
           "name": "Register",
           "request": {
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
               {
@@ -57,9 +74,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "register"]
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -70,21 +93,34 @@
         {
           "name": "Refresh Token",
           "request": {
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/refresh",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "refresh"]
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"token\": \"YOUR_REFRESH_TOKEN\"\n}"
+              "raw": "{}"
             }
           }
         },
@@ -102,9 +138,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/logout",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "logout"]
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
             }
           }
         }
@@ -121,9 +163,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/profile/",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "profile", ""]
+              "raw": "{{baseUrl}}/api/profile/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                ""
+              ]
             }
           }
         },
@@ -141,9 +189,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/profile/",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "profile", ""]
+              "raw": "{{baseUrl}}/api/profile/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                ""
+              ]
             },
             "body": {
               "mode": "raw",
@@ -165,9 +219,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/profile/password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "profile", "password"]
+              "raw": "{{baseUrl}}/api/profile/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "profile",
+                "password"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -188,9 +248,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/weather/current",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "weather", "current"]
+              "raw": "{{baseUrl}}/api/weather/current",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "weather",
+                "current"
+              ]
             }
           }
         }
@@ -207,9 +273,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/employees/?dept=Operation&status=aktif&search=John",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "employees", ""]
+              "raw": "{{baseUrl}}/api/employees/?dept=Operation&status=aktif&q=John",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                ""
+              ]
             }
           }
         },
@@ -221,9 +293,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/employees/503264133",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "employees", "503264133"]
+              "raw": "{{baseUrl}}/api/employees/503264133",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "503264133"
+              ]
             }
           }
         },
@@ -241,9 +319,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/employees/",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "employees", ""]
+              "raw": "{{baseUrl}}/api/employees/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                ""
+              ]
             },
             "body": {
               "mode": "raw",
@@ -265,9 +349,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/employees/503264133",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "employees", "503264133"]
+              "raw": "{{baseUrl}}/api/employees/503264133",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "503264133"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -283,9 +373,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/employees/503264133",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "employees", "503264133"]
+              "raw": "{{baseUrl}}/api/employees/503264133",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "503264133"
+              ]
             }
           }
         },
@@ -297,9 +393,16 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/employees/503264133/competencies",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "employees", "503264133", "competencies"]
+              "raw": "{{baseUrl}}/api/employees/503264133/competencies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "503264133",
+                "competencies"
+              ]
             }
           }
         },
@@ -317,9 +420,16 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/employees/503264133/competencies",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "employees", "503264133", "competencies"]
+              "raw": "{{baseUrl}}/api/employees/503264133/competencies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "503264133",
+                "competencies"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -335,9 +445,16 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/employees/503264133/photo",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "employees", "503264133", "photo"]
+              "raw": "{{baseUrl}}/api/employees/503264133/photo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "employees",
+                "503264133",
+                "photo"
+              ]
             },
             "body": {
               "mode": "formdata",
@@ -364,9 +481,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/ftw/today",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "ftw", "today"]
+              "raw": "{{baseUrl}}/api/ftw/today",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ftw",
+                "today"
+              ]
             }
           }
         },
@@ -378,9 +501,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/ftw/history?nik=503264133&startDate=2026-07-01&endDate=2026-07-24",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "ftw", "history"]
+              "raw": "{{baseUrl}}/api/ftw/history?nik=503264133&startDate=2026-07-01&endDate=2026-07-24",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ftw",
+                "history"
+              ]
             }
           }
         },
@@ -398,9 +527,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/ftw/submit",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "ftw", "submit"]
+              "raw": "{{baseUrl}}/api/ftw/submit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ftw",
+                "submit"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -421,9 +556,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/rosters/",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "rosters", ""]
+              "raw": "{{baseUrl}}/api/rosters/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rosters",
+                ""
+              ]
             }
           }
         },
@@ -435,9 +576,16 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/rosters/jul/export",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "rosters", "jul", "export"]
+              "raw": "{{baseUrl}}/api/rosters/jul/export",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rosters",
+                "jul",
+                "export"
+              ]
             }
           }
         },
@@ -449,9 +597,16 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/rosters/jul/detail",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "rosters", "jul", "detail"]
+              "raw": "{{baseUrl}}/api/rosters/jul/detail",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rosters",
+                "jul",
+                "detail"
+              ]
             }
           }
         },
@@ -463,9 +618,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/rosters/upload",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "rosters", "upload"]
+              "raw": "{{baseUrl}}/api/rosters/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rosters",
+                "upload"
+              ]
             },
             "body": {
               "mode": "formdata",
@@ -487,9 +648,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/rosters/revisions?status=pending",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "rosters", "revisions"]
+              "raw": "{{baseUrl}}/api/rosters/revisions?status=pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rosters",
+                "revisions"
+              ]
             }
           }
         },
@@ -501,9 +668,16 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/rosters/revisions/codes",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "rosters", "revisions", "codes"]
+              "raw": "{{baseUrl}}/api/rosters/revisions/codes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rosters",
+                "revisions",
+                "codes"
+              ]
             }
           }
         },
@@ -521,9 +695,16 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/rosters/revisions/batch",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "rosters", "revisions", "batch"]
+              "raw": "{{baseUrl}}/api/rosters/revisions/batch",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rosters",
+                "revisions",
+                "batch"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -539,9 +720,16 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/rosters/revisions/sub-101",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "rosters", "revisions", "sub-101"]
+              "raw": "{{baseUrl}}/api/rosters/revisions/sub-101",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rosters",
+                "revisions",
+                "sub-101"
+              ]
             }
           }
         },
@@ -553,9 +741,17 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/rosters/approvals/sub-102/approve",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "rosters", "approvals", "sub-102", "approve"]
+              "raw": "{{baseUrl}}/api/rosters/approvals/sub-102/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rosters",
+                "approvals",
+                "sub-102",
+                "approve"
+              ]
             }
           }
         },
@@ -573,9 +769,17 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/rosters/approvals/sub-102/note",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "rosters", "approvals", "sub-102", "note"]
+              "raw": "{{baseUrl}}/api/rosters/approvals/sub-102/note",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rosters",
+                "approvals",
+                "sub-102",
+                "note"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -591,9 +795,17 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/rosters/approvals/sub-101/reject",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "rosters", "approvals", "sub-101", "reject"]
+              "raw": "{{baseUrl}}/api/rosters/approvals/sub-101/reject",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rosters",
+                "approvals",
+                "sub-101",
+                "reject"
+              ]
             }
           }
         },
@@ -605,9 +817,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/rosters/attendance?date=2026-07-24&dept=Operation",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "rosters", "attendance"]
+              "raw": "{{baseUrl}}/api/rosters/attendance?date=2026-07-24&dept=Operation",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rosters",
+                "attendance"
+              ]
             }
           }
         }
@@ -624,9 +842,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/attendance/today?dept=Operation&shift=D",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "attendance", "today"]
+              "raw": "{{baseUrl}}/api/attendance/today?dept=Operation&shift=D",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "attendance",
+                "today"
+              ]
             }
           }
         },
@@ -638,9 +862,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/attendance/date?date=2026-07-24",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "attendance", "date"]
+              "raw": "{{baseUrl}}/api/attendance/date?date=2026-07-24",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "attendance",
+                "date"
+              ]
             }
           }
         },
@@ -652,9 +882,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/attendance/range?startDate=2026-07-01&endDate=2026-07-24",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "attendance", "range"]
+              "raw": "{{baseUrl}}/api/attendance/range?startDate=2026-07-01&endDate=2026-07-24",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "attendance",
+                "range"
+              ]
             }
           }
         },
@@ -672,9 +908,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/attendance/checkin",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "attendance", "checkin"]
+              "raw": "{{baseUrl}}/api/attendance/checkin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "attendance",
+                "checkin"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -696,9 +938,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/attendance/checkout",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "attendance", "checkout"]
+              "raw": "{{baseUrl}}/api/attendance/checkout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "attendance",
+                "checkout"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -719,9 +967,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/fleet/settings",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "fleet", "settings"]
+              "raw": "{{baseUrl}}/api/fleet/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "fleet",
+                "settings"
+              ]
             }
           }
         },
@@ -739,9 +993,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/fleet/settings",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "fleet", "settings"]
+              "raw": "{{baseUrl}}/api/fleet/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "fleet",
+                "settings"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -763,9 +1023,16 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/fleet/settings/fl-EX7001",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "fleet", "settings", "fl-EX7001"]
+              "raw": "{{baseUrl}}/api/fleet/settings/fl-EX7001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "fleet",
+                "settings",
+                "fl-EX7001"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -781,9 +1048,16 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/fleet/settings/fl-EX7001",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "fleet", "settings", "fl-EX7001"]
+              "raw": "{{baseUrl}}/api/fleet/settings/fl-EX7001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "fleet",
+                "settings",
+                "fl-EX7001"
+              ]
             }
           }
         },
@@ -795,9 +1069,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/fleet/allocations?date=2026-07-24&shift=pagi",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "fleet", "allocations"]
+              "raw": "{{baseUrl}}/api/fleet/allocations?date=2026-07-24&shift=pagi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "fleet",
+                "allocations"
+              ]
             }
           }
         },
@@ -815,9 +1095,16 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/fleet/allocations/auto",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "fleet", "allocations", "auto"]
+              "raw": "{{baseUrl}}/api/fleet/allocations/auto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "fleet",
+                "allocations",
+                "auto"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -833,9 +1120,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/units/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "units", "status"]
+              "raw": "{{baseUrl}}/api/units/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "units",
+                "status"
+              ]
             }
           }
         },
@@ -853,9 +1146,16 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/units/DT114/status",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "units", "DT114", "status"]
+              "raw": "{{baseUrl}}/api/units/DT114/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "units",
+                "DT114",
+                "status"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -877,9 +1177,16 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/units/DT114/status-report",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "units", "DT114", "status-report"]
+              "raw": "{{baseUrl}}/api/units/DT114/status-report",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "units",
+                "DT114",
+                "status-report"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -895,9 +1202,16 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/units/DT114/history",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "units", "DT114", "history"]
+              "raw": "{{baseUrl}}/api/units/DT114/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "units",
+                "DT114",
+                "history"
+              ]
             }
           }
         },
@@ -909,9 +1223,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/units/db",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "units", "db"]
+              "raw": "{{baseUrl}}/api/units/db",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "units",
+                "db"
+              ]
             }
           }
         },
@@ -929,9 +1249,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/units/db",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "units", "db"]
+              "raw": "{{baseUrl}}/api/units/db",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "units",
+                "db"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -953,9 +1279,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/units/db",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "units", "db"]
+              "raw": "{{baseUrl}}/api/units/db",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "units",
+                "db"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -971,9 +1303,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/units/db?id=DT9001",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "units", "db"]
+              "raw": "{{baseUrl}}/api/units/db?id=DT9001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "units",
+                "db"
+              ]
             }
           }
         }
@@ -990,9 +1328,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/prestasi/leaderboard?periodDays=30",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "prestasi", "leaderboard"]
+              "raw": "{{baseUrl}}/api/prestasi/leaderboard?periodDays=30",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prestasi",
+                "leaderboard"
+              ]
             }
           }
         },
@@ -1004,9 +1348,16 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/prestasi/503264133/history?periodDays=30",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "prestasi", "503264133", "history"]
+              "raw": "{{baseUrl}}/api/prestasi/503264133/history?periodDays=30",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "prestasi",
+                "503264133",
+                "history"
+              ]
             }
           }
         }
@@ -1023,9 +1374,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/master/dept",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "master", "dept"]
+              "raw": "{{baseUrl}}/api/master/dept",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "master",
+                "dept"
+              ]
             }
           }
         },
@@ -1043,9 +1400,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/master/dept",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "master", "dept"]
+              "raw": "{{baseUrl}}/api/master/dept",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "master",
+                "dept"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1067,9 +1430,16 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/master/dept/dept-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "master", "dept", "dept-1"]
+              "raw": "{{baseUrl}}/api/master/dept/dept-1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "master",
+                "dept",
+                "dept-1"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1085,9 +1455,16 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/master/dept/dept-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "master", "dept", "dept-1"]
+              "raw": "{{baseUrl}}/api/master/dept/dept-1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "master",
+                "dept",
+                "dept-1"
+              ]
             }
           }
         }
@@ -1104,9 +1481,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/users/",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "users", ""]
+              "raw": "{{baseUrl}}/api/users/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ""
+              ]
             }
           }
         },
@@ -1124,9 +1507,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/users/",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "users", ""]
+              "raw": "{{baseUrl}}/api/users/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ""
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1148,9 +1537,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/users/u-1234567890",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "users", "u-1234567890"]
+              "raw": "{{baseUrl}}/api/users/u-1234567890",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "u-1234567890"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1166,9 +1561,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/users/u-1234567890",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "users", "u-1234567890"]
+              "raw": "{{baseUrl}}/api/users/u-1234567890",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "u-1234567890"
+              ]
             }
           }
         },
@@ -1180,9 +1581,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/roles/",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "roles", ""]
+              "raw": "{{baseUrl}}/api/roles/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                ""
+              ]
             }
           }
         },
@@ -1200,9 +1607,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/roles/",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "roles", ""]
+              "raw": "{{baseUrl}}/api/roles/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                ""
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1224,9 +1637,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/roles/r6",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "roles", "r6"]
+              "raw": "{{baseUrl}}/api/roles/r6",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "r6"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1242,9 +1661,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/roles/r6",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "roles", "r6"]
+              "raw": "{{baseUrl}}/api/roles/r6",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "r6"
+              ]
             }
           }
         }
@@ -1261,9 +1686,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/notifications/",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "notifications", ""]
+              "raw": "{{baseUrl}}/api/notifications/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                ""
+              ]
             }
           }
         },
@@ -1275,9 +1706,16 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/notifications/n1/read",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "notifications", "n1", "read"]
+              "raw": "{{baseUrl}}/api/notifications/n1/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "n1",
+                "read"
+              ]
             }
           }
         },
@@ -1289,9 +1727,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/notifications/read-all",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "notifications", "read-all"]
+              "raw": "{{baseUrl}}/api/notifications/read-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "read-all"
+              ]
             }
           }
         }
@@ -1308,9 +1752,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/settings/",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "settings", ""]
+              "raw": "{{baseUrl}}/api/settings/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings",
+                ""
+              ]
             }
           }
         },
@@ -1328,9 +1778,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/settings/",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "settings", ""]
+              "raw": "{{baseUrl}}/api/settings/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings",
+                ""
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1346,9 +1802,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/settings/audio",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "settings", "audio"]
+              "raw": "{{baseUrl}}/api/settings/audio",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings",
+                "audio"
+              ]
             }
           }
         },
@@ -1366,9 +1828,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/settings/audio",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "settings", "audio"]
+              "raw": "{{baseUrl}}/api/settings/audio",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings",
+                "audio"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1390,9 +1858,16 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/settings/audio/au1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "settings", "audio", "au1"]
+              "raw": "{{baseUrl}}/api/settings/audio/au1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings",
+                "audio",
+                "au1"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1408,9 +1883,16 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/settings/audio/au1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "settings", "audio", "au1"]
+              "raw": "{{baseUrl}}/api/settings/audio/au1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings",
+                "audio",
+                "au1"
+              ]
             }
           }
         },
@@ -1422,9 +1904,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/settings/displays",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "settings", "displays"]
+              "raw": "{{baseUrl}}/api/settings/displays",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings",
+                "displays"
+              ]
             }
           }
         },
@@ -1442,9 +1930,15 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/settings/displays",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "settings", "displays"]
+              "raw": "{{baseUrl}}/api/settings/displays",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings",
+                "displays"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1466,9 +1960,16 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/settings/displays/DSP-A01",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "settings", "displays", "DSP-A01"]
+              "raw": "{{baseUrl}}/api/settings/displays/DSP-A01",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings",
+                "displays",
+                "DSP-A01"
+              ]
             },
             "body": {
               "mode": "raw",
@@ -1484,9 +1985,16 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/settings/displays/DSP-A01",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "settings", "displays", "DSP-A01"]
+              "raw": "{{baseUrl}}/api/settings/displays/DSP-A01",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings",
+                "displays",
+                "DSP-A01"
+              ]
             }
           }
         },
@@ -1498,9 +2006,16 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/displays/DSP-A01/heartbeat",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "displays", "DSP-A01", "heartbeat"]
+              "raw": "{{baseUrl}}/api/displays/DSP-A01/heartbeat",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "displays",
+                "DSP-A01",
+                "heartbeat"
+              ]
             }
           }
         }
@@ -1517,9 +2032,15 @@
               "type": "bearer"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/fingerprint/devices",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "fingerprint", "devices"]
+              "raw": "{{baseUrl}}/api/fingerprint/devices",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "fingerprint",
+                "devices"
+              ]
             }
           }
         }

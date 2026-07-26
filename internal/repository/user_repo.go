@@ -91,13 +91,18 @@ func (r *UserRepo) ExistsByEmail(email string) bool {
 	return count > 0
 }
 
+func (r *UserRepo) ExistsByNIK(nik string) bool {
+	var count int64
+	r.db.Model(&model.User{}).Where("nik = ?", nik).Count(&count)
+	return count > 0
+}
+
 func (r *UserRepo) UpdatePassword(id, hash, salt string) error {
 	return r.db.Model(&model.User{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"password_hash": hash,
 		"password_salt": salt,
 	}).Error
 }
-
 
 // RoleRepo
 
@@ -174,7 +179,6 @@ func (r *RoleRepo) CountUsersByRoleID(roleID string) (int64, error) {
 	err := r.db.Model(&model.UserRole{}).Where("role_id = ?", roleID).Count(&count).Error
 	return count, err
 }
-
 
 func (r *RoleRepo) GetPermissionsForRoles(roleIDs []string) (map[string]string, error) {
 	var perms []model.RolePermission

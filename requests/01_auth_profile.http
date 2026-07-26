@@ -7,7 +7,7 @@ GET {{baseUrl}}/health
 
 ### Login (Obtain JWT Token)
 # @name login
-POST {{baseUrl}}/api/v1/auth/login
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
@@ -16,19 +16,19 @@ Content-Type: application/json
 }
 
 ### Refresh Token
-POST {{baseUrl}}/api/v1/auth/refresh
+POST {{baseUrl}}/api/auth/refresh
 Content-Type: application/json
 
 ### Logout
-POST {{baseUrl}}/api/v1/auth/logout
+POST {{baseUrl}}/api/auth/logout
 Authorization: Bearer {{authToken}}
 
 ### Get User Profile
-GET {{baseUrl}}/api/v1/profile/
+GET {{baseUrl}}/api/profile/
 Authorization: Bearer {{authToken}}
 
 ### Update Profile
-PUT {{baseUrl}}/api/v1/profile/
+PUT {{baseUrl}}/api/profile/
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
@@ -38,7 +38,7 @@ Content-Type: application/json
 }
 
 ### Update Password
-PUT {{baseUrl}}/api/v1/profile/password
+PUT {{baseUrl}}/api/profile/password
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 

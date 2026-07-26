@@ -11,8 +11,8 @@ import (
 func TestUserAndRoleEndpoints(t *testing.T) {
 	app, token := setupTestApp()
 
-	t.Run("GET /api/v1/users", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/v1/users/", nil)
+	t.Run("GET /api/users", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/users/", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -20,7 +20,7 @@ func TestUserAndRoleEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("POST /api/v1/users", func(t *testing.T) {
+	t.Run("POST /api/users", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]interface{}{
 			"email":    "new.user@unggul.co.id",
 			"name":     "New User",
@@ -28,7 +28,7 @@ func TestUserAndRoleEndpoints(t *testing.T) {
 			"nik":      "503264111",
 			"roles":    []string{"r1"},
 		})
-		req := httptest.NewRequest("POST", "/api/v1/users/", bytes.NewReader(body))
+		req := httptest.NewRequest("POST", "/api/users/", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
@@ -37,13 +37,13 @@ func TestUserAndRoleEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("PUT /api/v1/users/:id", func(t *testing.T) {
+	t.Run("PUT /api/users/:id", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]interface{}{
 			"name":  "Updated User",
 			"email": "angel@unggul.co.id",
 			"roles": []string{"r1"},
 		})
-		req := httptest.NewRequest("PUT", "/api/v1/users/u-test-1", bytes.NewReader(body))
+		req := httptest.NewRequest("PUT", "/api/users/u-test-1", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
@@ -52,8 +52,8 @@ func TestUserAndRoleEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("DELETE /api/v1/users/:id - non-existent user returns 404", func(t *testing.T) {
-		req := httptest.NewRequest("DELETE", "/api/v1/users/u-nonexistent", nil)
+	t.Run("DELETE /api/users/:id - non-existent user returns 404", func(t *testing.T) {
+		req := httptest.NewRequest("DELETE", "/api/users/u-nonexistent", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusNotFound {
@@ -61,8 +61,8 @@ func TestUserAndRoleEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("GET /api/v1/roles", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/v1/roles/", nil)
+	t.Run("GET /api/roles", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/roles/", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -70,9 +70,9 @@ func TestUserAndRoleEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("POST /api/v1/roles", func(t *testing.T) {
+	t.Run("POST /api/roles", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"name": "New Role"})
-		req := httptest.NewRequest("POST", "/api/v1/roles/", bytes.NewReader(body))
+		req := httptest.NewRequest("POST", "/api/roles/", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
@@ -81,9 +81,9 @@ func TestUserAndRoleEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("PUT /api/v1/roles/:id", func(t *testing.T) {
+	t.Run("PUT /api/roles/:id", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"name": "Updated Role"})
-		req := httptest.NewRequest("PUT", "/api/v1/roles/r2", bytes.NewReader(body))
+		req := httptest.NewRequest("PUT", "/api/roles/r2", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
@@ -92,8 +92,8 @@ func TestUserAndRoleEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("DELETE /api/v1/roles/:id", func(t *testing.T) {
-		req := httptest.NewRequest("DELETE", "/api/v1/roles/r2", nil)
+	t.Run("DELETE /api/roles/:id", func(t *testing.T) {
+		req := httptest.NewRequest("DELETE", "/api/roles/r2", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {

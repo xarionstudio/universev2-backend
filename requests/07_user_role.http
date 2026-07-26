@@ -3,7 +3,7 @@
 @authToken = {{login.response.body.data.token}}
 
 # @name login
-POST {{baseUrl}}/api/v1/auth/login
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
@@ -12,15 +12,15 @@ Content-Type: application/json
 }
 
 ### Get Users List
-GET {{baseUrl}}/api/v1/users/
+GET {{baseUrl}}/api/users/
 Authorization: Bearer {{authToken}}
 
 ### Get Roles List
-GET {{baseUrl}}/api/v1/roles/
+GET {{baseUrl}}/api/roles/
 Authorization: Bearer {{authToken}}
 
 ### Create New Role
-POST {{baseUrl}}/api/v1/roles/
+POST {{baseUrl}}/api/roles/
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 

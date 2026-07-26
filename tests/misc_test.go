@@ -9,8 +9,8 @@ import (
 func TestMiscEndpoints(t *testing.T) {
 	app, token := setupTestApp()
 
-	t.Run("GET /api/v1/weather/current", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/v1/weather/current", nil)
+	t.Run("GET /api/weather/current", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/weather/current", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, err := app.Test(req)
 		if err != nil {
@@ -20,8 +20,8 @@ func TestMiscEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("GET /api/v1/prestasi/leaderboard", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/v1/prestasi/leaderboard", nil)
+	t.Run("GET /api/prestasi/leaderboard", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/prestasi/leaderboard", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -29,8 +29,8 @@ func TestMiscEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("GET /api/v1/prestasi/:nik/history", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/v1/prestasi/503264133/history", nil)
+	t.Run("GET /api/prestasi/:nik/history", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/prestasi/503264133/history", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {

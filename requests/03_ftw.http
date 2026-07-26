@@ -3,7 +3,7 @@
 @authToken = {{login.response.body.data.token}}
 
 # @name login
-POST {{baseUrl}}/api/v1/auth/login
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
@@ -12,15 +12,15 @@ Content-Type: application/json
 }
 
 ### Get Today FTW Logs
-GET {{baseUrl}}/api/v1/ftw/today
+GET {{baseUrl}}/api/ftw/today
 Authorization: Bearer {{authToken}}
 
 ### Get FTW History
-GET {{baseUrl}}/api/v1/ftw/history
+GET {{baseUrl}}/api/ftw/history
 Authorization: Bearer {{authToken}}
 
 ### Submit Sleep Log
-POST {{baseUrl}}/api/v1/ftw/submit
+POST {{baseUrl}}/api/ftw/submit
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 

@@ -3,7 +3,7 @@
 @authToken = {{login.response.body.data.token}}
 
 # @name login
-POST {{baseUrl}}/api/v1/auth/login
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
@@ -12,15 +12,15 @@ Content-Type: application/json
 }
 
 ### Get Fleet Settings
-GET {{baseUrl}}/api/v1/fleet/settings
+GET {{baseUrl}}/api/fleet/settings
 Authorization: Bearer {{authToken}}
 
 ### Get Unit Statuses
-GET {{baseUrl}}/api/v1/units/status
+GET {{baseUrl}}/api/units/status
 Authorization: Bearer {{authToken}}
 
 ### Update Unit Status
-PUT {{baseUrl}}/api/v1/units/DT5108/status
+PUT {{baseUrl}}/api/units/DT5108/status
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
@@ -30,9 +30,9 @@ Content-Type: application/json
 }
 
 ### Get Unit History
-GET {{baseUrl}}/api/v1/units/DT5108/history
+GET {{baseUrl}}/api/units/DT5108/history
 Authorization: Bearer {{authToken}}
 
 ### Get Unit Database
-GET {{baseUrl}}/api/v1/units/db
+GET {{baseUrl}}/api/units/db
 Authorization: Bearer {{authToken}}

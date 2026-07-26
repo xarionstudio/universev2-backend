@@ -18,7 +18,7 @@ func NewAttendanceHandler(repo *repository.AttendanceRepo) *AttendanceHandler {
 	return &AttendanceHandler{repo: repo}
 }
 
-// GetAttendanceToday — GET /api/v1/attendance/today
+// GetAttendanceToday — GET /api/attendance/today
 func (h *AttendanceHandler) GetAttendanceToday(c fiber.Ctx) error {
 	today := time.Now().Format("2006-01-02")
 	rows, err := h.repo.GetLogsByDate(today)
@@ -30,7 +30,7 @@ func (h *AttendanceHandler) GetAttendanceToday(c fiber.Ctx) error {
 	return response.SuccessWithMeta(c, fiber.StatusOK, "Success fetch today attendance", rows, meta)
 }
 
-// GetAttendanceByDate — GET /api/v1/attendance/date?date=YYYY-MM-DD
+// GetAttendanceByDate — GET /api/attendance/date?date=YYYY-MM-DD
 func (h *AttendanceHandler) GetAttendanceByDate(c fiber.Ctx) error {
 	date := c.Query("date")
 	if isTrimmedEmpty(date) {
@@ -45,7 +45,7 @@ func (h *AttendanceHandler) GetAttendanceByDate(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, "Success fetch attendance for date", rows)
 }
 
-// GetAttendanceRange — GET /api/v1/attendance/range?from=YYYY-MM-DD&to=YYYY-MM-DD
+// GetAttendanceRange — GET /api/attendance/range?from=YYYY-MM-DD&to=YYYY-MM-DD
 func (h *AttendanceHandler) GetAttendanceRange(c fiber.Ctx) error {
 	from := c.Query("from")
 	to := c.Query("to")
@@ -61,7 +61,7 @@ func (h *AttendanceHandler) GetAttendanceRange(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, "Success fetch attendance range", rows)
 }
 
-// RecordCheckIn — POST /api/v1/attendance/checkin
+// RecordCheckIn — POST /api/attendance/checkin
 func (h *AttendanceHandler) RecordCheckIn(c fiber.Ctx) error {
 	var req dto.CheckInOutRequest
 	if err := c.Bind().JSON(&req); err != nil {
@@ -84,7 +84,7 @@ func (h *AttendanceHandler) RecordCheckIn(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusCreated, "Check-in recorded successfully", row)
 }
 
-// RecordCheckOut — POST /api/v1/attendance/checkout
+// RecordCheckOut — POST /api/attendance/checkout
 func (h *AttendanceHandler) RecordCheckOut(c fiber.Ctx) error {
 	var req dto.CheckInOutRequest
 	if err := c.Bind().JSON(&req); err != nil {

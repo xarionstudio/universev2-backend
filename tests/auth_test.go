@@ -11,9 +11,9 @@ import (
 func TestAuthEndpoints(t *testing.T) {
 	app, token := setupTestApp()
 
-	t.Run("POST /api/v1/auth/login", func(t *testing.T) {
+	t.Run("POST /api/auth/login", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"email": "angel@unggul.co.id", "password": "admin123"})
-		req := httptest.NewRequest("POST", "/api/v1/auth/login", bytes.NewReader(body))
+		req := httptest.NewRequest("POST", "/api/auth/login", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -21,7 +21,7 @@ func TestAuthEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("POST /api/v1/auth/register", func(t *testing.T) {
+	t.Run("POST /api/auth/register", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{
 			"email":    "newuser@unggul.co.id",
 			"name":     "New User",
@@ -30,7 +30,7 @@ func TestAuthEndpoints(t *testing.T) {
 			"dept":     "Operation",
 			"pos":      "Operator",
 		})
-		req := httptest.NewRequest("POST", "/api/v1/auth/register", bytes.NewReader(body))
+		req := httptest.NewRequest("POST", "/api/auth/register", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusCreated {
@@ -38,8 +38,8 @@ func TestAuthEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("POST /api/v1/auth/refresh", func(t *testing.T) {
-		req := httptest.NewRequest("POST", "/api/v1/auth/refresh", nil)
+	t.Run("POST /api/auth/refresh", func(t *testing.T) {
+		req := httptest.NewRequest("POST", "/api/auth/refresh", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -47,8 +47,8 @@ func TestAuthEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("POST /api/v1/auth/logout", func(t *testing.T) {
-		req := httptest.NewRequest("POST", "/api/v1/auth/logout", nil)
+	t.Run("POST /api/auth/logout", func(t *testing.T) {
+		req := httptest.NewRequest("POST", "/api/auth/logout", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -60,8 +60,8 @@ func TestAuthEndpoints(t *testing.T) {
 func TestProfileEndpoints(t *testing.T) {
 	app, token := setupTestApp()
 
-	t.Run("GET /api/v1/profile", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/v1/profile/", nil)
+	t.Run("GET /api/profile", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/profile/", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -69,9 +69,9 @@ func TestProfileEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("PUT /api/v1/profile", func(t *testing.T) {
+	t.Run("PUT /api/profile", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"name": "Updated Name"})
-		req := httptest.NewRequest("PUT", "/api/v1/profile/", bytes.NewReader(body))
+		req := httptest.NewRequest("PUT", "/api/profile/", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
@@ -80,13 +80,13 @@ func TestProfileEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("PUT /api/v1/profile/password", func(t *testing.T) {
+	t.Run("PUT /api/profile/password", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{
 			"oldPassword":     "admin123",
 			"newPassword":     "newpassword1",
 			"confirmPassword": "newpassword1",
 		})
-		req := httptest.NewRequest("PUT", "/api/v1/profile/password", bytes.NewReader(body))
+		req := httptest.NewRequest("PUT", "/api/profile/password", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)

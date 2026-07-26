@@ -3,7 +3,7 @@
 @authToken = {{login.response.body.data.token}}
 
 # @name login
-POST {{baseUrl}}/api/v1/auth/login
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
@@ -12,17 +12,17 @@ Content-Type: application/json
 }
 
 ### Get Notifications
-GET {{baseUrl}}/api/v1/notifications/
+GET {{baseUrl}}/api/notifications/
 Authorization: Bearer {{authToken}}
 
 ### Get Settings
-GET {{baseUrl}}/api/v1/settings/
+GET {{baseUrl}}/api/settings/
 Authorization: Bearer {{authToken}}
 
 ### Get Display Devices
-GET {{baseUrl}}/api/v1/settings/displays
+GET {{baseUrl}}/api/settings/displays
 Authorization: Bearer {{authToken}}
 
 ### Get Fingerprint Devices
-GET {{baseUrl}}/api/v1/fingerprint/devices
+GET {{baseUrl}}/api/fingerprint/devices
 Authorization: Bearer {{authToken}}

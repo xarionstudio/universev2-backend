@@ -11,8 +11,8 @@ import (
 func TestNotificationsAndSettings(t *testing.T) {
 	app, token := setupTestApp()
 
-	t.Run("GET /api/v1/notifications", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/v1/notifications/", nil)
+	t.Run("GET /api/notifications", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/notifications/", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -20,8 +20,8 @@ func TestNotificationsAndSettings(t *testing.T) {
 		}
 	})
 
-	t.Run("PUT /api/v1/notifications/:id/read", func(t *testing.T) {
-		req := httptest.NewRequest("PUT", "/api/v1/notifications/n1/read", nil)
+	t.Run("PUT /api/notifications/:id/read", func(t *testing.T) {
+		req := httptest.NewRequest("PUT", "/api/notifications/n1/read", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -29,8 +29,8 @@ func TestNotificationsAndSettings(t *testing.T) {
 		}
 	})
 
-	t.Run("PUT /api/v1/notifications/read-all", func(t *testing.T) {
-		req := httptest.NewRequest("PUT", "/api/v1/notifications/read-all", nil)
+	t.Run("PUT /api/notifications/read-all", func(t *testing.T) {
+		req := httptest.NewRequest("PUT", "/api/notifications/read-all", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -38,8 +38,8 @@ func TestNotificationsAndSettings(t *testing.T) {
 		}
 	})
 
-	t.Run("GET /api/v1/settings", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/v1/settings/", nil)
+	t.Run("GET /api/settings", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/settings/", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -47,9 +47,9 @@ func TestNotificationsAndSettings(t *testing.T) {
 		}
 	})
 
-	t.Run("PUT /api/v1/settings", func(t *testing.T) {
+	t.Run("PUT /api/settings", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"theme": "dark"})
-		req := httptest.NewRequest("PUT", "/api/v1/settings/", bytes.NewReader(body))
+		req := httptest.NewRequest("PUT", "/api/settings/", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
@@ -58,8 +58,8 @@ func TestNotificationsAndSettings(t *testing.T) {
 		}
 	})
 
-	t.Run("GET /api/v1/settings/audio", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/v1/settings/audio", nil)
+	t.Run("GET /api/settings/audio", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/settings/audio", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -67,8 +67,8 @@ func TestNotificationsAndSettings(t *testing.T) {
 		}
 	})
 
-	t.Run("GET /api/v1/settings/displays", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/v1/settings/displays", nil)
+	t.Run("GET /api/settings/displays", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/settings/displays", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -76,9 +76,9 @@ func TestNotificationsAndSettings(t *testing.T) {
 		}
 	})
 
-	t.Run("POST /api/v1/settings/displays", func(t *testing.T) {
+	t.Run("POST /api/settings/displays", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"name": "TV Front Office", "loc": "Lobby"})
-		req := httptest.NewRequest("POST", "/api/v1/settings/displays", bytes.NewReader(body))
+		req := httptest.NewRequest("POST", "/api/settings/displays", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
@@ -87,9 +87,9 @@ func TestNotificationsAndSettings(t *testing.T) {
 		}
 	})
 
-	t.Run("PUT /api/v1/settings/displays/:id", func(t *testing.T) {
+	t.Run("PUT /api/settings/displays/:id", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"name": "TV Gate Selatan", "loc": "Gate Selatan"})
-		req := httptest.NewRequest("PUT", "/api/v1/settings/displays/DSP-A01", bytes.NewReader(body))
+		req := httptest.NewRequest("PUT", "/api/settings/displays/DSP-A01", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
@@ -98,8 +98,8 @@ func TestNotificationsAndSettings(t *testing.T) {
 		}
 	})
 
-	t.Run("DELETE /api/v1/settings/displays/:id", func(t *testing.T) {
-		req := httptest.NewRequest("DELETE", "/api/v1/settings/displays/DSP-A01", nil)
+	t.Run("DELETE /api/settings/displays/:id", func(t *testing.T) {
+		req := httptest.NewRequest("DELETE", "/api/settings/displays/DSP-A01", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -107,8 +107,8 @@ func TestNotificationsAndSettings(t *testing.T) {
 		}
 	})
 
-	t.Run("GET /api/v1/displays/:id/heartbeat", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/v1/displays/DSP-A01/heartbeat", nil)
+	t.Run("GET /api/displays/:id/heartbeat", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/displays/DSP-A01/heartbeat", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -116,8 +116,8 @@ func TestNotificationsAndSettings(t *testing.T) {
 		}
 	})
 
-	t.Run("GET /api/v1/fingerprint/devices", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/v1/fingerprint/devices", nil)
+	t.Run("GET /api/fingerprint/devices", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/fingerprint/devices", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -125,9 +125,9 @@ func TestNotificationsAndSettings(t *testing.T) {
 		}
 	})
 
-	t.Run("POST /api/v1/settings/audio", func(t *testing.T) {
+	t.Run("POST /api/settings/audio", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"title": "Morning Bell", "when": "07:00"})
-		req := httptest.NewRequest("POST", "/api/v1/settings/audio", bytes.NewReader(body))
+		req := httptest.NewRequest("POST", "/api/settings/audio", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
@@ -136,9 +136,9 @@ func TestNotificationsAndSettings(t *testing.T) {
 		}
 	})
 
-	t.Run("PUT /api/v1/settings/audio/:id", func(t *testing.T) {
+	t.Run("PUT /api/settings/audio/:id", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"title": "Updated Bell", "when": "08:00"})
-		req := httptest.NewRequest("PUT", "/api/v1/settings/audio/audio-1", bytes.NewReader(body))
+		req := httptest.NewRequest("PUT", "/api/settings/audio/audio-1", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
@@ -147,8 +147,8 @@ func TestNotificationsAndSettings(t *testing.T) {
 		}
 	})
 
-	t.Run("DELETE /api/v1/settings/audio/:id", func(t *testing.T) {
-		req := httptest.NewRequest("DELETE", "/api/v1/settings/audio/audio-1", nil)
+	t.Run("DELETE /api/settings/audio/:id", func(t *testing.T) {
+		req := httptest.NewRequest("DELETE", "/api/settings/audio/audio-1", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {

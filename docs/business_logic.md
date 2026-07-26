@@ -371,20 +371,20 @@ Dokumentasi ini menjelaskan logika bisnis, fitur, dan alur sistem UniverseV2 yan
 
 | Frontend Module | Backend Routes | Key Entities |
 |-----------------|----------------|--------------|
-| Dashboard | `/api/v1/weather/current`, aggregated data | attendance_logs, unit_statuses, notifications |
-| Displays | `/api/v1/settings/displays`, `/api/v1/displays/:id/heartbeat` | display_devices |
-| Employees | `/api/v1/employees/*` | employees, employee_competencies |
-| Fit To Work | `/api/v1/ftw/*` | ftw_logs |
-| Roster | `/api/v1/rosters/*` | roster_files, roster_schedules, roster_revisions |
-| Attendance | `/api/v1/attendance/*` | attendance_logs |
-| Asset/Fleet | `/api/v1/fleet/*`, `/api/v1/units/*` | fleet_settings, unit_statuses, unit_status_histories, units_db |
-| Prestasi | `/api/v1/prestasi/*` | prestasi_scores, prestasi_badges, prestasi_history |
-| Master | `/api/v1/master/*` | master_entries |
-| Users | `/api/v1/users/*` | users |
-| Roles | `/api/v1/roles/*` | roles, role_permissions |
-| Notifications | `/api/v1/notifications/*` | notifications |
-| Settings | `/api/v1/settings/*`, `/api/v1/settings/audio`, `/api/v1/settings/displays` | app_settings, audio_schedules, display_devices |
-| Fingerprint | `/api/v1/fingerprint/devices` | display_devices (kind=finger) |
+| Dashboard | `/api/weather/current`, aggregated data | attendance_logs, unit_statuses, notifications |
+| Displays | `/api/settings/displays`, `/api/displays/:id/heartbeat` | display_devices |
+| Employees | `/api/employees/*` | employees, employee_competencies |
+| Fit To Work | `/api/ftw/*` | ftw_logs |
+| Roster | `/api/rosters/*` | roster_files, roster_schedules, roster_revisions |
+| Attendance | `/api/attendance/*` | attendance_logs |
+| Asset/Fleet | `/api/fleet/*`, `/api/units/*` | fleet_settings, unit_statuses, unit_status_histories, units_db |
+| Prestasi | `/api/prestasi/*` | prestasi_scores, prestasi_badges, prestasi_history |
+| Master | `/api/master/*` | master_entries |
+| Users | `/api/users/*` | users |
+| Roles | `/api/roles/*` | roles, role_permissions |
+| Notifications | `/api/notifications/*` | notifications |
+| Settings | `/api/settings/*`, `/api/settings/audio`, `/api/settings/displays` | app_settings, audio_schedules, display_devices |
+| Fingerprint | `/api/fingerprint/devices` | display_devices (kind=finger) |
 
 ---
 
@@ -415,10 +415,10 @@ Dokumentasi ini menjelaskan logika bisnis, fitur, dan alur sistem UniverseV2 yan
 3. Backend validasi: NIK exists, tidak absent, FTW status fit
 4. Backend determine status: `hadir` atau `terlambat`
 5. Insert ke `attendance_logs`
-6. Frontend poll `/api/v1/attendance/today` untuk update UI
+6. Frontend poll `/api/attendance/today` untuk update UI
 
 ### Roster Upload Flow
-1. Admin upload Excel roster via `/api/v1/rosters/upload`
+1. Admin upload Excel roster via `/api/rosters/upload`
 2. Backend parse Excel, validate rows
 3. Create `roster_files` record
 4. Create `roster_schedules` untuk setiap karyawan x tanggal

@@ -54,11 +54,11 @@ ON CONFLICT (role_id, module_name) DO NOTHING;
 -- ============================================================================
 
 INSERT INTO users (id, email, name, nik, password_hash, password_salt, is_active) VALUES
-('u1', 'angel@unggul.co.id',     'First Angel Paustine', '503264133', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', 'saltsuperadmin', TRUE),
-('u2', 'rahmat.h@unggul.co.id',  'Rahmat Hidayat',       '503264134', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', 'saltadmin',      TRUE),
-('u3', 'dewi.l@unggul.co.id',    'Dewi Lestari',         '503264138', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', 'saltadmin2',     TRUE),
-('u4', 'clinic@unggul.co.id',    'Klinik Viewer',        NULL,        '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', 'saltviewer1',    TRUE),
-('u5', 'budi.plant@unggul.co.id','Hendra Gunawan',       '503264143', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', 'saltviewer2',    FALSE)
+('u1', 'angel@unggul.co.id',     'First Angel Paustine', '503264133', 'fd7555bb94a4534a601551a2635ed8f4b631d92ca1ff16f73a9f28ab73fd4cf9', 'saltsuperadmin', TRUE),
+('u2', 'rahmat.h@unggul.co.id',  'Rahmat Hidayat',       '503264134', '67d094a72b5ec32000a0867a0bd0313feada1a4133e85460f6073d4e4919ebf2', 'saltadmin',      TRUE),
+('u3', 'dewi.l@unggul.co.id',    'Dewi Lestari',         '503264138', '2559dd25634a0d370ded4af91110691c31ab00ae51616060e3d6b2ef1f150778', 'saltadmin2',     TRUE),
+('u4', 'clinic@unggul.co.id',    'Klinik Viewer',        NULL,        '0da3712e37a2b0ea15cca65e93cf91bbc93efac82d3414cbf749c99dbbb0b5b9', 'saltviewer1',    TRUE),
+('u5', 'budi.plant@unggul.co.id','Hendra Gunawan',       '503264143', 'd4c150faba808bc315df9a36d02cf4d8f03df4780ac469bbb2b51af1f45f487b', 'saltviewer2',    FALSE)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO user_roles (user_id, role_id) VALUES

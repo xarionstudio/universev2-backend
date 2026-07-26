@@ -169,7 +169,7 @@ func setupTestApp() (*fiber.App, string) {
 		"password": "admin123",
 	}
 	body, _ := json.Marshal(loginReq)
-	req := httptest.NewRequest("POST", "/api/v1/auth/login", bytes.NewReader(body))
+	req := httptest.NewRequest("POST", "/api/auth/login", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := app.Test(req)

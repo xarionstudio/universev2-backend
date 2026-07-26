@@ -8,6 +8,7 @@ import (
 	"universev2-backend/internal/handler"
 	"universev2-backend/internal/middleware"
 	"universev2-backend/internal/repository"
+	"universev2-backend/internal/service"
 )
 
 func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
@@ -27,7 +28,12 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
 	// Initialize RBAC Middleware
 	rbac := middleware.NewRBACMiddleware(roleRepo)
 
-	// Initialize Handlers with Repositories
+	// Initialize Services
+	masterSvc := service.NewMasterService(masterRepo)
+	displaySvc := service.NewDisplayService(attRepo, ftwRepo, fleetRepo, empRepo, settingsRepo)
+	dashSvc := service.NewDashboardService(attRepo, ftwRepo, fleetRepo, rosterRepo, notifRepo, empRepo)
+
+	// Initialize Handlers
 	authH := handler.NewAuthHandler(cfg, userRepo, roleRepo)
 	empH := handler.NewEmployeeHandler(empRepo)
 	ftwH := handler.NewFitworkHandler(ftwRepo)
@@ -35,7 +41,7 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
 	attH := handler.NewAttendanceHandler(attRepo)
 	fleetH := handler.NewFleetHandler(fleetRepo)
 	prestasiH := handler.NewPrestasiHandler(prestasiRepo)
-	masterH := handler.NewMasterHandler(masterRepo)
+	masterH := handler.NewMasterHandler(masterSvc)
 	userH := handler.NewUserHandler(userRepo)
 	roleH := handler.NewRoleHandler(roleRepo)
 	notifH := handler.NewNotificationHandler(notifRepo)
@@ -44,8 +50,8 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
 	profileH := handler.NewProfileHandler(userRepo)
 	weatherH := handler.NewWeatherHandler()
 
-	// API v1 group
-	api := app.Group("/api/v1")
+	// API group
+	api := app.Group("/api")
 
 	// Public Auth routes
 	auth := api.Group("/auth")
@@ -182,6 +188,17 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
 
 	// Display Heartbeat
 	api.Get("/displays/:id/heartbeat", settingsH.GetDisplayHeartbeat)
+
+	// Display TV endpoints
+	displayH := handler.NewDisplayHandler(displaySvc)
+	protected.Get("/display/attendance", displayH.GetDisplayAttendance)
+	protected.Get("/display/ftw", displayH.GetDisplayFTW)
+	protected.Get("/display/fleet", displayH.GetDisplayFleet)
+	protected.Get("/display/fingerprint", displayH.GetDisplayFingerprint)
+
+	// Dashboard summary
+	dashH := handler.NewDashboardHandler(dashSvc)
+	protected.Get("/dashboard/summary", dashH.GetDashboardSummary)
 
 	// Fingerprint
 	protected.Get("/fingerprint/devices", fpH.GetDeviceStatus)

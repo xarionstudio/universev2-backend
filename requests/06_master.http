@@ -3,7 +3,7 @@
 @authToken = {{login.response.body.data.token}}
 
 # @name login
-POST {{baseUrl}}/api/v1/auth/login
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
@@ -12,15 +12,15 @@ Content-Type: application/json
 }
 
 ### Get Master Entries (Departemen)
-GET {{baseUrl}}/api/v1/master/dept
+GET {{baseUrl}}/api/master/dept
 Authorization: Bearer {{authToken}}
 
 ### Get Master Entries (Posisi)
-GET {{baseUrl}}/api/v1/master/pos
+GET {{baseUrl}}/api/master/pos
 Authorization: Bearer {{authToken}}
 
 ### Create Master Entry
-POST {{baseUrl}}/api/v1/master/dept
+POST {{baseUrl}}/api/master/dept
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
