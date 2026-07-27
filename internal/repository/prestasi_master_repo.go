@@ -82,6 +82,60 @@ func (r *PrestasiRepo) GetOperatorHistory(nik string, days int) ([]model.Prestas
 	return entries, err
 }
 
+func (r *PrestasiRepo) GetAllEmployeeNIKs() ([]model.Employee, error) {
+	var emps []model.Employee
+	err := r.db.Select("nik, name, dept, pos, foto").Order("nik ASC").Find(&emps).Error
+	return emps, err
+}
+
+func (r *PrestasiRepo) SavePrestasiData(periodDays int, scores []model.PrestasiScore, history []model.PrestasiHistoryEntry, badges []model.PrestasiBadge) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// Delete existing entries for the given period to overwrite with recalculation
+		if err := tx.Where("period_days = ?", periodDays).Delete(&model.PrestasiScore{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("period_days = ?", periodDays).Delete(&model.PrestasiHistoryEntry{}).Error; err != nil {
+			return err
+		}
+		for _, s := range scores {
+			s.PeriodDays = periodDays
+			if err := tx.Create(&s).Error; err != nil {
+				return err
+			}
+		}
+		for _, h := range history {
+			h.PeriodDays = periodDays
+			if err := tx.Create(&h).Error; err != nil {
+				return err
+			}
+		}
+		for _, b := range badges {
+			tx.Where("employee_nik = ? AND badge_key = ?", b.EmployeeNIK, b.BadgeKey).FirstOrCreate(&b)
+		}
+		return nil
+	})
+}
+
+func (r *PrestasiRepo) GetAttendanceRecord(nik string, dateStr string) (*model.AttendanceRow, error) {
+	var att model.AttendanceRow
+	err := r.db.Where("employee_nik = ? AND attendance_date = ?", nik, dateStr).First(&att).Error
+	if err != nil {
+		return nil, err
+	}
+	return &att, nil
+}
+
+func (r *PrestasiRepo) GetFTWRecord(nik string, dateStr string) (*model.FTWRecord, error) {
+	var ftw model.FTWRecord
+	err := r.db.Where("employee_nik = ? AND log_date = ?", nik, dateStr).First(&ftw).Error
+	if err != nil {
+		return nil, err
+	}
+	return &ftw, nil
+}
+
+
+
 type MasterRepo struct {
 	db *gorm.DB
 }

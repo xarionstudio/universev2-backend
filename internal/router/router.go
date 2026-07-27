@@ -35,9 +35,9 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
 
 	// Initialize Handlers
 	authH := handler.NewAuthHandler(cfg, userRepo, roleRepo)
-	empH := handler.NewEmployeeHandler(empRepo)
+	empH := handler.NewEmployeeHandler(empRepo, cfg.UploadDir)
 	ftwH := handler.NewFitworkHandler(ftwRepo)
-	rosterH := handler.NewRosterHandler(rosterRepo)
+	rosterH := handler.NewRosterHandler(rosterRepo, cfg.UploadDir)
 	attH := handler.NewAttendanceHandler(attRepo)
 	fleetH := handler.NewFleetHandler(fleetRepo)
 	prestasiH := handler.NewPrestasiHandler(prestasiRepo)
@@ -75,8 +75,10 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
 	// Employees module
 	empGroup := protected.Group("/employees", rbac.RequirePermission("employees", "view"))
 	empGroup.Get("/", empH.GetEmployees)
+	empGroup.Get("/export", empH.ExportEmployees)
 	empGroup.Get("/:nik", empH.GetEmployeeByNIK)
 	empGroup.Post("/", rbac.RequirePermission("employees", "manage"), empH.CreateEmployee)
+	empGroup.Post("/import", rbac.RequirePermission("employees", "manage"), empH.ImportEmployees)
 	empGroup.Put("/:nik", rbac.RequirePermission("employees", "manage"), empH.UpdateEmployee)
 	empGroup.Delete("/:nik", rbac.RequirePermission("employees", "manage"), empH.DeleteEmployee)
 
@@ -91,6 +93,7 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
 	ftwGroup := protected.Group("/ftw", rbac.RequirePermission("ftw", "view"))
 	ftwGroup.Get("/today", ftwH.GetTodayLog)
 	ftwGroup.Get("/history", ftwH.GetHistory)
+	ftwGroup.Get("/export", ftwH.ExportFTW)
 	ftwGroup.Post("/submit", rbac.RequirePermission("ftw", "manage"), ftwH.SubmitLog)
 
 	// Roster module
@@ -137,6 +140,7 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
 	// Unit DB inside Assets
 	protected.Get("/units/db", rbac.RequirePermission("asset", "view"), fleetH.GetUnitDB)
 	protected.Post("/units/db", rbac.RequirePermission("asset", "manage"), fleetH.CreateUnitDB)
+	protected.Post("/units/db/import", rbac.RequirePermission("asset", "manage"), fleetH.ImportUnitDB)
 	protected.Put("/units/db", rbac.RequirePermission("asset", "manage"), fleetH.UpdateUnitDB)
 	protected.Delete("/units/db", rbac.RequirePermission("asset", "manage"), fleetH.DeleteUnitDB)
 
@@ -144,23 +148,30 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
 	prestasiGroup := protected.Group("/prestasi", rbac.RequirePermission("prestasi", "view"))
 	prestasiGroup.Get("/leaderboard", prestasiH.GetLeaderboard)
 	prestasiGroup.Get("/:nik/history", prestasiH.GetOperatorHistory)
+	prestasiGroup.Post("/recalculate", rbac.RequirePermission("prestasi", "manage"), prestasiH.Recalculate)
 
 	// Master Data module
 	masterGroup := protected.Group("/master", rbac.RequirePermission("master", "view"))
 	masterGroup.Get("/:category", masterH.GetMasterByCategory)
+	masterGroup.Get("/:category/export", masterH.ExportMaster)
 	masterGroup.Post("/:category", rbac.RequirePermission("master", "manage"), masterH.CreateMasterEntry)
+	masterGroup.Post("/:category/import", rbac.RequirePermission("master", "manage"), masterH.ImportMaster)
 	masterGroup.Put("/:category/:id", rbac.RequirePermission("master", "manage"), masterH.UpdateMasterEntry)
 	masterGroup.Delete("/:category/:id", rbac.RequirePermission("master", "manage"), masterH.DeleteMasterEntry)
 
 	// User & Role Management module
 	userGroup := protected.Group("/users", rbac.RequirePermission("users", "view"))
 	userGroup.Get("/", userH.GetUsers)
+	userGroup.Get("/export", userH.ExportUsers)
 	userGroup.Post("/", rbac.RequirePermission("users", "manage"), userH.CreateUser)
+	userGroup.Post("/import", rbac.RequirePermission("users", "manage"), userH.ImportUsers)
+	userGroup.Patch("/:id/status", rbac.RequirePermission("users", "manage"), userH.ToggleUserStatus)
 	userGroup.Put("/:id", rbac.RequirePermission("users", "manage"), userH.UpdateUser)
 	userGroup.Delete("/:id", rbac.RequirePermission("users", "manage"), userH.DeleteUser)
 
 	roleGroup := protected.Group("/roles", rbac.RequirePermission("users", "view"))
 	roleGroup.Get("/", roleH.GetRoles)
+	roleGroup.Get("/export", roleH.ExportRoles)
 	roleGroup.Post("/", rbac.RequirePermission("users", "manage"), roleH.CreateRole)
 	roleGroup.Put("/:id", rbac.RequirePermission("users", "manage"), roleH.UpdateRole)
 	roleGroup.Delete("/:id", rbac.RequirePermission("users", "manage"), roleH.DeleteRole)

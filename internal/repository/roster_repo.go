@@ -7,6 +7,8 @@ import (
 	"gorm.io/gorm"
 
 	"universev2-backend/internal/model"
+	"universev2-backend/pkg/filter"
+	"universev2-backend/pkg/pagination"
 )
 
 type RosterRepo struct {
@@ -238,4 +240,55 @@ func (r *RosterRepo) GetRosterDetail(key string) (fiber.Map, error) {
 		"rows":  resultRows,
 		"total": len(resultRows),
 	}, nil
+}
+
+// GetRostersPaginated returns a filtered, paginated list of roster metadata.
+// Supported filters: Dept, Status (exact), Month (exact), DateFrom/DateTo on created_at.
+func (r *RosterRepo) GetRostersPaginated(f filter.Params, p pagination.Params) ([]model.RosterMeta, int64, error) {
+	var metas []model.RosterMeta
+	var total int64
+
+	q := r.db.Model(&model.RosterMeta{})
+	q = filter.Apply(q, f, filter.Options{
+		DateColumn:   "roster_files.created_at",
+		StatusColumn: "roster_files.status",
+		DeptColumn:   "roster_files.dept",
+		MonthColumn:  "roster_files.month_period",
+	})
+
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	err := q.Order("created_at DESC").Limit(p.PerPage).Offset(p.Offset()).Find(&metas).Error
+	return metas, total, err
+}
+
+// GetRevisionsPaginated returns a filtered, paginated list of roster revisions.
+// Supported filters: Status (exact), NIK, DateFrom/DateTo on created_at, search on employee name.
+func (r *RosterRepo) GetRevisionsPaginated(f filter.Params, p pagination.Params) ([]model.RosterRevision, int64, error) {
+	var revisions []model.RosterRevision
+	var total int64
+
+	q := r.db.Model(&model.RosterRevision{}).
+		Select("roster_revisions.*, employees.name").
+		Joins("LEFT JOIN employees ON roster_revisions.employee_nik = employees.nik")
+
+	q = filter.Apply(q, f, filter.Options{
+		SearchColumns: []string{"employees.name", "roster_revisions.employee_nik"},
+		DateColumn:    "roster_revisions.created_at",
+		StatusColumn:  "roster_revisions.status",
+	})
+
+	// Explicit NIK scoping on revisions table
+	if f.NIK != "" {
+		q = q.Where("roster_revisions.employee_nik = ?", f.NIK)
+	}
+
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	err := q.Order("roster_revisions.created_at DESC").Limit(p.PerPage).Offset(p.Offset()).Find(&revisions).Error
+	return revisions, total, err
 }

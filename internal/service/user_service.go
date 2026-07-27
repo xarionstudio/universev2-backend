@@ -2,9 +2,11 @@ package service
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"universev2-backend/internal/dto"
+	"universev2-backend/internal/export"
 	"universev2-backend/internal/model"
 	internalpkg "universev2-backend/internal/pkg"
 	"universev2-backend/internal/repository"
@@ -112,6 +114,111 @@ func (s *UserService) DeleteUser(id string) error {
 
 	return s.userRepo.Delete(id)
 }
+
+// ToggleUserStatus updates is_active flag for user
+func (s *UserService) ToggleUserStatus(id string, active bool) error {
+	if internalpkg.IsTrimmedEmpty(id) {
+		return fmt.Errorf("user ID is required")
+	}
+	existing, err := s.userRepo.GetByID(id)
+	if err != nil || existing == nil {
+		return fmt.Errorf("user not found")
+	}
+	return s.userRepo.ToggleStatus(id, active)
+}
+
+// ExportUsersCSV generates a CSV file of all users matching FE format: email;karyawan;nik;roles;status
+func (s *UserService) ExportUsersCSV() ([]byte, error) {
+	users, err := s.userRepo.GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch users: %w", err)
+	}
+
+	var sb strings.Builder
+	sb.WriteString("email;karyawan;nik;roles;status\n")
+
+	for _, u := range users {
+		nikStr := ""
+		if u.NIK != nil {
+			nikStr = *u.NIK
+		}
+		statusStr := "nonaktif"
+		if u.IsActive {
+			statusStr = "aktif"
+		}
+		rolesStr := strings.Join(u.Roles, ",")
+
+		sb.WriteString(fmt.Sprintf("%s;%s;%s;%s;%s\n",
+			u.Email,
+			u.Name,
+			nikStr,
+			rolesStr,
+			statusStr,
+		))
+	}
+
+	return []byte(sb.String()), nil
+}
+
+
+// ImportUsersFromExcel parses Excel file and creates user records
+func (s *UserService) ImportUsersFromExcel(data []byte) (imported int, skipped int, err error) {
+	rows, err := export.ParseUserExcel(data)
+	if err != nil {
+		return 0, 0, err
+	}
+	if len(rows) == 0 {
+		return 0, 0, fmt.Errorf("no valid user records found in file")
+	}
+
+	for _, r := range rows {
+		if !internalpkg.IsValidEmail(r.Email) {
+			skipped++
+			continue
+		}
+		if s.userRepo.ExistsByEmail(r.Email) {
+			skipped++
+			continue
+		}
+
+		defaultRole := "user"
+		if r.Role != "" {
+			defaultRole = r.Role
+		}
+
+		nikVal := r.NIK
+		var nikPtr *string
+		if nikVal != "" {
+			nikPtr = &nikVal
+		}
+
+		salt := internalpkg.GenerateSalt()
+		hash := internalpkg.HashPasswordFE("Password123!", salt) // Default initial password
+		now := time.Now()
+
+		u := &model.User{
+			ID:           fmt.Sprintf("u-%d", now.UnixNano()),
+			Email:        r.Email,
+			Name:         r.Name,
+			NIK:          nikPtr,
+			PasswordHash: hash,
+			PasswordSalt: salt,
+			IsActive:     true,
+			Roles:        []string{defaultRole},
+			CreatedAt:    now,
+			UpdatedAt:    now,
+		}
+
+		if err := s.userRepo.Create(u); err == nil {
+			imported++
+		} else {
+			skipped++
+		}
+	}
+
+	return imported, skipped, nil
+}
+
 
 // ProfileService handles profile-related business logic
 type ProfileService struct {

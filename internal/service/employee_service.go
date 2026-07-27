@@ -4,9 +4,12 @@ import (
 	"fmt"
 
 	"universev2-backend/internal/dto"
+	"universev2-backend/internal/export"
 	"universev2-backend/internal/model"
 	internalpkg "universev2-backend/internal/pkg"
 	"universev2-backend/internal/repository"
+	"universev2-backend/pkg/filter"
+	"universev2-backend/pkg/pagination"
 )
 
 // EmployeeService handles employee business logic
@@ -50,10 +53,17 @@ func (s *EmployeeService) CreateEmployee(req dto.CreateEmployeeRequest) (*model.
 		return nil, fmt.Errorf("employee with this NIK already exists")
 	}
 
+	if req.Status != "" && req.Status != "aktif" && req.Status != "cuti" && req.Status != "nonaktif" {
+		return nil, fmt.Errorf("invalid status: must be aktif, cuti, or nonaktif")
+	}
+
 	newEmp := &model.Employee{
 		NIK: req.NIK, Name: req.Name, Dept: req.Dept, Pos: req.Pos,
-		Simper: req.Simper, Status: req.Status, Company: req.Company,
-		Equip: req.Equip, HP: req.HP,
+		Simper: req.Simper, SimperExp: req.SimperExp, Status: req.Status,
+		Company: req.Company, Equip: req.Equip, Join: req.Join, Exp: req.Exp,
+		License: req.License, MCU: req.MCU, Medis: req.Medis, Blood: req.Blood,
+		BPJS: req.BPJS, Mess: req.Mess, Kamar: req.Kamar, HP: req.HP,
+		Emergency: req.Emergency, Foto: req.Foto,
 	}
 	if err := s.repo.Create(newEmp); err != nil {
 		return nil, fmt.Errorf("failed to create employee: %w", err)
@@ -76,10 +86,17 @@ func (s *EmployeeService) UpdateEmployee(nik string, req dto.UpdateEmployeeReque
 		return fmt.Errorf("name is required")
 	}
 
+	if req.Status != "" && req.Status != "aktif" && req.Status != "cuti" && req.Status != "nonaktif" {
+		return fmt.Errorf("invalid status: must be aktif, cuti, or nonaktif")
+	}
+
 	emp := &model.Employee{
 		Name: req.Name, Dept: req.Dept, Pos: req.Pos,
-		Simper: req.Simper, Status: req.Status, Company: req.Company,
-		Equip: req.Equip, HP: req.HP,
+		Simper: req.Simper, SimperExp: req.SimperExp, Status: req.Status,
+		Company: req.Company, Equip: req.Equip, Join: req.Join, Exp: req.Exp,
+		License: req.License, MCU: req.MCU, Medis: req.Medis, Blood: req.Blood,
+		BPJS: req.BPJS, Mess: req.Mess, Kamar: req.Kamar, HP: req.HP,
+		Emergency: req.Emergency, Foto: req.Foto,
 	}
 	return s.repo.Update(nik, emp)
 }
@@ -114,4 +131,58 @@ func (s *EmployeeService) UpdateCompetencies(nik string, comps []model.Competenc
 // UpdatePhoto updates the photo URL for an employee
 func (s *EmployeeService) UpdatePhoto(nik string, photoURL string) error {
 	return s.repo.UpdatePhoto(nik, photoURL)
+}
+
+// GetEmployeesPaginated returns paginated employees with advanced filter support.
+func (s *EmployeeService) GetEmployeesPaginated(f filter.Params, p pagination.Params) ([]model.Employee, int64, error) {
+	return s.repo.ListPaginated(f, p)
+}
+
+// ImportEmployeesFromExcel reads an xlsx file and bulk-creates employees.
+// Returns counts of imported, skipped records and any row-level errors.
+func (s *EmployeeService) ImportEmployeesFromExcel(data []byte) (imported, skipped int, rowErrors []string, err error) {
+	employees, parseErr := export.ParseEmployeeExcel(data)
+	if parseErr != nil {
+		return 0, 0, nil, fmt.Errorf("failed to parse excel: %w", parseErr)
+	}
+
+	for _, emp := range employees {
+		if !internalpkg.IsValidNIK(emp.NIK) {
+			skipped++
+			rowErrors = append(rowErrors, fmt.Sprintf("NIK %q: invalid (must be 9 digits)", emp.NIK))
+			continue
+		}
+		if internalpkg.IsTrimmedEmpty(emp.Name) {
+			skipped++
+			rowErrors = append(rowErrors, fmt.Sprintf("NIK %q: name is required", emp.NIK))
+			continue
+		}
+
+		existing, _ := s.repo.GetByNIK(emp.NIK)
+		if existing != nil {
+			skipped++
+			rowErrors = append(rowErrors, fmt.Sprintf("NIK %q: already exists, skipped", emp.NIK))
+			continue
+		}
+
+		e := emp // avoid loop-var capture
+		if createErr := s.repo.Create(&e); createErr != nil {
+			skipped++
+			rowErrors = append(rowErrors, fmt.Sprintf("NIK %q: %v", emp.NIK, createErr))
+			continue
+		}
+		imported++
+	}
+	return imported, skipped, rowErrors, nil
+}
+
+// ExportEmployeesToExcel generates an xlsx for employees matching the given filter.
+func (s *EmployeeService) ExportEmployeesToExcel(f filter.Params) ([]byte, error) {
+	// Fetch all (no page limit) with a very large perPage
+	p := pagination.Params{Page: 1, PerPage: pagination.MaxPerPage}
+	employees, _, err := s.repo.ListPaginated(f, p)
+	if err != nil {
+		return nil, err
+	}
+	return export.GenerateEmployeeExcel(employees)
 }

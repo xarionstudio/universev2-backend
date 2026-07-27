@@ -1,6 +1,9 @@
 package handler
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/gofiber/fiber/v3"
 
 	"universev2-backend/internal/model"
@@ -87,3 +90,19 @@ func (h *RoleHandler) DeleteRole(c fiber.Ctx) error {
 	}
 	return response.Success(c, fiber.StatusOK, "Role deleted successfully", nil)
 }
+
+// ExportRoles godoc
+// GET /api/roles/export
+// Download CSV file of roles
+func (h *RoleHandler) ExportRoles(c fiber.Ctx) error {
+	csvData, err := h.roleSvc.ExportRolesCSV()
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to generate CSV export: "+err.Error())
+	}
+
+	fileName := fmt.Sprintf("roles_%s.csv", time.Now().Format("20060102"))
+	c.Set("Content-Type", "text/csv")
+	c.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, fileName))
+	return c.Send(csvData)
+}
+

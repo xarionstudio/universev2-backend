@@ -29,6 +29,7 @@ type Config struct {
 	FingerprintEnabled   bool
 	CORSAllowedOrigins   string
 	LogLevel             string
+	UploadDir            string
 }
 
 func Load() (*Config, error) {
@@ -53,6 +54,7 @@ func Load() (*Config, error) {
 		FingerprintEnabled: getEnvBool("FINGERPRINT_ENABLED", false),
 		CORSAllowedOrigins: getEnv("CORS_ALLOWED_ORIGINS", "http://localhost:3000"),
 		LogLevel:           getEnv("LOG_LEVEL", "debug"),
+		UploadDir:          getEnv("UPLOAD_DIR", "uploads"),
 	}
 
 	jwtExp, err := time.ParseDuration(getEnv("JWT_EXPIRATION", "24h"))

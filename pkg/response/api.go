@@ -4,7 +4,15 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+
+	"universev2-backend/pkg/pagination"
 )
+
+// PagedData wraps a slice of items with pagination metadata.
+type PagedData struct {
+	Items      interface{}     `json:"items"`
+	Pagination pagination.Meta `json:"pagination"`
+}
 
 type APIResponse struct {
 	Success   bool        `json:"success"`
@@ -38,6 +46,16 @@ func now() string {
 }
 
 func Success(c fiber.Ctx, status int, message string, data interface{}) error {
+	return c.Status(status).JSON(APIResponse{
+		Success:   true,
+		Message:   message,
+		Data:      data,
+		Timestamp: now(),
+	})
+}
+
+// SuccessPaged sends a paginated success response using the PagedData wrapper.
+func SuccessPaged(c fiber.Ctx, status int, message string, data PagedData) error {
 	return c.Status(status).JSON(APIResponse{
 		Success:   true,
 		Message:   message,

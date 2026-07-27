@@ -104,6 +104,11 @@ func (r *UserRepo) UpdatePassword(id, hash, salt string) error {
 	}).Error
 }
 
+func (r *UserRepo) ToggleStatus(id string, active bool) error {
+	return r.db.Model(&model.User{}).Where("id = ?", id).Update("is_active", active).Error
+}
+
+
 // RoleRepo
 
 type RoleRepo struct {

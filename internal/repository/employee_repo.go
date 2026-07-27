@@ -4,6 +4,8 @@ import (
 	"gorm.io/gorm"
 
 	"universev2-backend/internal/model"
+	"universev2-backend/pkg/filter"
+	"universev2-backend/pkg/pagination"
 )
 
 type EmployeeRepo struct {
@@ -78,4 +80,25 @@ func (r *EmployeeRepo) UpdateCompetencies(nik string, comps []model.Competency) 
 
 func (r *EmployeeRepo) UpdatePhoto(nik string, photoURL string) error {
 	return r.db.Model(&model.Employee{}).Where("nik = ?", nik).Update("photo_url", photoURL).Error
+}
+
+// ListPaginated returns a page of employees matching the given filters.
+func (r *EmployeeRepo) ListPaginated(f filter.Params, p pagination.Params) ([]model.Employee, int64, error) {
+	var employees []model.Employee
+	var total int64
+
+	q := r.db.Model(&model.Employee{}).Preload("Komp")
+	q = filter.Apply(q, f, filter.Options{
+		SearchColumns: []string{"employees.name", "employees.nik"},
+		DateColumn:    "employees.join_date",
+		StatusColumn:  "employees.status",
+		DeptColumn:    "employees.dept",
+	})
+
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	err := q.Order("name ASC").Limit(p.PerPage).Offset(p.Offset()).Find(&employees).Error
+	return employees, total, err
 }

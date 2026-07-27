@@ -1,6 +1,10 @@
 package handler
 
 import (
+	"fmt"
+	"io"
+	"strings"
+
 	"github.com/gofiber/fiber/v3"
 
 	"universev2-backend/internal/dto"
@@ -212,3 +216,46 @@ func (h *FleetHandler) DeleteUnitDB(c fiber.Ctx) error {
 	}
 	return response.Success(c, fiber.StatusOK, "Unit DB deleted", nil)
 }
+
+// ImportUnitDB godoc
+// POST /api/units/db/import
+// Content-Type: multipart/form-data
+// Field: file (.xlsx)
+func (h *FleetHandler) ImportUnitDB(c fiber.Ctx) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Excel file is required (field: 'file')")
+	}
+
+	fname := strings.ToLower(file.Filename)
+	if !strings.HasSuffix(fname, ".xlsx") && !strings.HasSuffix(fname, ".xls") {
+		return response.Error(c, fiber.StatusBadRequest, "Only .xlsx or .xls files are accepted")
+	}
+
+	const maxSize = 10 << 20 // 10MB
+	if file.Size > maxSize {
+		return response.Error(c, fiber.StatusBadRequest, "File size exceeds 10MB limit")
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to open uploaded file")
+	}
+	defer f.Close()
+
+	data, err := io.ReadAll(f)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to read file")
+	}
+
+	imported, skipped, err := h.fleetSvc.ImportUnitDBFromExcel(data)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Import failed: "+err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, fmt.Sprintf("Import completed: %d imported, %d updated/skipped", imported, skipped), fiber.Map{
+		"imported": imported,
+		"skipped":  skipped,
+	})
+}
+

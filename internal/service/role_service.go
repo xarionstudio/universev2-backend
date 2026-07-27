@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"strings"
 
 	"universev2-backend/internal/model"
 	internalpkg "universev2-backend/internal/pkg"
@@ -61,3 +62,31 @@ func (s *RoleService) DeleteRole(id string) error {
 	}
 	return s.repo.Delete(id)
 }
+
+var umModules = []string{"employees", "ftw", "roster", "asset", "prestasi", "master", "users", "settings"}
+
+// ExportRolesCSV generates CSV matching FE format: role;deskripsi;employees;ftw;roster;asset;prestasi;master;users;settings
+func (s *RoleService) ExportRolesCSV() ([]byte, error) {
+	roles, err := s.repo.GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch roles: %w", err)
+	}
+
+	var sb strings.Builder
+	sb.WriteString("role;deskripsi;" + strings.Join(umModules, ";") + "\n")
+
+	for _, r := range roles {
+		permsStr := make([]string, len(umModules))
+		for i, m := range umModules {
+			p := "none"
+			if r.Perms != nil && r.Perms[m] != "" {
+				p = r.Perms[m]
+			}
+			permsStr[i] = p
+		}
+		sb.WriteString(fmt.Sprintf("%s;%s;%s\n", r.Name, r.Description, strings.Join(permsStr, ";")))
+	}
+
+	return []byte(sb.String()), nil
+}
+

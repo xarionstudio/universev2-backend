@@ -14,24 +14,37 @@ import (
 	"universev2-backend/internal/export"
 	"universev2-backend/internal/model"
 	"universev2-backend/internal/repository"
+	"universev2-backend/pkg/filter"
+	"universev2-backend/pkg/pagination"
 	"universev2-backend/pkg/response"
 )
 
 type RosterHandler struct {
-	repo *repository.RosterRepo
+	repo      *repository.RosterRepo
+	uploadDir string
 }
 
-func NewRosterHandler(repo *repository.RosterRepo) *RosterHandler {
-	return &RosterHandler{repo: repo}
+func NewRosterHandler(repo *repository.RosterRepo, uploadDir string) *RosterHandler {
+	return &RosterHandler{repo: repo, uploadDir: uploadDir}
 }
 
+// GetRosters godoc
+// GET /api/rosters
+// Query params: page, perPage, dept, status, month, date_from, date_to, logic
 func (h *RosterHandler) GetRosters(c fiber.Ctx) error {
-	dept := c.Query("dept")
-	metas, err := h.repo.GetRosters(dept)
+	f := filter.ParseFromCtx(c)
+	p := pagination.Parse(c.Query("page"), c.Query("perPage"))
+
+	metas, total, err := h.repo.GetRostersPaginated(f, p)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch rosters: "+err.Error())
 	}
-	return response.Success(c, fiber.StatusOK, "Success fetch rosters", metas)
+
+	meta := pagination.BuildMeta(p, total)
+	return response.SuccessPaged(c, fiber.StatusOK, "Success fetch rosters", response.PagedData{
+		Items:      metas,
+		Pagination: meta,
+	})
 }
 
 func (h *RosterHandler) UploadRoster(c fiber.Ctx) error {
@@ -48,12 +61,12 @@ func (h *RosterHandler) UploadRoster(c fiber.Ctx) error {
 	}
 
 	// Save file to uploads directory
-	uploadDir := "uploads/rosters"
-	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+	rosterDir := h.uploadDir + "/rosters"
+	if err := os.MkdirAll(rosterDir, 0755); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to create upload directory")
 	}
 
-	savePath := filepath.Join(uploadDir, file.Filename)
+	savePath := filepath.Join(rosterDir, file.Filename)
 	if err := c.SaveFile(file, savePath); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to save roster file: "+err.Error())
 	}
@@ -133,13 +146,23 @@ func (h *RosterHandler) ExportRoster(c fiber.Ctx) error {
 	return c.Send(xlsxData)
 }
 
+// GetRevisions godoc
+// GET /api/rosters/revisions
+// Query params: page, perPage, status, nik, search, date_from, date_to, logic
 func (h *RosterHandler) GetRevisions(c fiber.Ctx) error {
-	status := c.Query("status")
-	revisions, err := h.repo.GetRevisions(status)
+	f := filter.ParseFromCtx(c)
+	p := pagination.Parse(c.Query("page"), c.Query("perPage"))
+
+	revisions, total, err := h.repo.GetRevisionsPaginated(f, p)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch revisions: "+err.Error())
 	}
-	return response.Success(c, fiber.StatusOK, "Success fetch revisions", revisions)
+
+	meta := pagination.BuildMeta(p, total)
+	return response.SuccessPaged(c, fiber.StatusOK, "Success fetch revisions", response.PagedData{
+		Items:      revisions,
+		Pagination: meta,
+	})
 }
 
 func (h *RosterHandler) GetRevisionCodes(c fiber.Ctx) error {

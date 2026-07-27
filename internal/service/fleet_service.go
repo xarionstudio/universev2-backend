@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"universev2-backend/internal/dto"
+	"universev2-backend/internal/export"
 	"universev2-backend/internal/model"
 	internalpkg "universev2-backend/internal/pkg"
 	"universev2-backend/internal/repository"
@@ -180,3 +181,16 @@ func (s *FleetService) DeleteUnitDB(id string) error {
 	}
 	return s.repo.DeleteUnitDB(id)
 }
+
+// ImportUnitDBFromExcel parses Excel file and saves unit DB entries
+func (s *FleetService) ImportUnitDBFromExcel(data []byte) (imported int, skipped int, err error) {
+	units, err := export.ParseUnitDBExcel(data)
+	if err != nil {
+		return 0, 0, err
+	}
+	if len(units) == 0 {
+		return 0, 0, fmt.Errorf("no valid unit records found in file")
+	}
+	return s.repo.BulkCreateUnitDB(units)
+}
+

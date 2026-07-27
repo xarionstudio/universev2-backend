@@ -21,10 +21,13 @@ func main() {
 	}
 
 	// Find migrations directory
-	cwd, _ := os.Getwd()
-	migrationsDir := filepath.Join(cwd, "migrations")
-	if _, err := os.Stat(migrationsDir); os.IsNotExist(err) {
-		migrationsDir = "../migrations"
+	migrationsDir := os.Getenv("MIGRATIONS_DIR")
+	if migrationsDir == "" {
+		cwd, _ := os.Getwd()
+		migrationsDir = filepath.Join(cwd, "migrations")
+		if _, err := os.Stat(migrationsDir); os.IsNotExist(err) {
+			migrationsDir = "../migrations"
+		}
 	}
 
 	log.Printf("[Migrate] Running migrations from %s ...", migrationsDir)

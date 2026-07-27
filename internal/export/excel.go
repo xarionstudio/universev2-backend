@@ -3,6 +3,7 @@ package export
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/xuri/excelize/v2"
@@ -69,5 +70,445 @@ func GenerateRosterExcel(key string, month string, dept string, rows []model.Ros
 	}
 
 	return buf.Bytes(), nil
+}
+
+// ── Employee Excel ────────────────────────────────────────────────────────────
+
+var employeeHeaders = []string{
+	"NIK", "Nama", "Departemen", "Posisi", "Simper", "Status",
+	"Perusahaan", "Jenis Alat", "No. HP", "BPJS", "Golongan Darah",
+	"Mess", "Kamar", "Tgl Masuk", "Tgl Exp",
+}
+
+// GenerateEmployeeExcel creates an xlsx export of a slice of employees.
+func GenerateEmployeeExcel(employees []model.Employee) ([]byte, error) {
+	f := excelize.NewFile()
+	defer f.Close()
+
+	sheet := "Employees"
+	idx, err := f.NewSheet(sheet)
+	if err != nil {
+		return nil, err
+	}
+	f.SetActiveSheet(idx)
+	_ = f.DeleteSheet("Sheet1")
+
+	_ = f.SetCellValue(sheet, "A1", "DATA KARYAWAN - UniverseV2 System")
+	_ = f.SetCellValue(sheet, "A2", fmt.Sprintf("Generated: %s", time.Now().Format("2006-01-02 15:04")))
+
+	for colIdx, h := range employeeHeaders {
+		cell, _ := excelize.CoordinatesToCellName(colIdx+1, 4)
+		_ = f.SetCellValue(sheet, cell, h)
+	}
+
+	for rowIdx, emp := range employees {
+		r := rowIdx + 5
+		vals := []interface{}{
+			emp.NIK, emp.Name, emp.Dept, emp.Pos, emp.Simper, emp.Status,
+			emp.Company, emp.Equip, emp.HP, emp.BPJS, emp.Blood,
+			emp.Mess, emp.Kamar, emp.Join, emp.Exp,
+		}
+		for colIdx, v := range vals {
+			cell, _ := excelize.CoordinatesToCellName(colIdx+1, r)
+			_ = f.SetCellValue(sheet, cell, v)
+		}
+	}
+
+	var buf bytes.Buffer
+	if err := f.Write(&buf); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// ParseEmployeeExcel reads an xlsx file and returns a slice of Employee models.
+// Expected column order matches GenerateEmployeeExcel / employeeHeaders.
+// Row 1-3 are treated as header/metadata rows and skipped; data starts at row 4
+// or wherever the first row with a valid NIK value appears.
+func ParseEmployeeExcel(data []byte) ([]model.Employee, error) {
+	f, err := excelize.OpenReader(bytes.NewReader(data))
+	if err != nil {
+		return nil, fmt.Errorf("cannot open excel: %w", err)
+	}
+	defer f.Close()
+
+	sheets := f.GetSheetList()
+	if len(sheets) == 0 {
+		return nil, fmt.Errorf("no sheets found in excel file")
+	}
+	sheet := sheets[0]
+
+	rows, err := f.GetRows(sheet)
+	if err != nil {
+		return nil, fmt.Errorf("cannot read rows: %w", err)
+	}
+
+	var employees []model.Employee
+	// Skip rows until we find one where first cell looks like a NIK (non-empty, not a header word)
+	dataStarted := false
+	for _, row := range rows {
+		if len(row) == 0 {
+			continue
+		}
+		first := strings.TrimSpace(row[0])
+		// Detect header rows by checking if first cell is a known header keyword
+		if !dataStarted {
+			if strings.EqualFold(first, "NIK") {
+				dataStarted = true
+			}
+			continue
+		}
+		if first == "" {
+			continue
+		}
+
+		emp := model.Employee{}
+		if len(row) > 0 {
+			emp.NIK = strings.TrimSpace(row[0])
+		}
+		if len(row) > 1 {
+			emp.Name = strings.TrimSpace(row[1])
+		}
+		if len(row) > 2 {
+			emp.Dept = strings.TrimSpace(row[2])
+		}
+		if len(row) > 3 {
+			emp.Pos = strings.TrimSpace(row[3])
+		}
+		if len(row) > 4 {
+			emp.Simper = strings.TrimSpace(row[4])
+		}
+		if len(row) > 5 {
+			emp.Status = strings.TrimSpace(row[5])
+		}
+		if len(row) > 6 {
+			emp.Company = strings.TrimSpace(row[6])
+		}
+		if len(row) > 7 {
+			emp.Equip = strings.TrimSpace(row[7])
+		}
+		if len(row) > 8 {
+			emp.HP = strings.TrimSpace(row[8])
+		}
+		if len(row) > 9 {
+			emp.BPJS = strings.TrimSpace(row[9])
+		}
+		if len(row) > 10 {
+			emp.Blood = strings.TrimSpace(row[10])
+		}
+		if len(row) > 11 {
+			emp.Mess = strings.TrimSpace(row[11])
+		}
+		if len(row) > 12 {
+			emp.Kamar = strings.TrimSpace(row[12])
+		}
+		if len(row) > 13 {
+			emp.Join = strings.TrimSpace(row[13])
+		}
+		if len(row) > 14 {
+			emp.Exp = strings.TrimSpace(row[14])
+		}
+		employees = append(employees, emp)
+	}
+	return employees, nil
+}
+
+// ── Master Data Excel ─────────────────────────────────────────────────────────
+
+var masterHeaders = []string{"ID", "Name", "Field A", "Field B", "Active"}
+
+// GenerateMasterExcel creates an xlsx export of master data entries.
+func GenerateMasterExcel(category string, entries []model.MdEntry) ([]byte, error) {
+	f := excelize.NewFile()
+	defer f.Close()
+
+	sheet := "Master - " + category
+	idx, err := f.NewSheet(sheet)
+	if err != nil {
+		return nil, err
+	}
+	f.SetActiveSheet(idx)
+	_ = f.DeleteSheet("Sheet1")
+
+	_ = f.SetCellValue(sheet, "A1", fmt.Sprintf("MASTER DATA: %s - UniverseV2 System", strings.ToUpper(category)))
+	_ = f.SetCellValue(sheet, "A2", fmt.Sprintf("Generated: %s", time.Now().Format("2006-01-02 15:04")))
+
+	for colIdx, h := range masterHeaders {
+		cell, _ := excelize.CoordinatesToCellName(colIdx+1, 4)
+		_ = f.SetCellValue(sheet, cell, h)
+	}
+
+	for rowIdx, entry := range entries {
+		r := rowIdx + 5
+		active := "false"
+		if entry.Active {
+			active = "true"
+		}
+		vals := []interface{}{entry.ID, entry.Name, entry.FieldA, entry.FieldB, active}
+		for colIdx, v := range vals {
+			cell, _ := excelize.CoordinatesToCellName(colIdx+1, r)
+			_ = f.SetCellValue(sheet, cell, v)
+		}
+	}
+
+	var buf bytes.Buffer
+	if err := f.Write(&buf); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// ParseMasterExcel reads an xlsx file and returns a slice of MdEntry models.
+// Column order: ID | Name | Field A | Field B | Active
+func ParseMasterExcel(data []byte) ([]model.MdEntry, error) {
+	f, err := excelize.OpenReader(bytes.NewReader(data))
+	if err != nil {
+		return nil, fmt.Errorf("cannot open excel: %w", err)
+	}
+	defer f.Close()
+
+	sheets := f.GetSheetList()
+	if len(sheets) == 0 {
+		return nil, fmt.Errorf("no sheets found in excel file")
+	}
+	sheet := sheets[0]
+
+	rows, err := f.GetRows(sheet)
+	if err != nil {
+		return nil, fmt.Errorf("cannot read rows: %w", err)
+	}
+
+	var entries []model.MdEntry
+	dataStarted := false
+	for _, row := range rows {
+		if len(row) == 0 {
+			continue
+		}
+		first := strings.TrimSpace(row[0])
+		if !dataStarted {
+			if strings.EqualFold(first, "ID") || strings.EqualFold(first, "Name") {
+				dataStarted = true
+			}
+			continue
+		}
+
+		// Name (col 1) is required; ID is optional (will be generated on save)
+		name := ""
+		if len(row) > 1 {
+			name = strings.TrimSpace(row[1])
+		}
+		if name == "" {
+			continue
+		}
+
+		entry := model.MdEntry{}
+		if len(row) > 0 {
+			entry.ID = strings.TrimSpace(row[0])
+		}
+		entry.Name = name
+		if len(row) > 2 {
+			entry.FieldA = strings.TrimSpace(row[2])
+		}
+		if len(row) > 3 {
+			entry.FieldB = strings.TrimSpace(row[3])
+		}
+		if len(row) > 4 {
+			entry.Active = strings.EqualFold(strings.TrimSpace(row[4]), "true")
+		} else {
+			entry.Active = true // default active
+		}
+		entries = append(entries, entry)
+	}
+	return entries, nil
+}
+
+// ── FTW Excel ─────────────────────────────────────────────────────────────────
+
+var ftwHeaders = []string{
+	"Tanggal", "NIK", "Nama", "Departemen", "Shift",
+	"Tidur (menit)", "Status", "Bisa Kerja", "Jam Istirahat",
+}
+
+// GenerateFTWExcel creates an xlsx export of FTW log records.
+func GenerateFTWExcel(records []model.FTWRecord) ([]byte, error) {
+	f := excelize.NewFile()
+	defer f.Close()
+
+	sheet := "FTW Logs"
+	idx, err := f.NewSheet(sheet)
+	if err != nil {
+		return nil, err
+	}
+	f.SetActiveSheet(idx)
+	_ = f.DeleteSheet("Sheet1")
+
+	_ = f.SetCellValue(sheet, "A1", "LAPORAN FIT TO WORK - UniverseV2 System")
+	_ = f.SetCellValue(sheet, "A2", fmt.Sprintf("Generated: %s", time.Now().Format("2006-01-02 15:04")))
+
+	for colIdx, h := range ftwHeaders {
+		cell, _ := excelize.CoordinatesToCellName(colIdx+1, 4)
+		_ = f.SetCellValue(sheet, cell, h)
+	}
+
+	for rowIdx, rec := range records {
+		r := rowIdx + 5
+		canWork := "Tidak"
+		if rec.CanWork {
+			canWork = "Ya"
+		}
+		sleepMin := 0
+		if rec.SleepMin != nil {
+			sleepMin = *rec.SleepMin
+		}
+		vals := []interface{}{
+			rec.Date, rec.NIK, rec.Name, rec.Dept, rec.Shift,
+			sleepMin, string(rec.St), canWork, rec.RestHours,
+		}
+		for colIdx, v := range vals {
+			cell, _ := excelize.CoordinatesToCellName(colIdx+1, r)
+			_ = f.SetCellValue(sheet, cell, v)
+		}
+	}
+
+	var buf bytes.Buffer
+	if err := f.Write(&buf); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+// ── Unit DB Excel ────────────────────────────────────────────────────────────
+
+// ParseUnitDBExcel reads an xlsx file and returns a slice of UnitDb models.
+// Columns: Code | Class | EGI | Product | Work Area | Location
+func ParseUnitDBExcel(data []byte) ([]model.UnitDb, error) {
+	f, err := excelize.OpenReader(bytes.NewReader(data))
+	if err != nil {
+		return nil, fmt.Errorf("cannot open excel file: %w", err)
+	}
+	defer f.Close()
+
+	sheets := f.GetSheetList()
+	if len(sheets) == 0 {
+		return nil, fmt.Errorf("no sheets found in excel file")
+	}
+	sheet := sheets[0]
+
+	rows, err := f.GetRows(sheet)
+	if err != nil {
+		return nil, fmt.Errorf("cannot read rows: %w", err)
+	}
+
+	var units []model.UnitDb
+	dataStarted := false
+
+	for _, row := range rows {
+		if len(row) == 0 {
+			continue
+		}
+		first := strings.TrimSpace(row[0])
+		if !dataStarted {
+			if strings.EqualFold(first, "code") || strings.EqualFold(first, "kode unit") || strings.EqualFold(first, "unit code") {
+				dataStarted = true
+			}
+			continue
+		}
+		if first == "" {
+			continue
+		}
+
+		unit := model.UnitDb{
+			Code:    first,
+			Active:  true,
+			Upd:     time.Now().Format("2006-01-02"),
+			By:      "System Import",
+		}
+
+		if len(row) > 1 {
+			unit.Cls = strings.TrimSpace(row[1])
+		}
+		if len(row) > 2 {
+			unit.EGI = strings.TrimSpace(row[2])
+		}
+		if len(row) > 3 {
+			unit.Product = strings.TrimSpace(row[3])
+		}
+		if len(row) > 4 {
+			unit.Area = strings.TrimSpace(row[4])
+		}
+		if len(row) > 5 {
+			unit.Loc = strings.TrimSpace(row[5])
+		}
+
+		units = append(units, unit)
+	}
+
+	return units, nil
+}
+
+// ── User Excel ───────────────────────────────────────────────────────────────
+
+type UserImportRow struct {
+	Name  string
+	Email string
+	NIK   string
+	Role  string
+}
+
+// ParseUserExcel reads an xlsx file and returns user import rows.
+// Columns: Name | Email | NIK | Role
+func ParseUserExcel(data []byte) ([]UserImportRow, error) {
+	f, err := excelize.OpenReader(bytes.NewReader(data))
+	if err != nil {
+		return nil, fmt.Errorf("cannot open excel file: %w", err)
+	}
+	defer f.Close()
+
+	sheets := f.GetSheetList()
+	if len(sheets) == 0 {
+		return nil, fmt.Errorf("no sheets found in excel file")
+	}
+	sheet := sheets[0]
+
+	rows, err := f.GetRows(sheet)
+	if err != nil {
+		return nil, fmt.Errorf("cannot read rows: %w", err)
+	}
+
+	var userRows []UserImportRow
+	dataStarted := false
+
+	for _, row := range rows {
+		if len(row) == 0 {
+			continue
+		}
+		first := strings.TrimSpace(row[0])
+		if !dataStarted {
+			if strings.EqualFold(first, "name") || strings.EqualFold(first, "nama") {
+				dataStarted = true
+			}
+			continue
+		}
+		if first == "" {
+			continue
+		}
+
+		uRow := UserImportRow{Name: first}
+		if len(row) > 1 {
+			uRow.Email = strings.TrimSpace(row[1])
+		}
+		if len(row) > 2 {
+			uRow.NIK = strings.TrimSpace(row[2])
+		}
+		if len(row) > 3 {
+			uRow.Role = strings.TrimSpace(row[3])
+		}
+
+		if uRow.Email != "" {
+			userRows = append(userRows, uRow)
+		}
+	}
+
+	return userRows, nil
 }
 

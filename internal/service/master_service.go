@@ -1,10 +1,13 @@
 package service
 
 import (
-	"strconv"
+	"fmt"
+	"strings"
 
+	"universev2-backend/internal/export"
 	"universev2-backend/internal/model"
 	"universev2-backend/internal/repository"
+	"universev2-backend/pkg/pagination"
 )
 
 // MasterService handles master data business logic
@@ -28,7 +31,6 @@ type MasterListResponse struct {
 
 // GetMasterByCategory returns master entries with pagination and search
 func (s *MasterService) GetMasterByCategory(category string, page, perPage int, search string) (*MasterListResponse, error) {
-	// Get all entries for the category
 	entries, err := s.repo.GetByCategory(category)
 	if err != nil {
 		return nil, err
@@ -108,71 +110,81 @@ func (s *MasterService) BulkDelete(ids []string) error {
 	return nil
 }
 
-// ReorderEntries updates the order of master entries
+// ReorderEntries updates the order of master entries (no-op placeholder)
 func (s *MasterService) ReorderEntries(category string, orderedIDs []string) error {
-	// Update the order by updating a sort index field
-	// For now, we'll use the ID field to maintain order
-	// In a real implementation, you might want to add a 'sort_order' column
 	entries, err := s.repo.GetByCategory(category)
 	if err != nil {
 		return err
 	}
-
-	// Create a map for quick lookup
 	entryMap := make(map[string]model.MdEntry)
 	for _, entry := range entries {
 		entryMap[entry.ID] = entry
 	}
-
-	// Update entries in the new order
 	for i, id := range orderedIDs {
 		if entry, exists := entryMap[id]; exists {
-			// In a real implementation, you would update a sort_order field here
-			// For now, we just verify the entry exists
 			_ = i
 			_ = entry
 		}
 	}
-
 	return nil
 }
 
-// Helper functions
+// ImportFromExcel bulk-imports master entries from xlsx bytes.
+// Returns count of imported records and any error.
+func (s *MasterService) ImportFromExcel(category string, data []byte) (int, error) {
+	entries, err := export.ParseMasterExcel(data)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse excel: %w", err)
+	}
+
+	imported := 0
+	for _, entry := range entries {
+		entry.Cat = model.MdCat(category)
+		if entry.ID == "" {
+			// Generate a simple ID if not provided
+			entry.ID = fmt.Sprintf("%s-%s", category, strings.ToLower(strings.ReplaceAll(entry.Name, " ", "-")))
+		}
+		if err := s.repo.Create(&entry); err != nil {
+			// Skip duplicates, continue
+			continue
+		}
+		imported++
+	}
+	return imported, nil
+}
+
+// ExportToExcel exports all master entries for a category as xlsx bytes.
+func (s *MasterService) ExportToExcel(category string) ([]byte, error) {
+	entries, err := s.repo.GetByCategory(category)
+	if err != nil {
+		return nil, err
+	}
+	return export.GenerateMasterExcel(category, entries)
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+// containsIgnoreCase reports whether s contains substr (case-insensitive).
 func containsIgnoreCase(s, substr string) bool {
-	return len(s) >= len(substr) &&
-		(s == substr ||
-			containsIgnoreCase(s[1:], substr) ||
-			containsIgnoreCase(s[:len(s)-1], substr) ||
-			containsIgnoreCase(s[1:len(s)-1], substr))
+	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
 }
 
+// sortByName sorts entries alphabetically by Name using a simple insertion sort.
 func sortByName(entries []model.MdEntry) {
-	// Simple bubble sort by name
-	for i := 0; i < len(entries); i++ {
-		for j := i + 1; j < len(entries); j++ {
-			if entries[i].Name > entries[j].Name {
-				entries[i], entries[j] = entries[j], entries[i]
-			}
+	for i := 1; i < len(entries); i++ {
+		key := entries[i]
+		j := i - 1
+		for j >= 0 && entries[j].Name > key.Name {
+			entries[j+1] = entries[j]
+			j--
 		}
+		entries[j+1] = key
 	}
 }
 
-// ParsePaginationParams extracts page and perPage from query params
+// ParsePaginationParams extracts page and perPage from query params.
+// Kept for backwards compatibility with existing handler usages.
 func ParsePaginationParams(pageStr, perPageStr string) (int, int) {
-	page := 1
-	perPage := 10
-
-	if pageStr != "" {
-		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
-			page = p
-		}
-	}
-
-	if perPageStr != "" {
-		if pp, err := strconv.Atoi(perPageStr); err == nil && pp > 0 {
-			perPage = pp
-		}
-	}
-
-	return page, perPage
+	p := pagination.Parse(pageStr, perPageStr)
+	return p.Page, p.PerPage
 }

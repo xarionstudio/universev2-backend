@@ -178,3 +178,34 @@ func (r *FleetRepo) UpdateUnitDB(u *model.UnitDb) error {
 func (r *FleetRepo) DeleteUnitDB(id string) error {
 	return r.db.Where("id = ?", id).Delete(&model.UnitDb{}).Error
 }
+
+func (r *FleetRepo) BulkCreateUnitDB(units []model.UnitDb) (imported int, skipped int, err error) {
+	for _, u := range units {
+		var count int64
+		r.db.Model(&model.UnitDb{}).Where("code = ?", u.Code).Count(&count)
+		if count > 0 {
+			// Update existing record
+			r.db.Model(&model.UnitDb{}).Where("code = ?", u.Code).Updates(map[string]interface{}{
+				"class_name": u.Cls,
+				"egi":        u.EGI,
+				"product":    u.Product,
+				"work_area":  u.Area,
+				"location":   u.Loc,
+				"upd_date":   u.Upd,
+				"upd_by":     u.By,
+			})
+			skipped++
+		} else {
+			if u.ID == "" {
+				u.ID = fmt.Sprintf("udb-%d", time.Now().UnixNano())
+			}
+			if err := r.db.Create(&u).Error; err == nil {
+				imported++
+			} else {
+				skipped++
+			}
+		}
+	}
+	return imported, skipped, nil
+}
+

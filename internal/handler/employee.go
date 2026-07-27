@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"fmt"
+	"io"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -9,36 +12,40 @@ import (
 	"universev2-backend/internal/model"
 	"universev2-backend/internal/repository"
 	"universev2-backend/internal/service"
+	"universev2-backend/pkg/filter"
+	"universev2-backend/pkg/pagination"
 	"universev2-backend/pkg/response"
 )
 
 type EmployeeHandler struct {
-	empSvc *service.EmployeeService
+	empSvc    *service.EmployeeService
+	uploadDir string
 }
 
-func NewEmployeeHandler(repo *repository.EmployeeRepo) *EmployeeHandler {
+func NewEmployeeHandler(repo *repository.EmployeeRepo, uploadDir string) *EmployeeHandler {
 	return &EmployeeHandler{
-		empSvc: service.NewEmployeeService(repo),
+		empSvc:    service.NewEmployeeService(repo),
+		uploadDir: uploadDir,
 	}
 }
 
+// GetEmployees godoc
+// GET /api/employees
+// Query params: page, perPage, search, status, dept, date_from, date_to, logic
 func (h *EmployeeHandler) GetEmployees(c fiber.Ctx) error {
-	dept := c.Query("dept")
-	status := c.Query("status")
-	search := c.Query("q")
+	f := filter.ParseFromCtx(c)
+	p := pagination.Parse(c.Query("page"), c.Query("perPage"))
 
-	employees, err := h.empSvc.GetEmployees(dept, status, search)
+	employees, total, err := h.empSvc.GetEmployeesPaginated(f, p)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch employees: "+err.Error())
 	}
 
-	meta := &response.Meta{
-		Page:      1,
-		Limit:     50,
-		Total:     len(employees),
-		TotalPage: 1,
-	}
-	return response.SuccessWithMeta(c, fiber.StatusOK, "Success fetch employees", employees, meta)
+	meta := pagination.BuildMeta(p, total)
+	return response.SuccessPaged(c, fiber.StatusOK, "Success fetch employees", response.PagedData{
+		Items:      employees,
+		Pagination: meta,
+	})
 }
 
 func (h *EmployeeHandler) GetEmployeeByNIK(c fiber.Ctx) error {
@@ -166,7 +173,7 @@ func (h *EmployeeHandler) UploadPhoto(c fiber.Ctx) error {
 	safeFilename = strings.ReplaceAll(safeFilename, "\\", "")
 
 	// Save to uploads directory
-	photoPath := "uploads/photos/" + nik + "_" + safeFilename
+	photoPath := h.uploadDir + "/photos/" + nik + "_" + safeFilename
 	if err := c.SaveFile(file, photoPath); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to save photo: "+err.Error())
 	}
@@ -179,4 +186,67 @@ func (h *EmployeeHandler) UploadPhoto(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, "Photo uploaded successfully", fiber.Map{
 		"photoUrl": photoURL,
 	})
+}
+
+// ImportEmployees godoc
+// POST /api/employees/import
+// Content-Type: multipart/form-data
+// Field: file (.xlsx)
+func (h *EmployeeHandler) ImportEmployees(c fiber.Ctx) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Excel file is required (field: 'file')")
+	}
+
+	// Validate extension
+	fname := strings.ToLower(file.Filename)
+	if !strings.HasSuffix(fname, ".xlsx") && !strings.HasSuffix(fname, ".xls") {
+		return response.Error(c, fiber.StatusBadRequest, "Only .xlsx or .xls files are accepted")
+	}
+
+	// Validate file size (max 10MB)
+	const maxSize = 10 << 20
+	if file.Size > maxSize {
+		return response.Error(c, fiber.StatusBadRequest, "File size exceeds 10MB limit")
+	}
+
+	// Read file bytes
+	f, err := file.Open()
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to open uploaded file")
+	}
+	defer f.Close()
+
+	data, err := io.ReadAll(f)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to read file")
+	}
+
+	imported, skipped, rowErrors, err := h.empSvc.ImportEmployeesFromExcel(data)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Import failed: "+err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, fmt.Sprintf("Import completed: %d imported, %d skipped", imported, skipped), fiber.Map{
+		"imported": imported,
+		"skipped":  skipped,
+		"errors":   rowErrors,
+	})
+}
+
+// ExportEmployees godoc
+// GET /api/employees/export
+// Accepts same filter params as GetEmployees; returns an xlsx download.
+func (h *EmployeeHandler) ExportEmployees(c fiber.Ctx) error {
+	f := filter.ParseFromCtx(c)
+
+	xlsxData, err := h.empSvc.ExportEmployeesToExcel(f)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to generate export: "+err.Error())
+	}
+
+	fileName := fmt.Sprintf("employees_export_%s.xlsx", time.Now().Format("20060102"))
+	c.Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	c.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, fileName))
+	return c.Send(xlsxData)
 }
