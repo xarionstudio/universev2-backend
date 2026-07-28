@@ -870,812 +870,817 @@
       ]
     },
     {
-      "name": "EGI Types",
+      "name": "Master",
       "item": [
         {
-          "name": "Get EGI Types (Paginated & Filtered)",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/egi?page=1&perPage=20&search=",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "egi"],
-              "query": [
-                { "key": "page", "value": "1" },
-                { "key": "perPage", "value": "20" },
-                { "key": "search", "value": "" }
-              ]
+          "name": "EGI Types",
+          "item": [
+            {
+              "name": "Get EGI Types (Paginated & Filtered)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/egi?page=1&perPage=20&search=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "egi"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "perPage", "value": "20" },
+                    { "key": "search", "value": "" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create EGI Types Entry",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/egi",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "egi"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"DT777\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
+            },
+            {
+              "name": "Update EGI Types Entry",
+              "request": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/egi/egi-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "egi", "egi-1"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"DT777 Updated\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
+            },
+            {
+              "name": "Delete EGI Types Entry",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/egi/egi-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "egi", "egi-1"]
+                }
+              }
+            },
+            {
+              "name": "Import EGI Types Excel",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/egi/import",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "egi", "import"]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [{ "key": "file", "type": "file", "src": "" }]
+                }
+              }
+            },
+            {
+              "name": "Export EGI Types Excel",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/egi/export",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "egi", "export"]
+                }
+              }
             }
-          }
+          ]
         },
         {
-          "name": "Create EGI Types Entry",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/egi",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "egi"]
+          "name": "Products & Brands",
+          "item": [
+            {
+              "name": "Get Products & Brands (Paginated & Filtered)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/product?page=1&perPage=20&search=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "product"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "perPage", "value": "20" },
+                    { "key": "search", "value": "" }
+                  ]
+                }
+              }
             },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample EGI Types Entry\",\n  \"a\": \"Field A Value\",\n  \"b\": \"Field B Value\",\n  \"active\": true\n}"
+            {
+              "name": "Create Products & Brands Entry",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/product",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "product"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Caterpillar\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
             },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Update EGI Types Entry",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/egi/egi-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "egi", "egi-1"]
+            {
+              "name": "Update Products & Brands Entry",
+              "request": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/product/product-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "product", "product-1"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Caterpillar Updated\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
             },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample EGI Types Entry Updated\",\n  \"a\": \"Field A Updated\",\n  \"b\": \"Field B Updated\",\n  \"active\": true\n}"
+            {
+              "name": "Delete Products & Brands Entry",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/product/product-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "product", "product-1"]
+                }
+              }
             },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Delete EGI Types Entry",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/egi/egi-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "egi", "egi-1"]
+            {
+              "name": "Import Products & Brands Excel",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/product/import",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "product", "import"]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [{ "key": "file", "type": "file", "src": "" }]
+                }
+              }
+            },
+            {
+              "name": "Export Products & Brands Excel",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/product/export",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "product", "export"]
+                }
+              }
             }
-          }
+          ]
         },
         {
-          "name": "Import EGI Types Excel",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/egi/import",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "egi", "import"]
+          "name": "Eq Classes",
+          "item": [
+            {
+              "name": "Get Eq Classes (Paginated & Filtered)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/eqclass?page=1&perPage=20&search=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "eqclass"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "perPage", "value": "20" },
+                    { "key": "search", "value": "" }
+                  ]
+                }
+              }
             },
-            "body": {
-              "mode": "formdata",
-              "formdata": [{ "key": "file", "type": "file", "src": "" }]
+            {
+              "name": "Create Eq Classes Entry",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/eqclass",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "eqclass"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"DT\",\n  \"a\": \"Dump Truck\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
+            },
+            {
+              "name": "Update Eq Classes Entry",
+              "request": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/eqclass/eqclass-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "eqclass", "eqclass-1"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"EX\",\n  \"a\": \"Excavator\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
+            },
+            {
+              "name": "Delete Eq Classes Entry",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/eqclass/eqclass-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "eqclass", "eqclass-1"]
+                }
+              }
+            },
+            {
+              "name": "Import Eq Classes Excel",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/eqclass/import",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "eqclass", "import"]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [{ "key": "file", "type": "file", "src": "" }]
+                }
+              }
+            },
+            {
+              "name": "Export Eq Classes Excel",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/eqclass/export",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "eqclass", "export"]
+                }
+              }
             }
-          }
+          ]
         },
         {
-          "name": "Export EGI Types Excel",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/egi/export",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "egi", "export"]
+          "name": "Work Areas",
+          "item": [
+            {
+              "name": "Get Work Areas (Paginated & Filtered)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/area?page=1&perPage=20&search=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "area"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "perPage", "value": "20" },
+                    { "key": "search", "value": "" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Work Areas Entry",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/area",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "area"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Panel East Tengah\",\n  \"a\": \"Mining\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
+            },
+            {
+              "name": "Update Work Areas Entry",
+              "request": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/area/area-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "area", "area-1"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Workshop Plant\",\n  \"a\": \"Non-Mining\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
+            },
+            {
+              "name": "Delete Work Areas Entry",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/area/area-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "area", "area-1"]
+                }
+              }
+            },
+            {
+              "name": "Import Work Areas Excel",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/area/import",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "area", "import"]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [{ "key": "file", "type": "file", "src": "" }]
+                }
+              }
+            },
+            {
+              "name": "Export Work Areas Excel",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/area/export",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "area", "export"]
+                }
+              }
             }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Products & Brands",
-      "item": [
+          ]
+        },
         {
-          "name": "Get Products & Brands (Paginated & Filtered)",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/product?page=1&perPage=20&search=",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "product"],
-              "query": [
-                { "key": "page", "value": "1" },
-                { "key": "perPage", "value": "20" },
-                { "key": "search", "value": "" }
-              ]
+          "name": "Tempudo Points",
+          "item": [
+            {
+              "name": "Get Tempudo Points (Paginated & Filtered)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/tempudo?page=1&perPage=20&search=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "tempudo"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "perPage", "value": "20" },
+                    { "key": "search", "value": "" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Tempudo Points Entry",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/tempudo",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "tempudo"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"TP-01\",\n  \"a\": \"Workshop\",\n  \"b\": \"Pickup & Drop\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
+            },
+            {
+              "name": "Update Tempudo Points Entry",
+              "request": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/tempudo/tempudo-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "tempudo", "tempudo-1"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"TP-02\",\n  \"a\": \"Panel East Tengah\",\n  \"b\": \"Pickup\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
+            },
+            {
+              "name": "Delete Tempudo Points Entry",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/tempudo/tempudo-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "tempudo", "tempudo-1"]
+                }
+              }
+            },
+            {
+              "name": "Import Tempudo Points Excel",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/tempudo/import",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "tempudo", "import"]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [{ "key": "file", "type": "file", "src": "" }]
+                }
+              }
+            },
+            {
+              "name": "Export Tempudo Points Excel",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/tempudo/export",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "tempudo", "export"]
+                }
+              }
             }
-          }
+          ]
         },
         {
-          "name": "Create Products & Brands Entry",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/product",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "product"]
+          "name": "Buses",
+          "item": [
+            {
+              "name": "Get Buses (Paginated & Filtered)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/bus?page=1&perPage=20&search=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "bus"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "perPage", "value": "20" },
+                    { "key": "search", "value": "" }
+                  ]
+                }
+              }
             },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample Products & Brands Entry\",\n  \"a\": \"Field A Value\",\n  \"b\": \"Field B Value\",\n  \"active\": true\n}"
+            {
+              "name": "Create Buses Entry",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/bus",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "bus"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"UDBU001\",\n  \"a\": \"Bus Besar\",\n  \"b\": \"05:00\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
             },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Update Products & Brands Entry",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/product/product-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "product", "product-1"]
+            {
+              "name": "Update Buses Entry",
+              "request": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/bus/bus-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "bus", "bus-1"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"UDBU002\",\n  \"a\": \"Bus Kecil\",\n  \"b\": \"05:15\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
             },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample Products & Brands Entry Updated\",\n  \"a\": \"Field A Updated\",\n  \"b\": \"Field B Updated\",\n  \"active\": true\n}"
+            {
+              "name": "Delete Buses Entry",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/bus/bus-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "bus", "bus-1"]
+                }
+              }
             },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Delete Products & Brands Entry",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/product/product-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "product", "product-1"]
+            {
+              "name": "Import Buses Excel",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/bus/import",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "bus", "import"]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [{ "key": "file", "type": "file", "src": "" }]
+                }
+              }
+            },
+            {
+              "name": "Export Buses Excel",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/bus/export",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "bus", "export"]
+                }
+              }
             }
-          }
+          ]
         },
         {
-          "name": "Import Products & Brands Excel",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/product/import",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "product", "import"]
+          "name": "Excavator Locations",
+          "item": [
+            {
+              "name": "Get Excavator Locations (Paginated & Filtered)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/lokasiex?page=1&perPage=20&search=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "lokasiex"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "perPage", "value": "20" },
+                    { "key": "search", "value": "" }
+                  ]
+                }
+              }
             },
-            "body": {
-              "mode": "formdata",
-              "formdata": [{ "key": "file", "type": "file", "src": "" }]
+            {
+              "name": "Create Excavator Locations Entry",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/lokasiex",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "lokasiex"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"EX7007\",\n  \"a\": \"UDBU001\",\n  \"b\": \"TP-02\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
+            },
+            {
+              "name": "Update Excavator Locations Entry",
+              "request": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/lokasiex/lokasiex-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "lokasiex", "lokasiex-1"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"EX7001\",\n  \"a\": \"UDBU002\",\n  \"b\": \"TP-01\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
+            },
+            {
+              "name": "Delete Excavator Locations Entry",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/lokasiex/lokasiex-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "lokasiex", "lokasiex-1"]
+                }
+              }
+            },
+            {
+              "name": "Import Excavator Locations Excel",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/lokasiex/import",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "lokasiex", "import"]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [{ "key": "file", "type": "file", "src": "" }]
+                }
+              }
+            },
+            {
+              "name": "Export Excavator Locations Excel",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/lokasiex/export",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "lokasiex", "export"]
+                }
+              }
             }
-          }
+          ]
         },
         {
-          "name": "Export Products & Brands Excel",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/product/export",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "product", "export"]
+          "name": "Mess Blocks",
+          "item": [
+            {
+              "name": "Get Mess Blocks (Paginated & Filtered)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/mess?page=1&perPage=20&search=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "mess"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "perPage", "value": "20" },
+                    { "key": "search", "value": "" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Mess Blocks Entry",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/mess",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "mess"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Mess 31\",\n  \"a\": \"Blok A\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
+            },
+            {
+              "name": "Update Mess Blocks Entry",
+              "request": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/mess/mess-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "mess", "mess-1"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Mess KM 12\",\n  \"a\": \"Blok B\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
+            },
+            {
+              "name": "Delete Mess Blocks Entry",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/mess/mess-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "mess", "mess-1"]
+                }
+              }
+            },
+            {
+              "name": "Import Mess Blocks Excel",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/mess/import",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "mess", "import"]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [{ "key": "file", "type": "file", "src": "" }]
+                }
+              }
+            },
+            {
+              "name": "Export Mess Blocks Excel",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/mess/export",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "mess", "export"]
+                }
+              }
             }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Eq Classes",
-      "item": [
+          ]
+        },
         {
-          "name": "Get Eq Classes (Paginated & Filtered)",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/eqclass?page=1&perPage=20&search=",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "eqclass"],
-              "query": [
-                { "key": "page", "value": "1" },
-                { "key": "perPage", "value": "20" },
-                { "key": "search", "value": "" }
-              ]
+          "name": "Running Texts",
+          "item": [
+            {
+              "name": "Get Running Texts (Paginated & Filtered)",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/runtext?page=1&perPage=20&search=",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "runtext"],
+                  "query": [
+                    { "key": "page", "value": "1" },
+                    { "key": "perPage", "value": "20" },
+                    { "key": "search", "value": "" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Create Running Texts Entry",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/runtext",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "runtext"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Utamakan keselamatan — patuhi batas kecepatan 40 km/jam di jalan hauling.\",\n  \"a\": \"Semua kiosk\",\n  \"b\": \"Cyan\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
+            },
+            {
+              "name": "Update Running Texts Entry",
+              "request": {
+                "method": "PUT",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/runtext/runtext-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "runtext", "runtext-1"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Wajib P2H sebelum mengoperasikan unit.\",\n  \"a\": \"Display Fleet\",\n  \"b\": \"Oranye\",\n  \"active\": true\n}"
+                },
+                "header": [{ "key": "Content-Type", "value": "application/json" }]
+              }
+            },
+            {
+              "name": "Delete Running Texts Entry",
+              "request": {
+                "method": "DELETE",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/runtext/runtext-1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "runtext", "runtext-1"]
+                }
+              }
+            },
+            {
+              "name": "Import Running Texts Excel",
+              "request": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/runtext/import",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "runtext", "import"]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [{ "key": "file", "type": "file", "src": "" }]
+                }
+              }
+            },
+            {
+              "name": "Export Running Texts Excel",
+              "request": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{baseUrl}}/api/master/runtext/export",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "master", "runtext", "export"]
+                }
+              }
             }
-          }
-        },
-        {
-          "name": "Create Eq Classes Entry",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/eqclass",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "eqclass"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample Eq Classes Entry\",\n  \"a\": \"Field A Value\",\n  \"b\": \"Field B Value\",\n  \"active\": true\n}"
-            },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Update Eq Classes Entry",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/eqclass/eqclass-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "eqclass", "eqclass-1"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample Eq Classes Entry Updated\",\n  \"a\": \"Field A Updated\",\n  \"b\": \"Field B Updated\",\n  \"active\": true\n}"
-            },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Delete Eq Classes Entry",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/eqclass/eqclass-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "eqclass", "eqclass-1"]
-            }
-          }
-        },
-        {
-          "name": "Import Eq Classes Excel",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/eqclass/import",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "eqclass", "import"]
-            },
-            "body": {
-              "mode": "formdata",
-              "formdata": [{ "key": "file", "type": "file", "src": "" }]
-            }
-          }
-        },
-        {
-          "name": "Export Eq Classes Excel",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/eqclass/export",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "eqclass", "export"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Work Areas",
-      "item": [
-        {
-          "name": "Get Work Areas (Paginated & Filtered)",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/area?page=1&perPage=20&search=",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "area"],
-              "query": [
-                { "key": "page", "value": "1" },
-                { "key": "perPage", "value": "20" },
-                { "key": "search", "value": "" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Create Work Areas Entry",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/area",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "area"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample Work Areas Entry\",\n  \"a\": \"Field A Value\",\n  \"b\": \"Field B Value\",\n  \"active\": true\n}"
-            },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Update Work Areas Entry",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/area/area-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "area", "area-1"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample Work Areas Entry Updated\",\n  \"a\": \"Field A Updated\",\n  \"b\": \"Field B Updated\",\n  \"active\": true\n}"
-            },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Delete Work Areas Entry",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/area/area-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "area", "area-1"]
-            }
-          }
-        },
-        {
-          "name": "Import Work Areas Excel",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/area/import",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "area", "import"]
-            },
-            "body": {
-              "mode": "formdata",
-              "formdata": [{ "key": "file", "type": "file", "src": "" }]
-            }
-          }
-        },
-        {
-          "name": "Export Work Areas Excel",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/area/export",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "area", "export"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Tempudo Points",
-      "item": [
-        {
-          "name": "Get Tempudo Points (Paginated & Filtered)",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/tempudo?page=1&perPage=20&search=",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "tempudo"],
-              "query": [
-                { "key": "page", "value": "1" },
-                { "key": "perPage", "value": "20" },
-                { "key": "search", "value": "" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Create Tempudo Points Entry",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/tempudo",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "tempudo"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample Tempudo Points Entry\",\n  \"a\": \"Field A Value\",\n  \"b\": \"Field B Value\",\n  \"active\": true\n}"
-            },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Update Tempudo Points Entry",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/tempudo/tempudo-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "tempudo", "tempudo-1"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample Tempudo Points Entry Updated\",\n  \"a\": \"Field A Updated\",\n  \"b\": \"Field B Updated\",\n  \"active\": true\n}"
-            },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Delete Tempudo Points Entry",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/tempudo/tempudo-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "tempudo", "tempudo-1"]
-            }
-          }
-        },
-        {
-          "name": "Import Tempudo Points Excel",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/tempudo/import",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "tempudo", "import"]
-            },
-            "body": {
-              "mode": "formdata",
-              "formdata": [{ "key": "file", "type": "file", "src": "" }]
-            }
-          }
-        },
-        {
-          "name": "Export Tempudo Points Excel",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/tempudo/export",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "tempudo", "export"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Buses",
-      "item": [
-        {
-          "name": "Get Buses (Paginated & Filtered)",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/bus?page=1&perPage=20&search=",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "bus"],
-              "query": [
-                { "key": "page", "value": "1" },
-                { "key": "perPage", "value": "20" },
-                { "key": "search", "value": "" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Create Buses Entry",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/bus",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "bus"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample Buses Entry\",\n  \"a\": \"Field A Value\",\n  \"b\": \"Field B Value\",\n  \"active\": true\n}"
-            },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Update Buses Entry",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/bus/bus-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "bus", "bus-1"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample Buses Entry Updated\",\n  \"a\": \"Field A Updated\",\n  \"b\": \"Field B Updated\",\n  \"active\": true\n}"
-            },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Delete Buses Entry",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/bus/bus-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "bus", "bus-1"]
-            }
-          }
-        },
-        {
-          "name": "Import Buses Excel",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/bus/import",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "bus", "import"]
-            },
-            "body": {
-              "mode": "formdata",
-              "formdata": [{ "key": "file", "type": "file", "src": "" }]
-            }
-          }
-        },
-        {
-          "name": "Export Buses Excel",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/bus/export",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "bus", "export"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Excavator Locations",
-      "item": [
-        {
-          "name": "Get Excavator Locations (Paginated & Filtered)",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/lokasiex?page=1&perPage=20&search=",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "lokasiex"],
-              "query": [
-                { "key": "page", "value": "1" },
-                { "key": "perPage", "value": "20" },
-                { "key": "search", "value": "" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Create Excavator Locations Entry",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/lokasiex",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "lokasiex"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample Excavator Locations Entry\",\n  \"a\": \"Field A Value\",\n  \"b\": \"Field B Value\",\n  \"active\": true\n}"
-            },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Update Excavator Locations Entry",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/lokasiex/lokasiex-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "lokasiex", "lokasiex-1"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample Excavator Locations Entry Updated\",\n  \"a\": \"Field A Updated\",\n  \"b\": \"Field B Updated\",\n  \"active\": true\n}"
-            },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Delete Excavator Locations Entry",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/lokasiex/lokasiex-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "lokasiex", "lokasiex-1"]
-            }
-          }
-        },
-        {
-          "name": "Import Excavator Locations Excel",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/lokasiex/import",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "lokasiex", "import"]
-            },
-            "body": {
-              "mode": "formdata",
-              "formdata": [{ "key": "file", "type": "file", "src": "" }]
-            }
-          }
-        },
-        {
-          "name": "Export Excavator Locations Excel",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/lokasiex/export",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "lokasiex", "export"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Mess Blocks",
-      "item": [
-        {
-          "name": "Get Mess Blocks (Paginated & Filtered)",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/mess?page=1&perPage=20&search=",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "mess"],
-              "query": [
-                { "key": "page", "value": "1" },
-                { "key": "perPage", "value": "20" },
-                { "key": "search", "value": "" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Create Mess Blocks Entry",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/mess",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "mess"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample Mess Blocks Entry\",\n  \"a\": \"Field A Value\",\n  \"b\": \"Field B Value\",\n  \"active\": true\n}"
-            },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Update Mess Blocks Entry",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/mess/mess-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "mess", "mess-1"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample Mess Blocks Entry Updated\",\n  \"a\": \"Field A Updated\",\n  \"b\": \"Field B Updated\",\n  \"active\": true\n}"
-            },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Delete Mess Blocks Entry",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/mess/mess-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "mess", "mess-1"]
-            }
-          }
-        },
-        {
-          "name": "Import Mess Blocks Excel",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/mess/import",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "mess", "import"]
-            },
-            "body": {
-              "mode": "formdata",
-              "formdata": [{ "key": "file", "type": "file", "src": "" }]
-            }
-          }
-        },
-        {
-          "name": "Export Mess Blocks Excel",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/mess/export",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "mess", "export"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Running Texts",
-      "item": [
-        {
-          "name": "Get Running Texts (Paginated & Filtered)",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/runtext?page=1&perPage=20&search=",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "runtext"],
-              "query": [
-                { "key": "page", "value": "1" },
-                { "key": "perPage", "value": "20" },
-                { "key": "search", "value": "" }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Create Running Texts Entry",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/runtext",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "runtext"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample Running Texts Entry\",\n  \"a\": \"Field A Value\",\n  \"b\": \"Field B Value\",\n  \"active\": true\n}"
-            },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Update Running Texts Entry",
-          "request": {
-            "method": "PUT",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/runtext/runtext-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "runtext", "runtext-1"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Sample Running Texts Entry Updated\",\n  \"a\": \"Field A Updated\",\n  \"b\": \"Field B Updated\",\n  \"active\": true\n}"
-            },
-            "header": [{ "key": "Content-Type", "value": "application/json" }]
-          }
-        },
-        {
-          "name": "Delete Running Texts Entry",
-          "request": {
-            "method": "DELETE",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/runtext/runtext-1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "runtext", "runtext-1"]
-            }
-          }
-        },
-        {
-          "name": "Import Running Texts Excel",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/runtext/import",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "runtext", "import"]
-            },
-            "body": {
-              "mode": "formdata",
-              "formdata": [{ "key": "file", "type": "file", "src": "" }]
-            }
-          }
-        },
-        {
-          "name": "Export Running Texts Excel",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/api/master/runtext/export",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "master", "runtext", "export"]
-            }
-          }
+          ]
         }
       ]
     },

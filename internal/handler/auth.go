@@ -31,7 +31,7 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 		msg := err.Error()
 		switch msg {
 		case "invalid credentials":
-			return response.Error(c, fiber.StatusUnauthorized, "Invalid credentials")
+			return response.Error(c, fiber.StatusUnauthorized, "Email or password is incorrect")
 		case "account is inactive":
 			return response.Error(c, fiber.StatusForbidden, "Account is inactive")
 		case "invalid email format":
