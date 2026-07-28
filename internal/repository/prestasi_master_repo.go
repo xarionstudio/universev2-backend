@@ -90,7 +90,6 @@ func (r *PrestasiRepo) GetAllEmployeeNIKs() ([]model.Employee, error) {
 
 func (r *PrestasiRepo) SavePrestasiData(periodDays int, scores []model.PrestasiScore, history []model.PrestasiHistoryEntry, badges []model.PrestasiBadge) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-		// Delete existing entries for the given period to overwrite with recalculation
 		if err := tx.Where("period_days = ?", periodDays).Delete(&model.PrestasiScore{}).Error; err != nil {
 			return err
 		}
@@ -134,7 +133,7 @@ func (r *PrestasiRepo) GetFTWRecord(nik string, dateStr string) (*model.FTWRecor
 	return &ftw, nil
 }
 
-
+// ── MasterRepo ────────────────────────────────────────────────────────────────
 
 type MasterRepo struct {
 	db *gorm.DB
@@ -144,20 +143,94 @@ func NewMasterRepo(db *gorm.DB) *MasterRepo {
 	return &MasterRepo{db: db}
 }
 
-func (r *MasterRepo) GetByCategory(cat string) ([]model.MdEntry, error) {
-	var entries []model.MdEntry
-	err := r.db.Where("category_key = ?", cat).Order("name ASC").Find(&entries).Error
-	return entries, err
+// GetByCategory returns all entries for a category as interface{} (slice of specific type)
+func (r *MasterRepo) GetByCategory(cat string) (interface{}, error) {
+	switch cat {
+	case "egi":
+		var entries []model.MasterEGIType
+		err := r.db.Order("name ASC").Find(&entries).Error
+		return entries, err
+	case "product":
+		var entries []model.MasterProduct
+		err := r.db.Order("name ASC").Find(&entries).Error
+		return entries, err
+	case "eqclass":
+		var entries []model.MasterEqClass
+		err := r.db.Order("name ASC").Find(&entries).Error
+		return entries, err
+	case "area":
+		var entries []model.MasterArea
+		err := r.db.Order("name ASC").Find(&entries).Error
+		return entries, err
+	case "tempudo":
+		var entries []model.MasterTempudo
+		err := r.db.Order("name ASC").Find(&entries).Error
+		return entries, err
+	case "bus":
+		var entries []model.MasterBus
+		err := r.db.Order("name ASC").Find(&entries).Error
+		return entries, err
+	case "lokasiex":
+		var entries []model.MasterLocationEx
+		err := r.db.Order("name ASC").Find(&entries).Error
+		return entries, err
+	case "mess":
+		var entries []model.MasterMess
+		err := r.db.Order("name ASC").Find(&entries).Error
+		return entries, err
+	case "runtext":
+		var entries []model.MasterRunningText
+		err := r.db.Order("name ASC").Find(&entries).Error
+		return entries, err
+	}
+	return nil, nil
 }
 
-func (r *MasterRepo) Create(entry *model.MdEntry) error {
+// Create inserts a new entry for the given category
+func (r *MasterRepo) Create(cat string, entry interface{}) error {
 	return r.db.Create(entry).Error
 }
 
-func (r *MasterRepo) Update(id string, entry *model.MdEntry) error {
-	return r.db.Model(&model.MdEntry{}).Where("id = ?", id).Updates(entry).Error
+// Update updates an entry by code for the given category
+func (r *MasterRepo) Update(cat string, code string, updates map[string]interface{}) error {
+	tbl := categoryTableMap(cat)
+	if tbl == nil {
+		return nil
+	}
+	return r.db.Model(tbl).Where("code = ?", code).Updates(updates).Error
 }
 
-func (r *MasterRepo) Delete(id string) error {
-	return r.db.Where("id = ?", id).Delete(&model.MdEntry{}).Error
+// Delete deletes an entry by code for the given category
+func (r *MasterRepo) Delete(cat string, code string) error {
+	tbl := categoryTableMap(cat)
+	if tbl == nil {
+		return nil
+	}
+	return r.db.Where("code = ?", code).Delete(tbl).Error
+}
+
+// categoryTableMap maps category key to its model struct for GORM
+func categoryTableMap(cat string) interface{} {
+	switch cat {
+	case "egi":
+		return &model.MasterEGIType{}
+	case "product":
+		return &model.MasterProduct{}
+	case "eqclass":
+		return &model.MasterEqClass{}
+	case "area":
+		return &model.MasterArea{}
+	case "tempudo":
+		return &model.MasterTempudo{}
+	case "bus":
+		return &model.MasterBus{}
+	case "lokasiex":
+		return &model.MasterLocationEx{}
+	case "mess":
+		return &model.MasterMess{}
+	case "runtext":
+		return &model.MasterRunningText{}
+	default:
+		return nil
+	}
 }

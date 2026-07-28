@@ -213,12 +213,23 @@ func ParseEmployeeExcel(data []byte) ([]model.Employee, error) {
 	return employees, nil
 }
 
+// ── MasterExcelEntry represents a generic excel import/export row ──
+type MasterExcelEntry struct {
+	ID     string
+	Name   string
+	A      string
+	B      string
+	Active bool
+}
+
 // ── Master Data Excel ─────────────────────────────────────────────────────────
 
 var masterHeaders = []string{"ID", "Name", "Field A", "Field B", "Active"}
 
 // GenerateMasterExcel creates an xlsx export of master data entries.
-func GenerateMasterExcel(category string, entries []model.MdEntry) ([]byte, error) {
+// entries is a slice of per-category structs (e.g. []model.MasterEGIType).
+func GenerateMasterExcel(category string, raw interface{}) ([]byte, error) {
+	entries := masterEntriesToExcel(raw)
 	f := excelize.NewFile()
 	defer f.Close()
 
@@ -244,7 +255,7 @@ func GenerateMasterExcel(category string, entries []model.MdEntry) ([]byte, erro
 		if entry.Active {
 			active = "true"
 		}
-		vals := []interface{}{entry.ID, entry.Name, entry.FieldA, entry.FieldB, active}
+		vals := []interface{}{entry.ID, entry.Name, entry.A, entry.B, active}
 		for colIdx, v := range vals {
 			cell, _ := excelize.CoordinatesToCellName(colIdx+1, r)
 			_ = f.SetCellValue(sheet, cell, v)
@@ -258,9 +269,70 @@ func GenerateMasterExcel(category string, entries []model.MdEntry) ([]byte, erro
 	return buf.Bytes(), nil
 }
 
-// ParseMasterExcel reads an xlsx file and returns a slice of MdEntry models.
+// masterEntriesToExcel converts a per-category slice to []MasterExcelEntry for export
+func masterEntriesToExcel(raw interface{}) []MasterExcelEntry {
+	switch v := raw.(type) {
+	case []model.MasterEGIType:
+		out := make([]MasterExcelEntry, len(v))
+		for i, e := range v {
+			out[i] = MasterExcelEntry{ID: e.Code, Name: e.Name, Active: e.Active}
+		}
+		return out
+	case []model.MasterProduct:
+		out := make([]MasterExcelEntry, len(v))
+		for i, e := range v {
+			out[i] = MasterExcelEntry{ID: e.Code, Name: e.Name, Active: e.Active}
+		}
+		return out
+	case []model.MasterEqClass:
+		out := make([]MasterExcelEntry, len(v))
+		for i, e := range v {
+			out[i] = MasterExcelEntry{ID: e.Code, Name: e.Name, A: e.Description, Active: e.Active}
+		}
+		return out
+	case []model.MasterArea:
+		out := make([]MasterExcelEntry, len(v))
+		for i, e := range v {
+			out[i] = MasterExcelEntry{ID: e.Code, Name: e.Name, A: e.Category, Active: e.Active}
+		}
+		return out
+	case []model.MasterTempudo:
+		out := make([]MasterExcelEntry, len(v))
+		for i, e := range v {
+			out[i] = MasterExcelEntry{ID: e.Code, Name: e.Name, A: e.Location, B: e.PickupType, Active: e.Active}
+		}
+		return out
+	case []model.MasterBus:
+		out := make([]MasterExcelEntry, len(v))
+		for i, e := range v {
+			out[i] = MasterExcelEntry{ID: e.Code, Name: e.Name, A: e.EGIType, B: e.DepartureTime, Active: e.Active}
+		}
+		return out
+	case []model.MasterLocationEx:
+		out := make([]MasterExcelEntry, len(v))
+		for i, e := range v {
+			out[i] = MasterExcelEntry{ID: e.Code, Name: e.Name, A: e.BusCode, B: e.TempudoCode, Active: e.Active}
+		}
+		return out
+	case []model.MasterMess:
+		out := make([]MasterExcelEntry, len(v))
+		for i, e := range v {
+			out[i] = MasterExcelEntry{ID: e.Code, Name: e.Name, A: e.Block, Active: e.Active}
+		}
+		return out
+	case []model.MasterRunningText:
+		out := make([]MasterExcelEntry, len(v))
+		for i, e := range v {
+			out[i] = MasterExcelEntry{ID: e.Code, Name: e.Name, A: e.TargetDisplay, B: e.TextColor, Active: e.Active}
+		}
+		return out
+	}
+	return nil
+}
+
+// ParseMasterExcel reads an xlsx file and returns a slice of MasterExcelEntry.
 // Column order: ID | Name | Field A | Field B | Active
-func ParseMasterExcel(data []byte) ([]model.MdEntry, error) {
+func ParseMasterExcel(data []byte) ([]MasterExcelEntry, error) {
 	f, err := excelize.OpenReader(bytes.NewReader(data))
 	if err != nil {
 		return nil, fmt.Errorf("cannot open excel: %w", err)
@@ -278,7 +350,7 @@ func ParseMasterExcel(data []byte) ([]model.MdEntry, error) {
 		return nil, fmt.Errorf("cannot read rows: %w", err)
 	}
 
-	var entries []model.MdEntry
+	var entries []MasterExcelEntry
 	dataStarted := false
 	for _, row := range rows {
 		if len(row) == 0 {
@@ -301,16 +373,16 @@ func ParseMasterExcel(data []byte) ([]model.MdEntry, error) {
 			continue
 		}
 
-		entry := model.MdEntry{}
+		entry := MasterExcelEntry{}
 		if len(row) > 0 {
 			entry.ID = strings.TrimSpace(row[0])
 		}
 		entry.Name = name
 		if len(row) > 2 {
-			entry.FieldA = strings.TrimSpace(row[2])
+			entry.A = strings.TrimSpace(row[2])
 		}
 		if len(row) > 3 {
-			entry.FieldB = strings.TrimSpace(row[3])
+			entry.B = strings.TrimSpace(row[3])
 		}
 		if len(row) > 4 {
 			entry.Active = strings.EqualFold(strings.TrimSpace(row[4]), "true")
@@ -418,10 +490,10 @@ func ParseUnitDBExcel(data []byte) ([]model.UnitDb, error) {
 		}
 
 		unit := model.UnitDb{
-			Code:    first,
-			Active:  true,
-			Upd:     time.Now().Format("2006-01-02"),
-			By:      "System Import",
+			Code:   first,
+			Active: true,
+			Upd:    time.Now().Format("2006-01-02"),
+			By:     "System Import",
 		}
 
 		if len(row) > 1 {
@@ -511,4 +583,3 @@ func ParseUserExcel(data []byte) ([]UserImportRow, error) {
 
 	return userRows, nil
 }
-

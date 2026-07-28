@@ -53,7 +53,7 @@ func setupTestDB() *gorm.DB {
 		&model.UnitDb{},
 		&model.UnitStatusRow{},
 		&model.UnitHistoryRow{},
-		&model.MdEntry{},
+		// MdEntry removed — master_entries table dropped in migration 000006
 		&model.User{},
 		&model.Role{},
 		&model.RolePermission{},
