@@ -75,6 +75,7 @@ func setupTestDB() *gorm.DB {
 		&model.MasterLocationEx{},
 		&model.MasterMess{},
 		&model.MasterRunningText{},
+		&model.FingerprintDevice{},
 	)
 	if err != nil {
 		panic("Failed to auto-migrate: " + err.Error())
@@ -169,7 +170,7 @@ func setupTestApp() (*fiber.App, string) {
 		})
 	})
 
-	router.SetupRoutes(app, cfg, db)
+	router.SetupRoutes(app, cfg, db, nil)
 
 	// Obtain JWT Token for protected endpoints
 	loginReq := map[string]string{

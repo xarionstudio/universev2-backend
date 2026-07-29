@@ -147,3 +147,49 @@ func (r *AttendanceRepo) RecordCheckOut(nik, machine string) (*model.AttendanceR
 
 	return &row, nil
 }
+
+func deriveShiftCodeForTime(t time.Time) string {
+	hour := t.Hour()
+	if hour >= 4 && hour < 18 {
+		return "D"
+	}
+	return "N"
+}
+
+func (r *AttendanceRepo) RecordScanWithTimestamp(nik, machine string, timestamp time.Time) (*model.AttendanceRow, error) {
+	dateStr := timestamp.Format("2006-01-02")
+	timeStr := timestamp.Format("15:04")
+	sc := deriveShiftCodeForTime(timestamp)
+
+	var row model.AttendanceRow
+	err := r.db.Where("employee_nik = ? AND attendance_date = ?", nik, dateStr).First(&row).Error
+	if err == gorm.ErrRecordNotFound {
+		row = model.AttendanceRow{
+			NIK:  nik,
+			Date: dateStr,
+			Code: sc,
+			In:   timeStr,
+			InM:  machine,
+			St:   "hadir",
+		}
+		if err := r.db.Create(&row).Error; err != nil {
+			return nil, err
+		}
+	} else if err == nil {
+		if row.In == "" {
+			row.In = timeStr
+			row.InM = machine
+			row.St = "hadir"
+		} else {
+			row.Out = timeStr
+			row.OutM = machine
+		}
+		if err := r.db.Save(&row).Error; err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, err
+	}
+
+	return &row, nil
+}

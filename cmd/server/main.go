@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -12,7 +13,9 @@ import (
 
 	"universev2-backend/internal/config"
 	"universev2-backend/internal/database"
+	"universev2-backend/internal/repository"
 	"universev2-backend/internal/router"
+	"universev2-backend/internal/worker"
 )
 
 func main() {
@@ -64,8 +67,24 @@ func main() {
 		})
 	})
 
+	// Initialize Fingerprint Worker
+	var fpWorker *worker.FingerprintWorker
+	if db != nil {
+		fpRepo := repository.NewFingerprintRepo(db)
+		attRepo := repository.NewAttendanceRepo(db)
+		fpWorker = worker.NewFingerprintWorker(fpRepo, attRepo)
+
+		if cfg.FingerprintEnabled {
+			fpWorker.Start(60 * time.Second)
+			defer fpWorker.Stop()
+			log.Println("[Server] Fingerprint worker started (polling every 60s).")
+		} else {
+			log.Println("[Server] Fingerprint worker disabled (FINGERPRINT_ENABLED=false).")
+		}
+	}
+
 	// Setup all API v1 routes with GORM DB
-	router.SetupRoutes(app, cfg, db)
+	router.SetupRoutes(app, cfg, db, fpWorker)
 
 	log.Printf("Server starting on port %s", cfg.AppPort)
 	if err := app.Listen(":" + cfg.AppPort); err != nil {

@@ -3,6 +3,8 @@ package handler
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -173,7 +175,11 @@ func (h *EmployeeHandler) UploadPhoto(c fiber.Ctx) error {
 	safeFilename = strings.ReplaceAll(safeFilename, "\\", "")
 
 	// Save to uploads directory
-	photoPath := h.uploadDir + "/photos/" + nik + "_" + safeFilename
+	photoDir := filepath.Join(h.uploadDir, "photos")
+	if err := os.MkdirAll(photoDir, 0755); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to create upload directory: "+err.Error())
+	}
+	photoPath := filepath.Join(photoDir, nik+"_"+safeFilename)
 	if err := c.SaveFile(file, photoPath); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to save photo: "+err.Error())
 	}

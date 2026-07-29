@@ -9,9 +9,10 @@ import (
 	"universev2-backend/internal/middleware"
 	"universev2-backend/internal/repository"
 	"universev2-backend/internal/service"
+	"universev2-backend/internal/worker"
 )
 
-func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
+func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB, fpWorker *worker.FingerprintWorker) {
 	// Initialize GORM Repositories
 	empRepo := repository.NewEmployeeRepo(db)
 	ftwRepo := repository.NewFTWRepo(db)
@@ -46,7 +47,8 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
 	roleH := handler.NewRoleHandler(roleRepo)
 	notifH := handler.NewNotificationHandler(notifRepo)
 	settingsH := handler.NewSettingsHandler(settingsRepo)
-	fpH := handler.NewFingerprintHandler(cfg, settingsRepo)
+	fpRepo := repository.NewFingerprintRepo(db)
+	fpH := handler.NewFingerprintHandler(cfg, fpRepo, fpWorker)
 	profileH := handler.NewProfileHandler(userRepo)
 	weatherH := handler.NewWeatherHandler()
 
@@ -211,6 +213,11 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB) {
 	dashH := handler.NewDashboardHandler(dashSvc)
 	protected.Get("/dashboard/summary", dashH.GetDashboardSummary)
 
-	// Fingerprint
-	protected.Get("/fingerprint/devices", fpH.GetDeviceStatus)
+	// Fingerprint Devices
+	fpGroup := protected.Group("/fingerprint")
+	fpGroup.Get("/devices", fpH.GetDeviceStatus)
+	fpGroup.Post("/devices", rbac.RequirePermission("settings", "manage"), fpH.CreateDevice)
+	fpGroup.Put("/devices/:id", rbac.RequirePermission("settings", "manage"), fpH.UpdateDevice)
+	fpGroup.Delete("/devices/:id", rbac.RequirePermission("settings", "manage"), fpH.DeleteDevice)
+	fpGroup.Post("/sync", rbac.RequirePermission("settings", "manage"), fpH.SyncNow)
 }
