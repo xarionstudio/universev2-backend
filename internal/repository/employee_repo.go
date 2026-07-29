@@ -57,17 +57,22 @@ func (r *EmployeeRepo) Delete(nik string) error {
 
 func (r *EmployeeRepo) GetCompetencies(nik string) ([]model.Competency, error) {
 	var comps []model.Competency
-	err := r.db.Where("employee_nik = ?", nik).Find(&comps).Error
+	err := r.db.Joins("JOIN employees ON employees.id = employee_competencies.employee_id").
+		Where("employees.nik = ?", nik).Find(&comps).Error
 	return comps, err
 }
 
 func (r *EmployeeRepo) UpdateCompetencies(nik string, comps []model.Competency) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("employee_nik = ?", nik).Delete(&model.Competency{}).Error; err != nil {
+		var emp model.Employee
+		if err := tx.Where("nik = ?", nik).First(&emp).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("employee_id = ?", emp.ID).Delete(&model.Competency{}).Error; err != nil {
 			return err
 		}
 		for i := range comps {
-			comps[i].EmployeeNIK = nik
+			comps[i].EmployeeID = emp.ID
 		}
 		if len(comps) > 0 {
 			if err := tx.Create(&comps).Error; err != nil {
@@ -82,7 +87,6 @@ func (r *EmployeeRepo) UpdatePhoto(nik string, photoURL string) error {
 	return r.db.Model(&model.Employee{}).Where("nik = ?", nik).Update("photo_url", photoURL).Error
 }
 
-// ListPaginated returns a page of employees matching the given filters.
 func (r *EmployeeRepo) ListPaginated(f filter.Params, p pagination.Params) ([]model.Employee, int64, error) {
 	var employees []model.Employee
 	var total int64

@@ -133,7 +133,15 @@ func (h *FleetHandler) UpdateFleetSetting(c fiber.Ctx) error {
 func (h *FleetHandler) DeleteFleetSetting(c fiber.Ctx) error {
 	id := c.Params("id")
 	if err := h.fleetSvc.DeleteFleetSetting(id); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "ID is required")
+		msg := err.Error()
+		switch msg {
+		case "ID is required":
+			return response.Error(c, fiber.StatusBadRequest, "ID is required")
+		case "invalid ID":
+			return response.Error(c, fiber.StatusBadRequest, "Invalid ID")
+		default:
+			return response.Error(c, fiber.StatusInternalServerError, msg)
+		}
 	}
 	return response.Success(c, fiber.StatusOK, "Fleet setting deleted successfully", nil)
 }
@@ -212,7 +220,15 @@ func (h *FleetHandler) UpdateUnitDB(c fiber.Ctx) error {
 func (h *FleetHandler) DeleteUnitDB(c fiber.Ctx) error {
 	id := c.Query("id")
 	if err := h.fleetSvc.DeleteUnitDB(id); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "Unit ID is required")
+		msg := err.Error()
+		switch msg {
+		case "unit ID is required":
+			return response.Error(c, fiber.StatusBadRequest, "Unit ID is required")
+		case "invalid unit ID":
+			return response.Error(c, fiber.StatusBadRequest, "Invalid unit ID")
+		default:
+			return response.Error(c, fiber.StatusInternalServerError, msg)
+		}
 	}
 	return response.Success(c, fiber.StatusOK, "Unit DB deleted", nil)
 }
@@ -258,4 +274,3 @@ func (h *FleetHandler) ImportUnitDB(c fiber.Ctx) error {
 		"skipped":  skipped,
 	})
 }
-

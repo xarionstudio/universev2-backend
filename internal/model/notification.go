@@ -12,8 +12,8 @@ const (
 )
 
 type Notification struct {
-	ID        string    `json:"id" gorm:"column:id;primaryKey"`
-	UserID    string    `json:"userId,omitempty" gorm:"column:user_id"`
+	ID        uint      `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
+	UserID    uint      `json:"userId,omitempty" gorm:"column:user_id"`
 	Tone      NotifTone `json:"tone" gorm:"column:tone"`
 	TextID    string    `json:"textId" gorm:"column:text_id"`
 	TextEN    string    `json:"textEn" gorm:"column:text_en"`

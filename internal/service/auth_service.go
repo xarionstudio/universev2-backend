@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"universev2-backend/internal/config"
@@ -64,14 +65,22 @@ func (s *AuthService) Login(req dto.LoginRequest) (*LoginResult, error) {
 		return nil, fmt.Errorf("invalid credentials")
 	}
 
-	tokenStr, err := internalpkg.GenerateToken(user.ID, user.Email, user.Roles, s.cfg.JWTSecret, s.cfg.JWTExpiration)
+	userIDStr := fmt.Sprintf("%d", user.ID)
+	tokenStr, err := internalpkg.GenerateToken(userIDStr, user.Email, user.Roles, s.cfg.JWTSecret, s.cfg.JWTExpiration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate token")
 	}
 
 	var perms map[string]string
 	if s.roleRepo != nil {
-		perms, _ = s.roleRepo.GetPermissionsForRoles(user.Roles)
+		roleIDs := make([]uint, 0, len(user.Roles))
+		for _, roleStr := range user.Roles {
+			id, parseErr := strconv.ParseUint(roleStr, 10, 64)
+			if parseErr == nil {
+				roleIDs = append(roleIDs, uint(id))
+			}
+		}
+		perms, _ = s.roleRepo.GetPermissionsForRoles(roleIDs)
 	}
 
 	return &LoginResult{
@@ -130,14 +139,13 @@ func (s *AuthService) Register(req dto.RegisterRequest) (*RegisterResult, error)
 
 	nikPtr := req.NIK
 	user := &model.User{
-		ID:           fmt.Sprintf("u-%d", now.UnixNano()),
 		Email:        req.Email,
 		Name:         req.Name,
 		NIK:          &nikPtr,
 		PasswordHash: hash,
 		PasswordSalt: salt,
 		IsActive:     true,
-		Roles:        []string{"r3"},
+		Roles:        []string{"3"},
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}
@@ -163,7 +171,12 @@ func (s *AuthService) RefreshToken(tokenStr string) (*RefreshTokenResult, error)
 		return nil, fmt.Errorf("invalid or expired token")
 	}
 
-	user, err := s.userRepo.GetByID(claims.UserID)
+	uid, err := strconv.ParseUint(claims.UserID, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid token: invalid user ID")
+	}
+
+	user, err := s.userRepo.GetByID(uint(uid))
 	if err != nil || user == nil {
 		return nil, fmt.Errorf("user not found")
 	}
@@ -171,14 +184,22 @@ func (s *AuthService) RefreshToken(tokenStr string) (*RefreshTokenResult, error)
 		return nil, fmt.Errorf("account is inactive")
 	}
 
-	newToken, err := internalpkg.GenerateToken(user.ID, user.Email, user.Roles, s.cfg.JWTSecret, s.cfg.JWTExpiration)
+	userIDStr := fmt.Sprintf("%d", user.ID)
+	newToken, err := internalpkg.GenerateToken(userIDStr, user.Email, user.Roles, s.cfg.JWTSecret, s.cfg.JWTExpiration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate new token")
 	}
 
 	var perms map[string]string
 	if s.roleRepo != nil {
-		perms, _ = s.roleRepo.GetPermissionsForRoles(user.Roles)
+		roleIDs := make([]uint, 0, len(user.Roles))
+		for _, roleStr := range user.Roles {
+			id, parseErr := strconv.ParseUint(roleStr, 10, 64)
+			if parseErr == nil {
+				roleIDs = append(roleIDs, uint(id))
+			}
+		}
+		perms, _ = s.roleRepo.GetPermissionsForRoles(roleIDs)
 	}
 
 	return &RefreshTokenResult{

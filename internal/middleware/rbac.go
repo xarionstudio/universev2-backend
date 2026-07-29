@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"strconv"
+
 	"github.com/gofiber/fiber/v3"
 
 	"universev2-backend/internal/pkg"
@@ -33,7 +35,14 @@ func (m *RBACMiddleware) RequirePermission(moduleName string, needLevel string) 
 		}
 
 		// Query effective permissions from DB for all user's roles
-		perms, err := m.roleRepo.GetPermissionsForRoles(claims.Roles)
+		var roleIDs []uint
+		for _, roleStr := range claims.Roles {
+			id, err := strconv.ParseUint(roleStr, 10, 64)
+			if err == nil {
+				roleIDs = append(roleIDs, uint(id))
+			}
+		}
+		perms, err := m.roleRepo.GetPermissionsForRoles(roleIDs)
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Failed to load permissions",

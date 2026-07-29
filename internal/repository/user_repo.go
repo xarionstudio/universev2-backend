@@ -1,6 +1,9 @@
 package repository
 
 import (
+	"fmt"
+	"strconv"
+
 	"gorm.io/gorm"
 
 	"universev2-backend/internal/model"
@@ -23,17 +26,17 @@ func (r *UserRepo) GetAll() ([]model.User, error) {
 	for i, u := range users {
 		var urs []model.UserRole
 		r.db.Where("user_id = ?", u.ID).Find(&urs)
-		var roles []string
+		var roleIDs []string
 		for _, ur := range urs {
-			roles = append(roles, ur.RoleID)
+			roleIDs = append(roleIDs, fmt.Sprintf("%d", ur.RoleID))
 		}
-		users[i].Roles = roles
+		users[i].Roles = roleIDs
 	}
 
 	return users, nil
 }
 
-func (r *UserRepo) GetByID(id string) (*model.User, error) {
+func (r *UserRepo) GetByID(id uint) (*model.User, error) {
 	var user model.User
 	if err := r.db.Where("id = ?", id).First(&user).Error; err != nil {
 		return nil, err
@@ -41,7 +44,7 @@ func (r *UserRepo) GetByID(id string) (*model.User, error) {
 	var urs []model.UserRole
 	r.db.Where("user_id = ?", id).Find(&urs)
 	for _, ur := range urs {
-		user.Roles = append(user.Roles, ur.RoleID)
+		user.Roles = append(user.Roles, fmt.Sprintf("%d", ur.RoleID))
 	}
 	return &user, nil
 }
@@ -54,7 +57,7 @@ func (r *UserRepo) GetByEmail(email string) (*model.User, error) {
 	var urs []model.UserRole
 	r.db.Where("user_id = ?", user.ID).Find(&urs)
 	for _, ur := range urs {
-		user.Roles = append(user.Roles, ur.RoleID)
+		user.Roles = append(user.Roles, fmt.Sprintf("%d", ur.RoleID))
 	}
 	return &user, nil
 }
@@ -63,24 +66,26 @@ func (r *UserRepo) Create(user *model.User) error {
 	if err := r.db.Create(user).Error; err != nil {
 		return err
 	}
-	for _, roleID := range user.Roles {
-		r.db.Create(&model.UserRole{UserID: user.ID, RoleID: roleID})
+	for _, roleIDStr := range user.Roles {
+		roleID, _ := strconv.ParseUint(roleIDStr, 10, 64)
+		r.db.Create(&model.UserRole{UserID: user.ID, RoleID: uint(roleID)})
 	}
 	return nil
 }
 
-func (r *UserRepo) Update(id string, user *model.User) error {
+func (r *UserRepo) Update(id uint, user *model.User) error {
 	if err := r.db.Model(&model.User{}).Where("id = ?", id).Updates(user).Error; err != nil {
 		return err
 	}
 	r.db.Where("user_id = ?", id).Delete(&model.UserRole{})
-	for _, roleID := range user.Roles {
-		r.db.Create(&model.UserRole{UserID: id, RoleID: roleID})
+	for _, roleIDStr := range user.Roles {
+		roleID, _ := strconv.ParseUint(roleIDStr, 10, 64)
+		r.db.Create(&model.UserRole{UserID: id, RoleID: uint(roleID)})
 	}
 	return nil
 }
 
-func (r *UserRepo) Delete(id string) error {
+func (r *UserRepo) Delete(id uint) error {
 	r.db.Where("user_id = ?", id).Delete(&model.UserRole{})
 	return r.db.Where("id = ?", id).Delete(&model.User{}).Error
 }
@@ -97,17 +102,16 @@ func (r *UserRepo) ExistsByNIK(nik string) bool {
 	return count > 0
 }
 
-func (r *UserRepo) UpdatePassword(id, hash, salt string) error {
+func (r *UserRepo) UpdatePassword(id uint, hash, salt string) error {
 	return r.db.Model(&model.User{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"password_hash": hash,
 		"password_salt": salt,
 	}).Error
 }
 
-func (r *UserRepo) ToggleStatus(id string, active bool) error {
+func (r *UserRepo) ToggleStatus(id uint, active bool) error {
 	return r.db.Model(&model.User{}).Where("id = ?", id).Update("is_active", active).Error
 }
-
 
 // RoleRepo
 
@@ -148,7 +152,7 @@ func (r *RoleRepo) Create(role *model.Role) error {
 	return nil
 }
 
-func (r *RoleRepo) Update(id string, role *model.Role) error {
+func (r *RoleRepo) Update(id uint, role *model.Role) error {
 	if err := r.db.Model(&model.Role{}).Where("id = ?", id).Updates(role).Error; err != nil {
 		return err
 	}
@@ -159,12 +163,12 @@ func (r *RoleRepo) Update(id string, role *model.Role) error {
 	return nil
 }
 
-func (r *RoleRepo) Delete(id string) error {
+func (r *RoleRepo) Delete(id uint) error {
 	r.db.Where("role_id = ?", id).Delete(&model.RolePermission{})
 	return r.db.Where("id = ?", id).Delete(&model.Role{}).Error
 }
 
-func (r *RoleRepo) GetByID(id string) (*model.Role, error) {
+func (r *RoleRepo) GetByID(id uint) (*model.Role, error) {
 	var role model.Role
 	if err := r.db.Where("id = ?", id).First(&role).Error; err != nil {
 		return nil, err
@@ -179,13 +183,13 @@ func (r *RoleRepo) GetByID(id string) (*model.Role, error) {
 	return &role, nil
 }
 
-func (r *RoleRepo) CountUsersByRoleID(roleID string) (int64, error) {
+func (r *RoleRepo) CountUsersByRoleID(roleID uint) (int64, error) {
 	var count int64
 	err := r.db.Model(&model.UserRole{}).Where("role_id = ?", roleID).Count(&count).Error
 	return count, err
 }
 
-func (r *RoleRepo) GetPermissionsForRoles(roleIDs []string) (map[string]string, error) {
+func (r *RoleRepo) GetPermissionsForRoles(roleIDs []uint) (map[string]string, error) {
 	var perms []model.RolePermission
 	if err := r.db.Where("role_id IN ?", roleIDs).Find(&perms).Error; err != nil {
 		return nil, err

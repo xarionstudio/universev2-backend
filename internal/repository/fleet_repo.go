@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -19,7 +18,7 @@ func NewFleetRepo(db *gorm.DB) *FleetRepo {
 
 func (r *FleetRepo) GetUnitStatuses() ([]model.Unit, error) {
 	var rows []model.UnitStatusRow
-	if err := r.db.Order("code ASC").Find(&rows).Error; err != nil {
+	if err := r.db.Order("unit_code ASC").Find(&rows).Error; err != nil {
 		return nil, err
 	}
 
@@ -61,7 +60,7 @@ func (r *FleetRepo) GetUnitHistory(code string) ([]model.UnitHist, error) {
 }
 
 func (r *FleetRepo) UpdateUnitStatus(code string, status model.UnitStatus, note string) error {
-	return r.db.Model(&model.UnitStatusRow{}).Where("code = ?", code).
+	return r.db.Model(&model.UnitStatusRow{}).Where("unit_code = ?", code).
 		Updates(map[string]interface{}{"status": string(status), "updated_note": note}).Error
 }
 
@@ -100,7 +99,7 @@ func (r *FleetRepo) CreateFleetSetting(f *model.FleetSetting) error {
 	return nil
 }
 
-func (r *FleetRepo) UpdateFleetSetting(id string, f *model.FleetSetting) error {
+func (r *FleetRepo) UpdateFleetSetting(id uint, f *model.FleetSetting) error {
 	if err := r.db.Model(&model.FleetSetting{}).Where("id = ?", id).Updates(f).Error; err != nil {
 		return err
 	}
@@ -111,7 +110,7 @@ func (r *FleetRepo) UpdateFleetSetting(id string, f *model.FleetSetting) error {
 	return nil
 }
 
-func (r *FleetRepo) DeleteFleetSetting(id string) error {
+func (r *FleetRepo) DeleteFleetSetting(id uint) error {
 	r.db.Where("fleet_setting_id = ?", id).Delete(&model.FleetSettingUnit{})
 	return r.db.Where("id = ?", id).Delete(&model.FleetSetting{}).Error
 }
@@ -146,9 +145,7 @@ func (r *FleetRepo) AutoAllocate(date, shift string) error {
 		if !f.Active {
 			continue
 		}
-		allocID := fmt.Sprintf("alloc-%s-%s-%s", date, shift, f.ID)
 		alloc := model.FleetAlloc{
-			ID:     allocID,
 			Date:   date,
 			Shift:  shift,
 			FlID:   f.ID,
@@ -156,7 +153,7 @@ func (r *FleetRepo) AutoAllocate(date, shift string) error {
 			Loc:    f.Loc,
 			Bus:    f.Bus,
 		}
-		r.db.Where("id = ?", allocID).FirstOrCreate(&alloc)
+		r.db.Where("alloc_date = ? AND shift = ? AND fleet_id = ?", date, shift, f.ID).FirstOrCreate(&alloc)
 	}
 	return nil
 }
@@ -175,7 +172,7 @@ func (r *FleetRepo) UpdateUnitDB(u *model.UnitDb) error {
 	return r.db.Model(&model.UnitDb{}).Where("id = ?", u.ID).Updates(u).Error
 }
 
-func (r *FleetRepo) DeleteUnitDB(id string) error {
+func (r *FleetRepo) DeleteUnitDB(id uint) error {
 	return r.db.Where("id = ?", id).Delete(&model.UnitDb{}).Error
 }
 
@@ -184,7 +181,6 @@ func (r *FleetRepo) BulkCreateUnitDB(units []model.UnitDb) (imported int, skippe
 		var count int64
 		r.db.Model(&model.UnitDb{}).Where("code = ?", u.Code).Count(&count)
 		if count > 0 {
-			// Update existing record
 			r.db.Model(&model.UnitDb{}).Where("code = ?", u.Code).Updates(map[string]interface{}{
 				"class_name": u.Cls,
 				"egi":        u.EGI,
@@ -196,9 +192,6 @@ func (r *FleetRepo) BulkCreateUnitDB(units []model.UnitDb) (imported int, skippe
 			})
 			skipped++
 		} else {
-			if u.ID == "" {
-				u.ID = fmt.Sprintf("udb-%d", time.Now().UnixNano())
-			}
 			if err := r.db.Create(&u).Error; err == nil {
 				imported++
 			} else {
@@ -208,4 +201,3 @@ func (r *FleetRepo) BulkCreateUnitDB(units []model.UnitDb) (imported int, skippe
 	}
 	return imported, skipped, nil
 }
-

@@ -26,7 +26,7 @@ func TestUserAndRoleEndpoints(t *testing.T) {
 			"name":     "New User",
 			"password": "password1",
 			"nik":      "503264111",
-			"roles":    []string{"r1"},
+			"roles":    []string{"1"},
 		})
 		req := httptest.NewRequest("POST", "/api/users/", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -41,9 +41,9 @@ func TestUserAndRoleEndpoints(t *testing.T) {
 		body, _ := json.Marshal(map[string]interface{}{
 			"name":  "Updated User",
 			"email": "angel@unggul.co.id",
-			"roles": []string{"r1"},
+			"roles": []string{"1"},
 		})
-		req := httptest.NewRequest("PUT", "/api/users/u-test-1", bytes.NewReader(body))
+		req := httptest.NewRequest("PUT", "/api/users/1", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
@@ -53,7 +53,7 @@ func TestUserAndRoleEndpoints(t *testing.T) {
 	})
 
 	t.Run("DELETE /api/users/:id - non-existent user returns 404", func(t *testing.T) {
-		req := httptest.NewRequest("DELETE", "/api/users/u-nonexistent", nil)
+		req := httptest.NewRequest("DELETE", "/api/users/999", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusNotFound {
@@ -83,7 +83,7 @@ func TestUserAndRoleEndpoints(t *testing.T) {
 
 	t.Run("PUT /api/roles/:id", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"name": "Updated Role"})
-		req := httptest.NewRequest("PUT", "/api/roles/r2", bytes.NewReader(body))
+		req := httptest.NewRequest("PUT", "/api/roles/2", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
@@ -93,7 +93,7 @@ func TestUserAndRoleEndpoints(t *testing.T) {
 	})
 
 	t.Run("DELETE /api/roles/:id", func(t *testing.T) {
-		req := httptest.NewRequest("DELETE", "/api/roles/r2", nil)
+		req := httptest.NewRequest("DELETE", "/api/roles/2", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {

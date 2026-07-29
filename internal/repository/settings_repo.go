@@ -2,6 +2,7 @@ package repository
 
 import (
 	"encoding/json"
+	"strconv"
 
 	"gorm.io/gorm"
 
@@ -17,7 +18,7 @@ func NewSettingsRepo(db *gorm.DB) *SettingsRepo {
 }
 
 type AppSettingsDB struct {
-	ID          string `gorm:"column:id;primaryKey"`
+	ID          uint   `gorm:"column:id;primaryKey;autoIncrement"`
 	AppName     string `gorm:"column:app_name"`
 	AppEnv      string `gorm:"column:app_env"`
 	CompanyLogo string `gorm:"column:company_logo"`
@@ -30,7 +31,7 @@ func (AppSettingsDB) TableName() string { return "app_settings" }
 
 func (r *SettingsRepo) GetAppSettings() (model.AppSettings, error) {
 	var dbRow AppSettingsDB
-	err := r.db.Where("id = ?", "default").First(&dbRow).Error
+	err := r.db.First(&dbRow).Error
 	if err != nil {
 		defaultVis := map[string]bool{
 			"display": true, "roster": true, "employees": true, "ftw": true,
@@ -57,17 +58,28 @@ func (r *SettingsRepo) GetAppSettings() (model.AppSettings, error) {
 
 func (r *SettingsRepo) UpdateAppSettings(s model.AppSettings) error {
 	visBytes, _ := json.Marshal(s.MenuVis)
-	dbRow := AppSettingsDB{
-		ID:          "default",
-		AppName:     s.AppName,
-		AppEnv:      s.AppEnv,
-		CompanyLogo: s.CompanyLogo,
-		Theme:       s.Theme,
-		Lang:        s.Lang,
-		MenuVisJSON: string(visBytes),
+	// Try to get existing record
+	var existing AppSettingsDB
+	if err := r.db.First(&existing).Error; err != nil {
+		// No existing record, create new one
+		dbRow := AppSettingsDB{
+			AppName:     s.AppName,
+			AppEnv:      s.AppEnv,
+			CompanyLogo: s.CompanyLogo,
+			Theme:       s.Theme,
+			Lang:        s.Lang,
+			MenuVisJSON: string(visBytes),
+		}
+		return r.db.Create(&dbRow).Error
 	}
-
-	return r.db.Save(&dbRow).Error
+	// Update existing
+	existing.AppName = s.AppName
+	existing.AppEnv = s.AppEnv
+	existing.CompanyLogo = s.CompanyLogo
+	existing.Theme = s.Theme
+	existing.Lang = s.Lang
+	existing.MenuVisJSON = string(visBytes)
+	return r.db.Save(&existing).Error
 }
 
 // Audio Schedules
@@ -102,19 +114,27 @@ func (r *SettingsRepo) CreateAudioSchedule(a *model.AudioSchedule) error {
 }
 
 func (r *SettingsRepo) UpdateAudioSchedule(id string, a *model.AudioSchedule) error {
-	if err := r.db.Model(&model.AudioSchedule{}).Where("id = ?", id).Updates(a).Error; err != nil {
+	aid, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
 		return err
 	}
-	r.db.Where("audio_id = ?", id).Delete(&model.AudioScheduleDisplay{})
+	if err := r.db.Model(&model.AudioSchedule{}).Where("id = ?", uint(aid)).Updates(a).Error; err != nil {
+		return err
+	}
+	r.db.Where("audio_id = ?", uint(aid)).Delete(&model.AudioScheduleDisplay{})
 	for _, kind := range a.Displays {
-		r.db.Create(&model.AudioScheduleDisplay{AudioID: id, DisplayKind: kind})
+		r.db.Create(&model.AudioScheduleDisplay{AudioID: uint(aid), DisplayKind: kind})
 	}
 	return nil
 }
 
 func (r *SettingsRepo) DeleteAudioSchedule(id string) error {
-	r.db.Where("audio_id = ?", id).Delete(&model.AudioScheduleDisplay{})
-	return r.db.Where("id = ?", id).Delete(&model.AudioSchedule{}).Error
+	aid, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return err
+	}
+	r.db.Where("audio_id = ?", uint(aid)).Delete(&model.AudioScheduleDisplay{})
+	return r.db.Where("id = ?", uint(aid)).Delete(&model.AudioSchedule{}).Error
 }
 
 // Display Devices
@@ -134,14 +154,26 @@ func (r *SettingsRepo) CreateDisplay(d *model.DisplayDevice) error {
 }
 
 func (r *SettingsRepo) UpdateDisplay(id string, d *model.DisplayDevice) error {
-	return r.db.Model(&model.DisplayDevice{}).Where("id = ?", id).Updates(d).Error
+	did, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return err
+	}
+	return r.db.Model(&model.DisplayDevice{}).Where("id = ?", uint(did)).Updates(d).Error
 }
 
 func (r *SettingsRepo) DeleteDisplay(id string) error {
-	return r.db.Where("id = ?", id).Delete(&model.DisplayDevice{}).Error
+	did, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return err
+	}
+	return r.db.Where("id = ?", uint(did)).Delete(&model.DisplayDevice{}).Error
 }
 
 func (r *SettingsRepo) UpdateHeartbeat(id string, hb string) error {
-	return r.db.Model(&model.DisplayDevice{}).Where("id = ?", id).
+	did, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return err
+	}
+	return r.db.Model(&model.DisplayDevice{}).Where("id = ?", uint(did)).
 		Updates(map[string]interface{}{"is_online": true, "last_heartbeat": hb}).Error
 }

@@ -20,7 +20,7 @@ import (
 
 // AppSettingsDB matches the DB model used by settings_repo.go
 type AppSettingsDB struct {
-	ID          string `gorm:"column:id;primaryKey"`
+	ID          uint   `gorm:"column:id;primaryKey;autoIncrement"`
 	AppName     string `gorm:"column:app_name"`
 	AppEnv      string `gorm:"column:app_env"`
 	CompanyLogo string `gorm:"column:company_logo"`
@@ -66,6 +66,15 @@ func setupTestDB() *gorm.DB {
 		&model.PrestasiScore{},
 		&model.PrestasiBadge{},
 		&model.PrestasiHistoryEntry{},
+		&model.MasterEGIType{},
+		&model.MasterProduct{},
+		&model.MasterEqClass{},
+		&model.MasterArea{},
+		&model.MasterTempudo{},
+		&model.MasterBus{},
+		&model.MasterLocationEx{},
+		&model.MasterMess{},
+		&model.MasterRunningText{},
 	)
 	if err != nil {
 		panic("Failed to auto-migrate: " + err.Error())
@@ -75,14 +84,13 @@ func setupTestDB() *gorm.DB {
 	now := time.Now()
 	nik := "503264133"
 	testUser := &model.User{
-		ID:           "u-test-1",
 		Email:        "angel@unggul.co.id",
 		Name:         "Angel Test",
 		NIK:          &nik,
 		PasswordHash: "f2e323ca0d2ae623c55f2659554084c267b6c01c10b5acfe86e8120df80e0d3f",
 		PasswordSalt: "testsalt1234567890",
 		IsActive:     true,
-		Roles:        []string{"r1"},
+		Roles:        []string{"1"},
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}
@@ -90,19 +98,19 @@ func setupTestDB() *gorm.DB {
 
 	// Seed user role
 	_ = db.Create(&model.UserRole{
-		UserID: "u-test-1",
-		RoleID: "r1",
+		UserID: testUser.ID,
+		RoleID: 1,
 	})
 
 	// Seed a test role
 	_ = db.Create(&model.Role{
-		ID:   "r1",
+		ID:   1,
 		Name: "Super Admin",
 	})
 
 	// Also seed a second role for update/delete tests
 	_ = db.Create(&model.Role{
-		ID:   "r2",
+		ID:   2,
 		Name: "Operator",
 	})
 
@@ -110,7 +118,7 @@ func setupTestDB() *gorm.DB {
 	modules := []string{"employees", "ftw", "roster", "asset", "master", "users", "settings", "prestasi"}
 	for _, m := range modules {
 		_ = db.Create(&model.RolePermission{
-			RoleID:          "r1",
+			RoleID:          1,
 			ModuleName:      m,
 			PermissionLevel: "manage",
 		})
@@ -122,15 +130,15 @@ func setupTestDB() *gorm.DB {
 		Status: "active", Company: "PT Unggul",
 	})
 
-	// Seed test roster meta
+	// Seed test roster meta (ID auto-increment)
 	_ = db.Create(&model.RosterMeta{
-		ID: "jul", Label: "July 2026", Month: "2026-07", Dept: "Operation",
+		Label: "July 2026", Month: "2026-07", Dept: "Operation",
 		File: "roster_jul.xlsx", Emp: "1", Rows: "1", By: "System",
 		Date: "2026-07-01", DateISO: "2026-07-01", Status: "aktif",
 	})
 
-	// Seed app settings
-	_ = db.Exec("INSERT INTO app_settings (id, app_name) VALUES ('default', 'UniverseV2')")
+	// Seed app settings (omit id so it uses auto-increment)
+	_ = db.Exec("INSERT INTO app_settings (app_name) VALUES ('UniverseV2')")
 
 	return db
 }

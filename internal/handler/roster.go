@@ -77,12 +77,8 @@ func (h *RosterHandler) UploadRoster(c fiber.Ctx) error {
 	label := c.FormValue("label", month)
 	createdBy := c.FormValue("createdBy", "System")
 
-	// Generate a unique key for the roster
-	key := fmt.Sprintf("%s-%s", strings.ReplaceAll(month, "-", ""), strings.ToLower(dept))
-
-	// Create roster meta entry
+	// Create roster meta entry (ID auto-increment from DB)
 	meta := &model.RosterMeta{
-		ID:      key,
 		Label:   label,
 		Month:   month,
 		Dept:    dept,

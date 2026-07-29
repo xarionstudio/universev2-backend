@@ -3,7 +3,7 @@ package model
 import "time"
 
 type User struct {
-	ID                string     `json:"id" gorm:"column:id;primaryKey"`
+	ID                uint       `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
 	Email             string     `json:"email" gorm:"column:email;uniqueIndex"`
 	Name              string     `json:"kar" gorm:"column:name"`
 	NIK               *string    `json:"nik" gorm:"column:nik"`
@@ -19,14 +19,14 @@ type User struct {
 func (User) TableName() string { return "users" }
 
 type UserRole struct {
-	UserID string `json:"userId" gorm:"column:user_id;primaryKey"`
-	RoleID string `json:"roleId" gorm:"column:role_id;primaryKey"`
+	UserID uint `json:"userId" gorm:"column:user_id;primaryKey"`
+	RoleID uint `json:"roleId" gorm:"column:role_id;primaryKey"`
 }
 
 func (UserRole) TableName() string { return "user_roles" }
 
 type Role struct {
-	ID          string            `json:"id" gorm:"column:id;primaryKey"`
+	ID          uint              `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
 	Name        string            `json:"name" gorm:"column:name"`
 	Description string            `json:"desc" gorm:"column:description"`
 	IsLocked    bool              `json:"locked" gorm:"column:is_locked"`
@@ -38,7 +38,7 @@ type Role struct {
 func (Role) TableName() string { return "roles" }
 
 type RolePermission struct {
-	RoleID          string `json:"roleId" gorm:"column:role_id;primaryKey"`
+	RoleID          uint   `json:"roleId" gorm:"column:role_id;primaryKey"`
 	ModuleName      string `json:"module" gorm:"column:module_name;primaryKey"`
 	PermissionLevel string `json:"perm" gorm:"column:permission_level"`
 }

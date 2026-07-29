@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -52,7 +53,6 @@ func (s *UserService) CreateUser(req dto.CreateUserRequest) (*model.User, error)
 
 	nikPtr := req.NIK
 	user := &model.User{
-		ID:           fmt.Sprintf("u-%d", now.UnixNano()),
 		Email:        req.Email,
 		Name:         req.Name,
 		NIK:          &nikPtr,
@@ -70,13 +70,24 @@ func (s *UserService) CreateUser(req dto.CreateUserRequest) (*model.User, error)
 	return user, nil
 }
 
+// parseUintID converts string ID to uint
+func parseUintID(id string) (uint, error) {
+	val, err := strconv.ParseUint(id, 10, 64)
+	return uint(val), err
+}
+
 // UpdateUser updates an existing user
 func (s *UserService) UpdateUser(id string, req dto.UpdateUserRequest) error {
 	if internalpkg.IsTrimmedEmpty(id) {
 		return fmt.Errorf("user ID is required")
 	}
 
-	existing, err := s.userRepo.GetByID(id)
+	uid, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid user ID")
+	}
+
+	existing, err := s.userRepo.GetByID(uint(uid))
 	if err != nil || existing == nil {
 		return fmt.Errorf("user not found")
 	}
@@ -98,7 +109,7 @@ func (s *UserService) UpdateUser(id string, req dto.UpdateUserRequest) error {
 	}
 	existing.Roles = req.Roles
 
-	return s.userRepo.Update(id, existing)
+	return s.userRepo.Update(uint(uid), existing)
 }
 
 // DeleteUser deletes a user by ID
@@ -107,12 +118,17 @@ func (s *UserService) DeleteUser(id string) error {
 		return fmt.Errorf("user ID is required")
 	}
 
-	existing, err := s.userRepo.GetByID(id)
+	uid, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid user ID")
+	}
+
+	existing, err := s.userRepo.GetByID(uint(uid))
 	if err != nil || existing == nil {
 		return fmt.Errorf("user not found")
 	}
 
-	return s.userRepo.Delete(id)
+	return s.userRepo.Delete(uint(uid))
 }
 
 // ToggleUserStatus updates is_active flag for user
@@ -120,11 +136,15 @@ func (s *UserService) ToggleUserStatus(id string, active bool) error {
 	if internalpkg.IsTrimmedEmpty(id) {
 		return fmt.Errorf("user ID is required")
 	}
-	existing, err := s.userRepo.GetByID(id)
+	uid, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid user ID")
+	}
+	existing, err := s.userRepo.GetByID(uint(uid))
 	if err != nil || existing == nil {
 		return fmt.Errorf("user not found")
 	}
-	return s.userRepo.ToggleStatus(id, active)
+	return s.userRepo.ToggleStatus(uint(uid), active)
 }
 
 // ExportUsersCSV generates a CSV file of all users matching FE format: email;karyawan;nik;roles;status
@@ -160,7 +180,6 @@ func (s *UserService) ExportUsersCSV() ([]byte, error) {
 	return []byte(sb.String()), nil
 }
 
-
 // ImportUsersFromExcel parses Excel file and creates user records
 func (s *UserService) ImportUsersFromExcel(data []byte) (imported int, skipped int, err error) {
 	rows, err := export.ParseUserExcel(data)
@@ -181,7 +200,7 @@ func (s *UserService) ImportUsersFromExcel(data []byte) (imported int, skipped i
 			continue
 		}
 
-		defaultRole := "user"
+		defaultRole := "3" // Viewer role
 		if r.Role != "" {
 			defaultRole = r.Role
 		}
@@ -197,7 +216,6 @@ func (s *UserService) ImportUsersFromExcel(data []byte) (imported int, skipped i
 		now := time.Now()
 
 		u := &model.User{
-			ID:           fmt.Sprintf("u-%d", now.UnixNano()),
 			Email:        r.Email,
 			Name:         r.Name,
 			NIK:          nikPtr,
@@ -219,7 +237,6 @@ func (s *UserService) ImportUsersFromExcel(data []byte) (imported int, skipped i
 	return imported, skipped, nil
 }
 
-
 // ProfileService handles profile-related business logic
 type ProfileService struct {
 	userRepo *repository.UserRepo
@@ -235,7 +252,11 @@ func (s *ProfileService) GetProfile(userID string) (*model.User, error) {
 	if s.userRepo == nil {
 		return nil, fmt.Errorf("user repository unavailable")
 	}
-	user, err := s.userRepo.GetByID(userID)
+	uid, err := strconv.ParseUint(userID, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid user ID")
+	}
+	user, err := s.userRepo.GetByID(uint(uid))
 	if err != nil || user == nil {
 		return nil, fmt.Errorf("user not found")
 	}
@@ -249,10 +270,14 @@ func (s *ProfileService) UpdateProfile(userID string, req dto.UpdateProfileReque
 	}
 
 	if s.userRepo != nil {
-		user, err := s.userRepo.GetByID(userID)
+		uid, err := strconv.ParseUint(userID, 10, 64)
+		if err != nil {
+			return fmt.Errorf("invalid user ID")
+		}
+		user, err := s.userRepo.GetByID(uint(uid))
 		if err == nil && user != nil {
 			user.Name = req.Name
-			return s.userRepo.Update(userID, user)
+			return s.userRepo.Update(uint(uid), user)
 		}
 	}
 	return nil
@@ -274,7 +299,12 @@ func (s *ProfileService) UpdatePassword(userID string, req dto.UpdatePasswordReq
 		return fmt.Errorf("user repository unavailable")
 	}
 
-	user, err := s.userRepo.GetByID(userID)
+	uid, err := strconv.ParseUint(userID, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid user ID")
+	}
+
+	user, err := s.userRepo.GetByID(uint(uid))
 	if err != nil || user == nil {
 		return fmt.Errorf("user not found")
 	}
@@ -289,5 +319,5 @@ func (s *ProfileService) UpdatePassword(userID string, req dto.UpdatePasswordReq
 	newSalt := internalpkg.GenerateSalt()
 	newHash := internalpkg.HashPasswordFE(req.NewPassword, newSalt)
 
-	return s.userRepo.UpdatePassword(userID, newHash, newSalt)
+	return s.userRepo.UpdatePassword(uint(uid), newHash, newSalt)
 }

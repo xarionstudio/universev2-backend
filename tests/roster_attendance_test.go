@@ -21,7 +21,7 @@ func TestRostersAndAttendanceEndpoints(t *testing.T) {
 	})
 
 	t.Run("GET /api/rosters/:key/export", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/rosters/jul/export", nil)
+		req := httptest.NewRequest("GET", "/api/rosters/1/export", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -30,7 +30,7 @@ func TestRostersAndAttendanceEndpoints(t *testing.T) {
 	})
 
 	t.Run("GET /api/rosters/:key/detail", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/rosters/jul/detail", nil)
+		req := httptest.NewRequest("GET", "/api/rosters/1/detail", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {

@@ -84,7 +84,7 @@ func (r *PrestasiRepo) GetOperatorHistory(nik string, days int) ([]model.Prestas
 
 func (r *PrestasiRepo) GetAllEmployeeNIKs() ([]model.Employee, error) {
 	var emps []model.Employee
-	err := r.db.Select("nik, name, dept, pos, foto").Order("nik ASC").Find(&emps).Error
+	err := r.db.Select("nik, name, dept, pos, photo_url").Order("nik ASC").Find(&emps).Error
 	return emps, err
 }
 

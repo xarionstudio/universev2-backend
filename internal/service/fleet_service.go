@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"universev2-backend/internal/dto"
@@ -48,6 +49,10 @@ func (s *FleetService) UpdateFleetSetting(id string, req dto.UpdateFleetSettingR
 	if internalpkg.IsTrimmedEmpty(id) {
 		return fmt.Errorf("ID is required")
 	}
+	uid, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid ID")
+	}
 	if internalpkg.IsTrimmedEmpty(req.Digger) {
 		return fmt.Errorf("digger code is required")
 	}
@@ -57,7 +62,7 @@ func (s *FleetService) UpdateFleetSetting(id string, req dto.UpdateFleetSettingR
 		Bus:    req.Bus,
 		Units:  req.Units,
 	}
-	return s.repo.UpdateFleetSetting(id, f)
+	return s.repo.UpdateFleetSetting(uint(uid), f)
 }
 
 // DeleteFleetSetting deletes a fleet setting
@@ -65,7 +70,11 @@ func (s *FleetService) DeleteFleetSetting(id string) error {
 	if internalpkg.IsTrimmedEmpty(id) {
 		return fmt.Errorf("ID is required")
 	}
-	return s.repo.DeleteFleetSetting(id)
+	uid, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid ID")
+	}
+	return s.repo.DeleteFleetSetting(uint(uid))
 }
 
 // GetAllocations returns fleet allocations
@@ -179,7 +188,11 @@ func (s *FleetService) DeleteUnitDB(id string) error {
 	if internalpkg.IsTrimmedEmpty(id) {
 		return fmt.Errorf("unit ID is required")
 	}
-	return s.repo.DeleteUnitDB(id)
+	uid, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid unit ID")
+	}
+	return s.repo.DeleteUnitDB(uint(uid))
 }
 
 // ImportUnitDBFromExcel parses Excel file and saves unit DB entries
@@ -193,4 +206,3 @@ func (s *FleetService) ImportUnitDBFromExcel(data []byte) (imported int, skipped
 	}
 	return s.repo.BulkCreateUnitDB(units)
 }
-

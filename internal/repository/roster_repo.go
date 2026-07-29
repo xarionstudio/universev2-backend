@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -21,7 +22,11 @@ func NewRosterRepo(db *gorm.DB) *RosterRepo {
 
 func (r *RosterRepo) GetRosterByID(id string) (*model.RosterMeta, error) {
 	var meta model.RosterMeta
-	err := r.db.Where("id = ?", id).First(&meta).Error
+	uid, err := strconv.ParseUint(id, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	err = r.db.Where("id = ?", uint(uid)).First(&meta).Error
 	if err != nil {
 		return nil, err
 	}
@@ -38,11 +43,18 @@ func (r *RosterRepo) GetExportRosterData(fileId string, deptFilter string) ([]mo
 		ShiftCode    string
 	}
 	var dbRows []dbRow
-	err := r.db.Table("roster_schedules").
+	q := r.db.Table("roster_schedules").
 		Select("employees.nik, employees.name, employees.dept, employees.pos, roster_schedules.schedule_date, roster_schedules.shift_code").
-		Joins("JOIN employees ON roster_schedules.employee_nik = employees.nik").
-		Where("roster_schedules.roster_file_id = ?", fileId).
-		Order("employees.name ASC, roster_schedules.schedule_date ASC").
+		Joins("JOIN employees ON roster_schedules.employee_nik = employees.nik")
+
+	if fileId != "" {
+		fid, err := strconv.ParseUint(fileId, 10, 64)
+		if err == nil {
+			q = q.Where("roster_schedules.roster_file_id = ?", uint(fid))
+		}
+	}
+
+	err := q.Order("employees.name ASC, roster_schedules.schedule_date ASC").
 		Scan(&dbRows).Error
 
 	empMap := make(map[string]*model.RosterExportRow)
@@ -66,11 +78,11 @@ func (r *RosterRepo) GetExportRosterData(fileId string, deptFilter string) ([]mo
 	} else {
 		// Fallback: If no custom schedules uploaded for fileId, fetch active employees from DB
 		var employees []model.Employee
-		q := r.db.Model(&model.Employee{}).Where("status = ?", "aktif")
+		q2 := r.db.Model(&model.Employee{}).Where("status = ?", "aktif")
 		if deptFilter != "" && deptFilter != "All Department" {
-			q = q.Where("dept = ?", deptFilter)
+			q2 = q2.Where("dept = ?", deptFilter)
 		}
-		if err := q.Order("name ASC").Find(&employees).Error; err != nil {
+		if err := q2.Order("name ASC").Find(&employees).Error; err != nil {
 			return nil, err
 		}
 		for _, emp := range employees {
@@ -149,7 +161,11 @@ func (r *RosterRepo) GetAttendance(date string) ([]model.AttendanceRow, error) {
 
 func (r *RosterRepo) GetSchedulesByFile(fileId string) ([]model.RosterSchedule, error) {
 	var schedules []model.RosterSchedule
-	err := r.db.Where("roster_file_id = ?", fileId).Order("employee_nik, schedule_date").Find(&schedules).Error
+	fid, err := strconv.ParseUint(fileId, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	err = r.db.Where("roster_file_id = ?", uint(fid)).Order("employee_nik, schedule_date").Find(&schedules).Error
 	return schedules, err
 }
 
@@ -163,15 +179,21 @@ func (r *RosterRepo) GetRosterDetail(key string) (fiber.Map, error) {
 		ShiftCode string `json:"shiftCode"`
 	}
 	var rows []detailRow
-	err := r.db.Table("roster_schedules").
+	q := r.db.Table("roster_schedules").
 		Select("employees.nik, employees.name, employees.dept, employees.pos, roster_schedules.schedule_date as date, roster_schedules.shift_code").
-		Joins("JOIN employees ON roster_schedules.employee_nik = employees.nik").
-		Where("roster_schedules.roster_file_id = ?", key).
-		Order("employees.name ASC, roster_schedules.schedule_date ASC").
+		Joins("JOIN employees ON roster_schedules.employee_nik = employees.nik")
+
+	if key != "" {
+		fid, err := strconv.ParseUint(key, 10, 64)
+		if err == nil {
+			q = q.Where("roster_schedules.roster_file_id = ?", uint(fid))
+		}
+	}
+
+	err := q.Order("employees.name ASC, roster_schedules.schedule_date ASC").
 		Scan(&rows).Error
 
 	if err != nil || len(rows) == 0 {
-		// Fallback: return empty detail
 		return fiber.Map{
 			"key":   key,
 			"days":  []string{},

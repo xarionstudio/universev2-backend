@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"time"
 
 	"universev2-backend/internal/model"
@@ -207,7 +208,7 @@ func (s *DisplayService) GetDisplayFleet(fleetID string) ([]FleetDisplayData, er
 
 	result := make([]FleetDisplayData, 0)
 	for _, fs := range settings {
-		if fleetID != "" && fs.ID != fleetID {
+		if fleetID != "" && fmt.Sprintf("%d", fs.ID) != fleetID {
 			continue
 		}
 
@@ -248,7 +249,7 @@ func (s *DisplayService) GetDisplayFleet(fleetID string) ([]FleetDisplayData, er
 		}
 
 		result = append(result, FleetDisplayData{
-			ID:     fs.ID,
+			ID:     fmt.Sprintf("%d", fs.ID),
 			Digger: fs.Digger,
 			Loc:    fs.Loc,
 			Bus:    fs.Bus,
@@ -277,7 +278,7 @@ func (s *DisplayService) GetDisplayFingerprint() ([]DisplayFpDevice, error) {
 	result := make([]DisplayFpDevice, 0)
 	for _, d := range displays {
 		result = append(result, DisplayFpDevice{
-			ID:     d.ID,
+			ID:     fmt.Sprintf("%d", d.ID),
 			Loc:    d.Loc,
 			Online: d.Online,
 			Meta:   d.Heartbeat,

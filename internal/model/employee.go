@@ -3,17 +3,18 @@ package model
 import "time"
 
 type Competency struct {
-	ID          uint   `json:"-" gorm:"primaryKey;autoIncrement"`
-	EmployeeNIK string `json:"-" gorm:"column:employee_nik"`
-	Class       string `json:"cls" gorm:"column:class_name"`
-	Simper      string `json:"simper" gorm:"column:simper_no"`
-	Exp         string `json:"exp" gorm:"column:expiry_date"`
+	ID         uint   `json:"-" gorm:"primaryKey;autoIncrement"`
+	EmployeeID uint   `json:"-" gorm:"column:employee_id"`
+	Class      string `json:"cls" gorm:"column:class_name"`
+	Simper     string `json:"simper" gorm:"column:simper_no"`
+	Exp        string `json:"exp" gorm:"column:expiry_date"`
 }
 
 func (Competency) TableName() string { return "employee_competencies" }
 
 type Employee struct {
-	NIK       string       `json:"nik" gorm:"column:nik;primaryKey"`
+	ID        uint         `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
+	NIK       string       `json:"nik" gorm:"column:nik;uniqueIndex"`
 	Name      string       `json:"name" gorm:"column:name"`
 	Dept      string       `json:"dept" gorm:"column:dept"`
 	Pos       string       `json:"pos" gorm:"column:pos"`
@@ -34,7 +35,7 @@ type Employee struct {
 	HP        string       `json:"hp" gorm:"column:phone"`
 	Emergency string       `json:"emg" gorm:"column:emergency_contact"`
 	Foto      string       `json:"foto,omitempty" gorm:"column:photo_url"`
-	Komp      []Competency `json:"komp,omitempty" gorm:"foreignKey:EmployeeNIK;references:NIK"`
+	Komp      []Competency `json:"komp,omitempty" gorm:"foreignKey:EmployeeID;references:ID"`
 	CreatedAt time.Time    `json:"createdAt" gorm:"column:created_at"`
 	UpdatedAt time.Time    `json:"updatedAt" gorm:"column:updated_at"`
 }

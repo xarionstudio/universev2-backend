@@ -11,8 +11,8 @@ import (
 func TestMasterDataEndpoints(t *testing.T) {
 	app, token := setupTestApp()
 
-	t.Run("GET /api/master/dept", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/master/dept", nil)
+	t.Run("GET /api/master/egi", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/master/egi", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -20,8 +20,8 @@ func TestMasterDataEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("GET /api/master/pos", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/master/pos", nil)
+	t.Run("GET /api/master/product", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/master/product", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -29,9 +29,9 @@ func TestMasterDataEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("POST /api/master/dept", func(t *testing.T) {
-		body, _ := json.Marshal(map[string]string{"name": "New Department"})
-		req := httptest.NewRequest("POST", "/api/master/dept", bytes.NewReader(body))
+	t.Run("POST /api/master/egi", func(t *testing.T) {
+		body, _ := json.Marshal(map[string]string{"code": "NEW-EGI", "name": "New EGI Type"})
+		req := httptest.NewRequest("POST", "/api/master/egi", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
@@ -40,9 +40,9 @@ func TestMasterDataEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("PUT /api/master/dept/:id", func(t *testing.T) {
-		body, _ := json.Marshal(map[string]string{"name": "Updated Department"})
-		req := httptest.NewRequest("PUT", "/api/master/dept/dept-1", bytes.NewReader(body))
+	t.Run("PUT /api/master/egi/:id", func(t *testing.T) {
+		body, _ := json.Marshal(map[string]string{"name": "Updated EGI"})
+		req := httptest.NewRequest("PUT", "/api/master/egi/DT777", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
@@ -51,8 +51,8 @@ func TestMasterDataEndpoints(t *testing.T) {
 		}
 	})
 
-	t.Run("DELETE /api/master/dept/:id", func(t *testing.T) {
-		req := httptest.NewRequest("DELETE", "/api/master/dept/dept-1", nil)
+	t.Run("DELETE /api/master/egi/:id", func(t *testing.T) {
+		req := httptest.NewRequest("DELETE", "/api/master/egi/NEW-EGI", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {

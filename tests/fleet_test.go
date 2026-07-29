@@ -33,7 +33,7 @@ func TestFleetAndUnitsEndpoints(t *testing.T) {
 
 	t.Run("PUT /api/fleet/settings/:id", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]interface{}{"digger": "EX5002", "loc": "Panel West"})
-		req := httptest.NewRequest("PUT", "/api/fleet/settings/fl-EX5002", bytes.NewReader(body))
+		req := httptest.NewRequest("PUT", "/api/fleet/settings/1", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
@@ -43,7 +43,7 @@ func TestFleetAndUnitsEndpoints(t *testing.T) {
 	})
 
 	t.Run("DELETE /api/fleet/settings/:id", func(t *testing.T) {
-		req := httptest.NewRequest("DELETE", "/api/fleet/settings/fl-EX5002", nil)
+		req := httptest.NewRequest("DELETE", "/api/fleet/settings/1", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -143,7 +143,8 @@ func TestFleetAndUnitsEndpoints(t *testing.T) {
 	})
 
 	t.Run("DELETE /api/units/db", func(t *testing.T) {
-		req := httptest.NewRequest("DELETE", "/api/units/db?id=DT9999", nil)
+		// DT9999 was created with auto-increment ID (should be 9 since 8 units seeded)
+		req := httptest.NewRequest("DELETE", "/api/units/db?id=9", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {

@@ -3,7 +3,7 @@ package model
 import "time"
 
 type RosterMeta struct {
-	ID        string    `json:"key" gorm:"column:id;primaryKey"`
+	ID        uint      `json:"key" gorm:"column:id;primaryKey;autoIncrement"`
 	Label     string    `json:"label" gorm:"column:label"`
 	Month     string    `json:"month" gorm:"column:month_period"`
 	Dept      string    `json:"dept" gorm:"column:dept"`
@@ -38,7 +38,7 @@ func (RosterRevision) TableName() string { return "roster_revisions" }
 
 type RosterSchedule struct {
 	ID           uint   `json:"-" gorm:"primaryKey;autoIncrement"`
-	RosterFileID string `json:"-" gorm:"column:roster_file_id"`
+	RosterFileID uint   `json:"-" gorm:"column:roster_file_id"`
 	EmployeeNIK  string `json:"nik" gorm:"column:employee_nik"`
 	ScheduleDate string `json:"date" gorm:"column:schedule_date"`
 	ShiftCode    string `json:"code" gorm:"column:shift_code"`
