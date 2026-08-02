@@ -117,8 +117,8 @@ func (r *PrestasiRepo) SavePrestasiData(periodDays int, scores []model.PrestasiS
 
 func (r *PrestasiRepo) GetAttendanceRecord(nik string, dateStr string) (*model.AttendanceRow, error) {
 	var att model.AttendanceRow
-	err := r.db.Where("employee_nik = ? AND attendance_date = ?", nik, dateStr).First(&att).Error
-	if err != nil {
+	err := r.db.Where("employee_nik = ? AND attendance_date = ?", nik, dateStr).Limit(1).Find(&att).Error
+	if err != nil || att.NIK == "" {
 		return nil, err
 	}
 	return &att, nil
@@ -126,8 +126,8 @@ func (r *PrestasiRepo) GetAttendanceRecord(nik string, dateStr string) (*model.A
 
 func (r *PrestasiRepo) GetFTWRecord(nik string, dateStr string) (*model.FTWRecord, error) {
 	var ftw model.FTWRecord
-	err := r.db.Where("employee_nik = ? AND log_date = ?", nik, dateStr).First(&ftw).Error
-	if err != nil {
+	err := r.db.Where("employee_nik = ? AND log_date = ?", nik, dateStr).Limit(1).Find(&ftw).Error
+	if err != nil || ftw.NIK == "" {
 		return nil, err
 	}
 	return &ftw, nil

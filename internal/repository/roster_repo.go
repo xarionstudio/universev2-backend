@@ -126,6 +126,12 @@ func (r *RosterRepo) GetRevisions(status string) ([]model.RosterRevision, error)
 	return revisions, err
 }
 
+func (r *RosterRepo) CountPendingRevisions() (int, error) {
+	var count int64
+	err := r.db.Model(&model.RosterRevision{}).Where("status = ?", "pending").Count(&count).Error
+	return int(count), err
+}
+
 func (r *RosterRepo) ApproveRevision(id int, byId, byEn string) error {
 	return r.db.Model(&model.RosterRevision{}).Where("id = ?", id).
 		Updates(map[string]interface{}{"status": "approved", "by_id": byId, "by_en": byEn}).Error

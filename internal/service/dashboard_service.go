@@ -129,8 +129,10 @@ func (s *DashboardService) GetSummary(date string) (*DashboardSummary, error) {
 		}
 	}
 
-	// Roster pending approval - placeholder
-	summary.Roster.PendingApproval = 0
+	// Roster pending approval
+	if count, err := s.rosterRepo.CountPendingRevisions(); err == nil {
+		summary.Roster.PendingApproval = count
+	}
 
 	// Notifications unread
 	notifs, err := s.notifRepo.GetByUser("")

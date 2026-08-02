@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -176,7 +177,7 @@ func (r *FleetRepo) DeleteUnitDB(id uint) error {
 	return r.db.Where("id = ?", id).Delete(&model.UnitDb{}).Error
 }
 
-func (r *FleetRepo) BulkCreateUnitDB(units []model.UnitDb) (imported int, skipped int, err error) {
+func (r *FleetRepo) BulkCreateUnitDB(units []model.UnitDb) (imported int, skipped int, rowErrors []string, err error) {
 	for _, u := range units {
 		var count int64
 		r.db.Model(&model.UnitDb{}).Where("code = ?", u.Code).Count(&count)
@@ -191,13 +192,15 @@ func (r *FleetRepo) BulkCreateUnitDB(units []model.UnitDb) (imported int, skippe
 				"upd_by":     u.By,
 			})
 			skipped++
+			rowErrors = append(rowErrors, fmt.Sprintf("Code %q: already exists, updated record", u.Code))
 		} else {
 			if err := r.db.Create(&u).Error; err == nil {
 				imported++
 			} else {
 				skipped++
+				rowErrors = append(rowErrors, fmt.Sprintf("Code %q: %v", u.Code, err))
 			}
 		}
 	}
-	return imported, skipped, nil
+	return imported, skipped, rowErrors, nil
 }

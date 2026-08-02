@@ -43,6 +43,9 @@ func (s *UserService) CreateUser(req dto.CreateUserRequest) (*model.User, error)
 	if len(req.Roles) == 0 {
 		return nil, fmt.Errorf("at least one role is required")
 	}
+	if req.NIK != "" && !internalpkg.IsValidNIK(req.NIK) {
+		return nil, fmt.Errorf("NIK must be exactly 9 digits")
+	}
 	if s.userRepo.ExistsByEmail(req.Email) {
 		return nil, fmt.Errorf("email is already in use")
 	}
@@ -100,6 +103,10 @@ func (s *UserService) UpdateUser(id string, req dto.UpdateUserRequest) error {
 	}
 	if len(req.Roles) == 0 {
 		return fmt.Errorf("at least one role is required")
+	}
+
+	if req.NIK != "" && !internalpkg.IsValidNIK(req.NIK) {
+		return fmt.Errorf("NIK must be exactly 9 digits")
 	}
 
 	existing.Name = req.Name
@@ -181,22 +188,24 @@ func (s *UserService) ExportUsersCSV() ([]byte, error) {
 }
 
 // ImportUsersFromExcel parses Excel file and creates user records
-func (s *UserService) ImportUsersFromExcel(data []byte) (imported int, skipped int, err error) {
+func (s *UserService) ImportUsersFromExcel(data []byte) (imported int, skipped int, rowErrors []string, err error) {
 	rows, err := export.ParseUserExcel(data)
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, nil, err
 	}
 	if len(rows) == 0 {
-		return 0, 0, fmt.Errorf("no valid user records found in file")
+		return 0, 0, nil, fmt.Errorf("no valid user records found in file")
 	}
 
 	for _, r := range rows {
 		if !internalpkg.IsValidEmail(r.Email) {
 			skipped++
+			rowErrors = append(rowErrors, fmt.Sprintf("Email %q: invalid email format", r.Email))
 			continue
 		}
 		if s.userRepo.ExistsByEmail(r.Email) {
 			skipped++
+			rowErrors = append(rowErrors, fmt.Sprintf("Email %q: already registered", r.Email))
 			continue
 		}
 
@@ -231,10 +240,11 @@ func (s *UserService) ImportUsersFromExcel(data []byte) (imported int, skipped i
 			imported++
 		} else {
 			skipped++
+			rowErrors = append(rowErrors, fmt.Sprintf("Email %q: %v", r.Email, err))
 		}
 	}
 
-	return imported, skipped, nil
+	return imported, skipped, rowErrors, nil
 }
 
 // ProfileService handles profile-related business logic

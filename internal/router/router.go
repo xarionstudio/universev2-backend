@@ -43,7 +43,7 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB, fpWorker *work
 	fleetH := handler.NewFleetHandler(fleetRepo)
 	prestasiH := handler.NewPrestasiHandler(prestasiRepo)
 	masterH := handler.NewMasterHandler(masterSvc)
-	userH := handler.NewUserHandler(userRepo)
+	userH := handler.NewUserHandler(userRepo, roleRepo)
 	roleH := handler.NewRoleHandler(roleRepo)
 	notifH := handler.NewNotificationHandler(notifRepo)
 	settingsH := handler.NewSettingsHandler(settingsRepo)
@@ -215,7 +215,7 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB, fpWorker *work
 
 	// Fingerprint Devices
 	fpGroup := protected.Group("/fingerprint")
-	fpGroup.Get("/devices", fpH.GetDeviceStatus)
+	fpGroup.Get("/devices", rbac.RequirePermission("settings", "view"), fpH.GetDeviceStatus)
 	fpGroup.Post("/devices", rbac.RequirePermission("settings", "manage"), fpH.CreateDevice)
 	fpGroup.Put("/devices/:id", rbac.RequirePermission("settings", "manage"), fpH.UpdateDevice)
 	fpGroup.Delete("/devices/:id", rbac.RequirePermission("settings", "manage"), fpH.DeleteDevice)

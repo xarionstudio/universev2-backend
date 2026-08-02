@@ -18,9 +18,9 @@ type UserHandler struct {
 	userSvc *service.UserService
 }
 
-func NewUserHandler(userRepo *repository.UserRepo) *UserHandler {
+func NewUserHandler(userRepo *repository.UserRepo, roleRepo *repository.RoleRepo) *UserHandler {
 	return &UserHandler{
-		userSvc: service.NewUserService(userRepo, nil),
+		userSvc: service.NewUserService(userRepo, roleRepo),
 	}
 }
 
@@ -48,6 +48,8 @@ func (h *UserHandler) CreateUser(c fiber.Ctx) error {
 			return sendValidationError(c, "email", "Invalid email format")
 		case "at least one role is required":
 			return sendValidationError(c, "roles", "At least one role is required")
+		case "NIK must be exactly 9 digits":
+			return sendValidationError(c, "nik", msg)
 		case "email is already in use":
 			return response.Error(c, fiber.StatusConflict, "Email is already in use")
 		default:
@@ -75,6 +77,8 @@ func (h *UserHandler) UpdateUser(c fiber.Ctx) error {
 			return sendValidationError(c, "email", "Invalid email format")
 		case "at least one role is required":
 			return sendValidationError(c, "roles", "At least one role is required")
+		case "NIK must be exactly 9 digits":
+			return sendValidationError(c, "nik", msg)
 		default:
 			return response.Error(c, fiber.StatusInternalServerError, msg)
 		}
@@ -121,7 +125,7 @@ func (h *UserHandler) ImportUsers(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to read file")
 	}
 
-	imported, skipped, err := h.userSvc.ImportUsersFromExcel(data)
+	imported, skipped, rowErrors, err := h.userSvc.ImportUsersFromExcel(data)
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Import failed: "+err.Error())
 	}
@@ -129,6 +133,7 @@ func (h *UserHandler) ImportUsers(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, fmt.Sprintf("Import completed: %d users imported, %d skipped/duplicates", imported, skipped), fiber.Map{
 		"imported": imported,
 		"skipped":  skipped,
+		"errors":   rowErrors,
 	})
 }
 

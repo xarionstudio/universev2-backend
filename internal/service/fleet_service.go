@@ -196,13 +196,13 @@ func (s *FleetService) DeleteUnitDB(id string) error {
 }
 
 // ImportUnitDBFromExcel parses Excel file and saves unit DB entries
-func (s *FleetService) ImportUnitDBFromExcel(data []byte) (imported int, skipped int, err error) {
+func (s *FleetService) ImportUnitDBFromExcel(data []byte) (imported int, skipped int, rowErrors []string, err error) {
 	units, err := export.ParseUnitDBExcel(data)
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, nil, err
 	}
 	if len(units) == 0 {
-		return 0, 0, fmt.Errorf("no valid unit records found in file")
+		return 0, 0, nil, fmt.Errorf("no valid unit records found in file")
 	}
 	return s.repo.BulkCreateUnitDB(units)
 }

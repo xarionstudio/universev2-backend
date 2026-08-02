@@ -264,7 +264,7 @@ func (h *FleetHandler) ImportUnitDB(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to read file")
 	}
 
-	imported, skipped, err := h.fleetSvc.ImportUnitDBFromExcel(data)
+	imported, skipped, rowErrors, err := h.fleetSvc.ImportUnitDBFromExcel(data)
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Import failed: "+err.Error())
 	}
@@ -272,5 +272,6 @@ func (h *FleetHandler) ImportUnitDB(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, fmt.Sprintf("Import completed: %d imported, %d updated/skipped", imported, skipped), fiber.Map{
 		"imported": imported,
 		"skipped":  skipped,
+		"errors":   rowErrors,
 	})
 }
