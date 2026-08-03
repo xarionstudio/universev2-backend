@@ -49,3 +49,6 @@ go.work.sum
 
 # Uploads
 /uploads/
+
+# Documentation (not pushed to backend repo)
+/docs/
