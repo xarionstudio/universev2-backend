@@ -4,7 +4,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
 
-	"universev2-backend/internal/config"
+	"universev/internal/config"
 )
 
 // CORSMiddleware configures CORS to allow frontend origins from config

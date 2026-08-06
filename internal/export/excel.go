@@ -10,7 +10,7 @@ import (
 
 	"github.com/xuri/excelize/v2"
 
-	"universev2-backend/internal/model"
+	"universev/internal/model"
 )
 
 // ParseRosterExcel parses a roster Excel/CSV file and returns roster schedules

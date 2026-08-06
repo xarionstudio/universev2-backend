@@ -3,13 +3,13 @@ package service
 import (
 	"fmt"
 
-	"universev2-backend/internal/dto"
-	"universev2-backend/internal/export"
-	"universev2-backend/internal/model"
-	internalpkg "universev2-backend/internal/pkg"
-	"universev2-backend/internal/repository"
-	"universev2-backend/pkg/filter"
-	"universev2-backend/pkg/pagination"
+	"universev/internal/dto"
+	"universev/internal/export"
+	"universev/internal/model"
+	internalpkg "universev/internal/pkg"
+	"universev/internal/repository"
+	"universev/pkg/filter"
+	"universev/pkg/pagination"
 )
 
 // EmployeeService handles employee business logic

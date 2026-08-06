@@ -5,11 +5,11 @@ import (
 	"strconv"
 	"time"
 
-	"universev2-backend/internal/dto"
-	"universev2-backend/internal/export"
-	"universev2-backend/internal/model"
-	internalpkg "universev2-backend/internal/pkg"
-	"universev2-backend/internal/repository"
+	"universev/internal/dto"
+	"universev/internal/export"
+	"universev/internal/model"
+	internalpkg "universev/internal/pkg"
+	"universev/internal/repository"
 )
 
 // FleetService handles fleet and unit business logic

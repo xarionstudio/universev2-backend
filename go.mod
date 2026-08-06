@@ -1,4 +1,4 @@
-module universev2-backend
+module universev
 
 go 1.26.1
 

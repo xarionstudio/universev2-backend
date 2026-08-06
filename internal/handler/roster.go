@@ -10,13 +10,13 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"universev2-backend/internal/dto"
-	"universev2-backend/internal/export"
-	"universev2-backend/internal/model"
-	"universev2-backend/internal/repository"
-	"universev2-backend/pkg/filter"
-	"universev2-backend/pkg/pagination"
-	"universev2-backend/pkg/response"
+	"universev/internal/dto"
+	"universev/internal/export"
+	"universev/internal/model"
+	"universev/internal/repository"
+	"universev/pkg/filter"
+	"universev/pkg/pagination"
+	"universev/pkg/response"
 )
 
 type RosterHandler struct {

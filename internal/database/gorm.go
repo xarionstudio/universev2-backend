@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	"universev2-backend/internal/config"
+	"universev/internal/config"
 )
 
 func NewGormDB(cfg *config.Config) (*gorm.DB, error) {

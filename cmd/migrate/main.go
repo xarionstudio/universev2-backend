@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"universev2-backend/internal/config"
-	"universev2-backend/internal/database"
+	"universev/internal/config"
+	"universev/internal/database"
 )
 
 func main() {

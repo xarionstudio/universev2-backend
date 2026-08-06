@@ -3,8 +3,8 @@ package service
 import (
 	"time"
 
-	"universev2-backend/internal/model"
-	"universev2-backend/internal/repository"
+	"universev/internal/model"
+	"universev/internal/repository"
 )
 
 // DashboardService handles dashboard business logic

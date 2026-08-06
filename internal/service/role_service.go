@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	"universev2-backend/internal/model"
-	internalpkg "universev2-backend/internal/pkg"
-	"universev2-backend/internal/repository"
+	"universev/internal/model"
+	internalpkg "universev/internal/pkg"
+	"universev/internal/repository"
 )
 
 type RoleService struct {

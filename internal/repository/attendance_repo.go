@@ -5,7 +5,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"universev2-backend/internal/model"
+	"universev/internal/model"
 )
 
 type AttendanceRepo struct {

@@ -4,9 +4,9 @@ import (
 	"log"
 	"time"
 
-	"universev2-backend/internal/model"
-	"universev2-backend/internal/repository"
-	"universev2-backend/pkg/solutionx100c"
+	"universev/internal/model"
+	"universev/internal/repository"
+	"universev/pkg/solutionx100c"
 )
 
 type FingerprintWorker struct {

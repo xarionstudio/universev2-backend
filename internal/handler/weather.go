@@ -8,7 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"universev2-backend/pkg/response"
+	"universev/pkg/response"
 )
 
 type WeatherHandler struct {

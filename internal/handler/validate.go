@@ -3,8 +3,8 @@ package handler
 import (
 	"github.com/gofiber/fiber/v3"
 
-	internalpkg "universev2-backend/internal/pkg"
-	"universev2-backend/pkg/response"
+	internalpkg "universev/internal/pkg"
+	"universev/pkg/response"
 )
 
 // Wrapper functions that delegate to internal/pkg for backwards compatibility

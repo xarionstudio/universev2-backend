@@ -3,11 +3,11 @@ package handler
 import (
 	"github.com/gofiber/fiber/v3"
 
-	"universev2-backend/internal/dto"
-	internalpkg "universev2-backend/internal/pkg"
-	"universev2-backend/internal/repository"
-	"universev2-backend/internal/service"
-	"universev2-backend/pkg/response"
+	"universev/internal/dto"
+	internalpkg "universev/internal/pkg"
+	"universev/internal/repository"
+	"universev/internal/service"
+	"universev/pkg/response"
 )
 
 type ProfileHandler struct {

@@ -6,7 +6,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"universev2-backend/internal/model"
+	"universev/internal/model"
 )
 
 type SettingsRepo struct {
@@ -38,7 +38,7 @@ func (r *SettingsRepo) GetAppSettings() (model.AppSettings, error) {
 			"asset": true, "prestasi": true, "master": true, "users": true, "settings": true,
 		}
 		return model.AppSettings{
-			AppName: "universev2-backend", AppEnv: "development", CompanyLogo: "",
+			AppName: "universev", AppEnv: "development", CompanyLogo: "",
 			Theme: "dark", Lang: "id", MenuVis: defaultVis,
 		}, nil
 	}

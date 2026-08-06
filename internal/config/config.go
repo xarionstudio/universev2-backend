@@ -36,7 +36,7 @@ func Load() (*Config, error) {
 	_ = godotenv.Load()
 
 	cfg := &Config{
-		AppName:            getEnv("APP_NAME", "universev2-backend"),
+		AppName:            getEnv("APP_NAME", "universev"),
 		AppEnv:             getEnv("APP_ENV", "development"),
 		AppPort:            getEnv("APP_PORT", "8080"),
 		AppURL:             getEnv("APP_URL", "http://localhost:8080"),

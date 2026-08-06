@@ -5,7 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"universev2-backend/pkg/pagination"
+	"universev/pkg/pagination"
 )
 
 // PagedData wraps a slice of items with pagination metadata.

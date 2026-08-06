@@ -6,8 +6,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/golang-jwt/jwt/v5"
 
-	"universev2-backend/internal/config"
-	"universev2-backend/internal/pkg"
+	"universev/internal/config"
+	"universev/internal/pkg"
 )
 
 func AuthMiddleware(cfg *config.Config) fiber.Handler {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"universev2-backend/internal/model"
-	"universev2-backend/internal/repository"
+	"universev/internal/model"
+	"universev/internal/repository"
 )
 
 // DisplayService handles display TV business logic

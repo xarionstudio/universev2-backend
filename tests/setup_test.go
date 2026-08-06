@@ -13,9 +13,9 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"universev2-backend/internal/config"
-	"universev2-backend/internal/model"
-	"universev2-backend/internal/router"
+	"universev/internal/config"
+	"universev/internal/model"
+	"universev/internal/router"
 )
 
 // AppSettingsDB matches the DB model used by settings_repo.go

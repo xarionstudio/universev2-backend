@@ -5,11 +5,11 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"universev2-backend/internal/config"
-	"universev2-backend/internal/model"
-	"universev2-backend/internal/repository"
-	"universev2-backend/internal/worker"
-	"universev2-backend/pkg/response"
+	"universev/internal/config"
+	"universev/internal/model"
+	"universev/internal/repository"
+	"universev/internal/worker"
+	"universev/pkg/response"
 )
 
 type FingerprintHandler struct {

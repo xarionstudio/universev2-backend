@@ -3,9 +3,9 @@ package repository
 import (
 	"gorm.io/gorm"
 
-	"universev2-backend/internal/model"
-	"universev2-backend/pkg/filter"
-	"universev2-backend/pkg/pagination"
+	"universev/internal/model"
+	"universev/pkg/filter"
+	"universev/pkg/pagination"
 )
 
 type FTWRepo struct {

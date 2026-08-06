@@ -3,7 +3,7 @@ package pagination_test
 import (
 	"testing"
 
-	"universev2-backend/pkg/pagination"
+	"universev/pkg/pagination"
 )
 
 func TestParse(t *testing.T) {

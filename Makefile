@@ -85,8 +85,8 @@ dc-psql:
 
 # Build image
 docker-build:
-	docker build -t universev2-backend .
+	docker build -t universev .
 
 # Run standalone (requires external postgres)
 docker-run:
-	docker run -p 8080:8080 --env-file .env universev2-backend
+	docker run -p 8080:8080 --env-file .env universev

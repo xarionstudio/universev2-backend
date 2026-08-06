@@ -3,9 +3,9 @@ package service
 import (
 	"fmt"
 
-	"universev2-backend/internal/model"
-	internalpkg "universev2-backend/internal/pkg"
-	"universev2-backend/internal/repository"
+	"universev/internal/model"
+	internalpkg "universev/internal/pkg"
+	"universev/internal/repository"
 )
 
 type SettingsService struct {
@@ -26,7 +26,7 @@ func (s *SettingsService) GetAppSettings() (*model.AppSettings, error) {
 
 func (s *SettingsService) UpdateAppSettings(settings model.AppSettings) error {
 	if internalpkg.IsTrimmedEmpty(settings.AppName) {
-		settings.AppName = "universev2-backend"
+		settings.AppName = "universev"
 	}
 	return s.repo.UpdateAppSettings(settings)
 }

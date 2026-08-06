@@ -4,12 +4,12 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 
-	"universev2-backend/internal/config"
-	"universev2-backend/internal/handler"
-	"universev2-backend/internal/middleware"
-	"universev2-backend/internal/repository"
-	"universev2-backend/internal/service"
-	"universev2-backend/internal/worker"
+	"universev/internal/config"
+	"universev/internal/handler"
+	"universev/internal/middleware"
+	"universev/internal/repository"
+	"universev/internal/service"
+	"universev/internal/worker"
 )
 
 func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB, fpWorker *worker.FingerprintWorker) {

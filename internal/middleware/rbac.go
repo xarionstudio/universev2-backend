@@ -5,8 +5,8 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"universev2-backend/internal/pkg"
-	"universev2-backend/internal/repository"
+	"universev/internal/pkg"
+	"universev/internal/repository"
 )
 
 type RBACMiddleware struct {

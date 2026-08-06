@@ -1,8 +1,8 @@
 package service
 
 import (
-	"universev2-backend/internal/model"
-	"universev2-backend/internal/repository"
+	"universev/internal/model"
+	"universev/internal/repository"
 )
 
 type RosterService struct {

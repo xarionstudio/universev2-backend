@@ -11,11 +11,11 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 
-	"universev2-backend/internal/config"
-	"universev2-backend/internal/database"
-	"universev2-backend/internal/repository"
-	"universev2-backend/internal/router"
-	"universev2-backend/internal/worker"
+	"universev/internal/config"
+	"universev/internal/database"
+	"universev/internal/repository"
+	"universev/internal/router"
+	"universev/internal/worker"
 )
 
 func main() {

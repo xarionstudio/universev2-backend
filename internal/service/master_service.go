@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"universev2-backend/internal/export"
-	"universev2-backend/internal/model"
-	"universev2-backend/internal/repository"
-	"universev2-backend/pkg/pagination"
+	"universev/internal/export"
+	"universev/internal/model"
+	"universev/internal/repository"
+	"universev/pkg/pagination"
 )
 
 // MasterService handles master data business logic

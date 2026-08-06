@@ -3,10 +3,10 @@ package handler
 import (
 	"github.com/gofiber/fiber/v3"
 
-	"universev2-backend/internal/model"
-	"universev2-backend/internal/repository"
-	"universev2-backend/internal/service"
-	"universev2-backend/pkg/response"
+	"universev/internal/model"
+	"universev/internal/repository"
+	"universev/internal/service"
+	"universev/pkg/response"
 )
 
 type SettingsHandler struct {

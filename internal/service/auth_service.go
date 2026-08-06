@@ -5,11 +5,11 @@ import (
 	"strconv"
 	"time"
 
-	"universev2-backend/internal/config"
-	"universev2-backend/internal/dto"
-	"universev2-backend/internal/model"
-	internalpkg "universev2-backend/internal/pkg"
-	"universev2-backend/internal/repository"
+	"universev/internal/config"
+	"universev/internal/dto"
+	"universev/internal/model"
+	internalpkg "universev/internal/pkg"
+	"universev/internal/repository"
 )
 
 // AuthService handles authentication business logic

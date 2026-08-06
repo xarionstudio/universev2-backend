@@ -3,9 +3,9 @@ package handler
 import (
 	"github.com/gofiber/fiber/v3"
 
-	"universev2-backend/internal/pkg"
-	"universev2-backend/internal/repository"
-	"universev2-backend/pkg/response"
+	"universev/internal/pkg"
+	"universev/internal/repository"
+	"universev/pkg/response"
 )
 
 type NotificationHandler struct {

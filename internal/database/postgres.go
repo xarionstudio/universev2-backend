@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"universev2-backend/internal/config"
+	"universev/internal/config"
 )
 
 func NewPostgresPool(cfg *config.Config) (*pgxpool.Pool, error) {
