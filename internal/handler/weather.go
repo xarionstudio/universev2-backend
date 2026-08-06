@@ -26,7 +26,7 @@ func (h *WeatherHandler) GetCurrentWeather(c fiber.Ctx) error {
 	lon := c.Query("lon", "117.1536")
 
 	url := fmt.Sprintf(
-		"https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&hourly=temperature_2m,precipitation_probability&timezone=Asia%%2FMakassar",
+		"https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,is_day&timezone=auto",
 		lat, lon,
 	)
 

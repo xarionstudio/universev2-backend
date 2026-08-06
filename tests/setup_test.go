@@ -62,6 +62,7 @@ func setupTestDB() *gorm.DB {
 		&model.AudioSchedule{},
 		&model.AudioScheduleDisplay{},
 		&model.DisplayDevice{},
+		&model.DisplayFleet{},
 		&AppSettingsDB{},
 		&model.PrestasiScore{},
 		&model.PrestasiBadge{},
@@ -116,7 +117,7 @@ func setupTestDB() *gorm.DB {
 	})
 
 	// Seed role permissions for r1
-	modules := []string{"employees", "ftw", "roster", "asset", "master", "users", "settings", "prestasi"}
+	modules := []string{"dashboard", "display", "employees", "ftw", "roster", "asset", "master", "users", "settings", "prestasi"}
 	for _, m := range modules {
 		_ = db.Create(&model.RolePermission{
 			RoleID:          1,

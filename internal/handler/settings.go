@@ -170,12 +170,12 @@ func (h *SettingsHandler) DeleteDisplay(c fiber.Ctx) error {
 }
 
 func (h *SettingsHandler) GetDisplayHeartbeat(c fiber.Ctx) error {
-	id := c.Params("id")
-	if isTrimmedEmpty(id) {
-		return response.Error(c, fiber.StatusBadRequest, "Display ID is required")
+	code := c.Params("code")
+	if isTrimmedEmpty(code) {
+		return response.Error(c, fiber.StatusBadRequest, "Display code is required")
 	}
 
-	_ = h.repo.UpdateHeartbeat(id, "Sekarang")
+	_ = h.repo.UpdateHeartbeat(code, "Sekarang")
 	data := fiber.Map{
 		"online": true,
 		"hb":     "1 dtk lalu",

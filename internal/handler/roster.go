@@ -95,6 +95,35 @@ func (h *RosterHandler) UploadRoster(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to save roster metadata: "+err.Error())
 	}
 
+	// Parse the roster file and populate roster_schedules
+	// Read file content for parsing
+	f, err := file.Open()
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to open roster file")
+	}
+	defer f.Close()
+
+	// Parse roster schedules from the file
+	schedules, parseErr := export.ParseRosterExcel(f, month)
+	if parseErr != nil {
+		// File saved but parsing failed — return warning
+		return response.Success(c, fiber.StatusCreated, "Roster uploaded but parsing failed: "+parseErr.Error(), meta)
+	}
+
+	// Save schedules to DB with roster_file_id
+	savedCount := 0
+	for _, sched := range schedules {
+		sched.RosterFileID = meta.ID
+		if err := h.repo.CreateSchedule(&sched); err == nil {
+			savedCount++
+		}
+	}
+
+	// Update meta with counts
+	meta.Emp = fmt.Sprintf("%d", savedCount)
+	meta.Rows = fmt.Sprintf("%d", len(schedules))
+	_ = h.repo.UpdateRosterMeta(meta.ID, meta)
+
 	return response.Success(c, fiber.StatusCreated, "Roster uploaded and processed successfully", meta)
 }
 
@@ -173,20 +202,44 @@ func (h *RosterHandler) GetRevisionCodes(c fiber.Ctx) error {
 }
 
 func (h *RosterHandler) SubmitBatchRevision(c fiber.Ctx) error {
-	var rev model.RosterRevision
-	if err := c.Bind().JSON(&rev); err != nil {
+	var req struct {
+		Revisions []model.RosterRevision `json:"revisions"`
+	}
+	if err := c.Bind().JSON(&req); err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}
 
-	if isTrimmedEmpty(rev.SubmissionID) {
-		return sendValidationError(c, "sid", "Submission ID is required")
+	created := make([]model.RosterRevision, 0, len(req.Revisions))
+
+	// Case 1: Batch format { revisions: [...] }
+	if len(req.Revisions) > 0 {
+		for _, rev := range req.Revisions {
+			if isTrimmedEmpty(rev.SubmissionID) {
+				return sendValidationError(c, "sid", "Submission ID is required")
+			}
+			rev.Status = "pending"
+			if err := h.repo.CreateRevision(&rev); err != nil {
+				return response.Error(c, fiber.StatusInternalServerError, "Failed to submit revision: "+err.Error())
+			}
+			created = append(created, rev)
+		}
+		return response.Success(c, fiber.StatusCreated, "Batch revisions submitted successfully", created)
 	}
 
-	rev.Status = "pending"
-	if err := h.repo.CreateRevision(&rev); err != nil {
+	// Case 2: Single revision format { sid, nik, whatId, ... } (backward compatible)
+	var single model.RosterRevision
+	if err := c.Bind().JSON(&single); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
+	}
+	if isTrimmedEmpty(single.SubmissionID) {
+		return sendValidationError(c, "sid", "Submission ID is required")
+	}
+	single.Status = "pending"
+	if err := h.repo.CreateRevision(&single); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to submit revision: "+err.Error())
 	}
-	return response.Success(c, fiber.StatusCreated, "Batch revisions submitted successfully", rev)
+	created = append(created, single)
+	return response.Success(c, fiber.StatusCreated, "Batch revisions submitted successfully", created)
 }
 
 func (h *RosterHandler) DeleteRevision(c fiber.Ctx) error {

@@ -150,6 +150,16 @@ func (r *RosterRepo) CreateRoster(meta *model.RosterMeta) error {
 	return r.db.Create(meta).Error
 }
 
+// CreateSchedule inserts a single roster schedule row
+func (r *RosterRepo) CreateSchedule(sched *model.RosterSchedule) error {
+	return r.db.Create(sched).Error
+}
+
+// UpdateRosterMeta updates roster metadata (counts, etc.)
+func (r *RosterRepo) UpdateRosterMeta(id uint, meta *model.RosterMeta) error {
+	return r.db.Model(&model.RosterMeta{}).Where("id = ?", id).Updates(meta).Error
+}
+
 func (r *RosterRepo) CreateRevision(rev *model.RosterRevision) error {
 	return r.db.Create(rev).Error
 }

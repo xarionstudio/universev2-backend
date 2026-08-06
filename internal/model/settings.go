@@ -28,6 +28,8 @@ type DisplayDevice struct {
 	Loc       string    `json:"loc" gorm:"column:location"`
 	Content   string    `json:"content" gorm:"column:content_kind"`
 	FleetID   *uint     `json:"fleetId,omitempty" gorm:"column:fleet_id"`
+	FleetIDs  []uint    `json:"fleetIds,omitempty" gorm:"-"`
+	RotateSec int       `json:"rotateSec" gorm:"column:rotate_sec"`
 	RunText   string    `json:"runtext" gorm:"column:running_text"`
 	Online    bool      `json:"online" gorm:"column:is_online"`
 	Heartbeat string    `json:"hb" gorm:"column:last_heartbeat"`
@@ -36,6 +38,14 @@ type DisplayDevice struct {
 }
 
 func (DisplayDevice) TableName() string { return "display_devices" }
+
+type DisplayFleet struct {
+	DisplayID uint `gorm:"column:display_id;primaryKey"`
+	FleetID   uint `gorm:"column:fleet_id;primaryKey"`
+	SortOrder int  `gorm:"column:sort_order"`
+}
+
+func (DisplayFleet) TableName() string { return "display_fleets" }
 
 type AppSettings struct {
 	AppName     string          `json:"appName"`

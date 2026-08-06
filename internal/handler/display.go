@@ -36,9 +36,21 @@ func (h *DisplayHandler) GetDisplayFTW(c fiber.Ctx) error {
 // GetDisplayFleet returns fleet data for TV display
 func (h *DisplayHandler) GetDisplayFleet(c fiber.Ctx) error {
 	fleetID := c.Query("fleetId")
-	rows, err := h.displaySvc.GetDisplayFleet(fleetID)
+	shift := c.Query("shift")
+	date := c.Query("date")
+	rows, err := h.displaySvc.GetDisplayFleet(fleetID, shift, date)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch fleet: "+err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Success", rows)
+}
+
+// GetDisplayMonitor returns monitor display data with fleet rotation
+func (h *DisplayHandler) GetDisplayMonitor(c fiber.Ctx) error {
+	monitorID := c.Query("monitor")
+	rows, err := h.displaySvc.GetDisplayMonitor(monitorID)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch monitor: "+err.Error())
 	}
 	return response.Success(c, fiber.StatusOK, "Success", rows)
 }

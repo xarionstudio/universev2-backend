@@ -3,15 +3,14 @@
 services:
   backend:
     build:
-      args:
-        APP_ENV: development
+      context: .
+      dockerfile: Dockerfile.dev
     environment:
       APP_ENV: development
       LOG_LEVEL: debug
     volumes:
       # Hot-reload: mount source code so changes reflect immediately
       - .:/app
-      # Exclude binary dir from mount to not overwrite the compiled binary
-      - /app/bin
-    # Override command to use air for hot reload
-    command: air
+      # Persist air's build cache outside the container to avoid permission issues
+      - air-cache:/root/.cache
+    # air is the default CMD in Dockerfile.dev

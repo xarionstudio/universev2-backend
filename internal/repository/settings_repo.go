@@ -146,11 +146,35 @@ func (r *SettingsRepo) GetDisplays(kind string) ([]model.DisplayDevice, error) {
 		q = q.Where("content_kind = ?", kind)
 	}
 	err := q.Order("id ASC").Find(&displays).Error
-	return displays, err
+	if err != nil {
+		return nil, err
+	}
+
+	// Load fleet_ids for monitor displays
+	for i := range displays {
+		if displays[i].Content == "monitor" {
+			var dfs []model.DisplayFleet
+			r.db.Where("display_id = ?", displays[i].ID).Order("sort_order ASC").Find(&dfs)
+			for _, df := range dfs {
+				displays[i].FleetIDs = append(displays[i].FleetIDs, df.FleetID)
+			}
+		}
+	}
+
+	return displays, nil
 }
 
 func (r *SettingsRepo) CreateDisplay(d *model.DisplayDevice) error {
-	return r.db.Create(d).Error
+	if err := r.db.Create(d).Error; err != nil {
+		return err
+	}
+	// Save pivot for monitor displays
+	if d.Content == "monitor" {
+		for i, fid := range d.FleetIDs {
+			r.db.Create(&model.DisplayFleet{DisplayID: d.ID, FleetID: fid, SortOrder: i})
+		}
+	}
+	return nil
 }
 
 func (r *SettingsRepo) UpdateDisplay(id string, d *model.DisplayDevice) error {
@@ -158,7 +182,17 @@ func (r *SettingsRepo) UpdateDisplay(id string, d *model.DisplayDevice) error {
 	if err != nil {
 		return err
 	}
-	return r.db.Model(&model.DisplayDevice{}).Where("id = ?", uint(did)).Updates(d).Error
+	if err := r.db.Model(&model.DisplayDevice{}).Where("id = ?", uint(did)).Updates(d).Error; err != nil {
+		return err
+	}
+	// Replace pivot for monitor displays
+	if d.Content == "monitor" {
+		r.db.Where("display_id = ?", uint(did)).Delete(&model.DisplayFleet{})
+		for i, fid := range d.FleetIDs {
+			r.db.Create(&model.DisplayFleet{DisplayID: uint(did), FleetID: fid, SortOrder: i})
+		}
+	}
+	return nil
 }
 
 func (r *SettingsRepo) DeleteDisplay(id string) error {
@@ -166,14 +200,11 @@ func (r *SettingsRepo) DeleteDisplay(id string) error {
 	if err != nil {
 		return err
 	}
+	r.db.Where("display_id = ?", uint(did)).Delete(&model.DisplayFleet{})
 	return r.db.Where("id = ?", uint(did)).Delete(&model.DisplayDevice{}).Error
 }
 
-func (r *SettingsRepo) UpdateHeartbeat(id string, hb string) error {
-	did, err := strconv.ParseUint(id, 10, 64)
-	if err != nil {
-		return err
-	}
-	return r.db.Model(&model.DisplayDevice{}).Where("id = ?", uint(did)).
+func (r *SettingsRepo) UpdateHeartbeat(code string, hb string) error {
+	return r.db.Model(&model.DisplayDevice{}).Where("code = ?", code).
 		Updates(map[string]interface{}{"is_online": true, "last_heartbeat": hb}).Error
 }

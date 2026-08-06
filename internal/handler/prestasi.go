@@ -14,8 +14,8 @@ type PrestasiHandler struct {
 	svc *service.PrestasiService
 }
 
-func NewPrestasiHandler(repo *repository.PrestasiRepo) *PrestasiHandler {
-	return &PrestasiHandler{svc: service.NewPrestasiService(repo)}
+func NewPrestasiHandler(repo *repository.PrestasiRepo, fleetRepo *repository.FleetRepo) *PrestasiHandler {
+	return &PrestasiHandler{svc: service.NewPrestasiService(repo, fleetRepo)}
 }
 
 func (h *PrestasiHandler) GetLeaderboard(c fiber.Ctx) error {
@@ -53,4 +53,3 @@ func (h *PrestasiHandler) Recalculate(c fiber.Ctx) error {
 	}
 	return response.Success(c, fiber.StatusOK, "Prestasi points recalculated successfully", nil)
 }
-

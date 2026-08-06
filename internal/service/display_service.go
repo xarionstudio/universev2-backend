@@ -15,6 +15,7 @@ type DisplayService struct {
 	fleetRepo    *repository.FleetRepo
 	empRepo      *repository.EmployeeRepo
 	settingsRepo *repository.SettingsRepo
+	fpRepo       *repository.FingerprintRepo
 }
 
 // NewDisplayService creates a new DisplayService
@@ -24,6 +25,7 @@ func NewDisplayService(
 	fleetRepo *repository.FleetRepo,
 	empRepo *repository.EmployeeRepo,
 	settingsRepo *repository.SettingsRepo,
+	fpRepo *repository.FingerprintRepo,
 ) *DisplayService {
 	return &DisplayService{
 		attRepo:      attRepo,
@@ -31,6 +33,7 @@ func NewDisplayService(
 		fleetRepo:    fleetRepo,
 		empRepo:      empRepo,
 		settingsRepo: settingsRepo,
+		fpRepo:       fpRepo,
 	}
 }
 
@@ -200,10 +203,34 @@ type FleetDisplayData struct {
 }
 
 // GetDisplayFleet returns fleet data for TV display
-func (s *DisplayService) GetDisplayFleet(fleetID string) ([]FleetDisplayData, error) {
+func (s *DisplayService) GetDisplayFleet(fleetID, shift, date string) ([]FleetDisplayData, error) {
 	settings, err := s.fleetRepo.GetFleetSettings()
 	if err != nil {
 		return nil, err
+	}
+
+	// Default shift based on current time (06:00-17:59 = pagi, else malam)
+	if shift == "" {
+		hour := time.Now().Hour()
+		if hour >= 6 && hour < 18 {
+			shift = "pagi"
+		} else {
+			shift = "malam"
+		}
+	}
+	// Default date = today
+	if date == "" {
+		date = time.Now().Format("2006-01-02")
+	}
+
+	// Load operator allocations for this date+shift
+	allocOps, _ := s.fleetRepo.GetAllocationOperators(date, shift)
+
+	// Load unit statuses once
+	statuses, _ := s.fleetRepo.GetUnitStatuses()
+	statusByCode := make(map[string]model.Unit)
+	for _, st := range statuses {
+		statusByCode[st.Code] = st
 	}
 
 	result := make([]FleetDisplayData, 0)
@@ -217,17 +244,9 @@ func (s *DisplayService) GetDisplayFleet(fleetID string) ([]FleetDisplayData, er
 
 		cards := make([]FleetUnitCard, 0)
 		for _, code := range unitCodes {
-			statuses, _ := s.fleetRepo.GetUnitStatuses()
-			var status *model.Unit
-			for _, st := range statuses {
-				if st.Code == code {
-					status = &st
-					break
-				}
-			}
 			tone := "success"
 			label := "Ready"
-			if status != nil {
+			if status, ok := statusByCode[code]; ok {
 				switch status.Status {
 				case model.UnitStatusBreakdown:
 					tone = "danger"
@@ -238,15 +257,27 @@ func (s *DisplayService) GetDisplayFleet(fleetID string) ([]FleetDisplayData, er
 				}
 			}
 
+			// Fill operator from allocation
+			opName := ""
+			opNIK := ""
+			if nik, ok := allocOps[code]; ok && nik != "" {
+				opNIK = nik
+				opName = s.fleetRepo.GetOperatorNameByNIK(nik)
+			}
+
 			cards = append(cards, FleetUnitCard{
 				Code:     code,
-				OpName:   "",
-				OpNIK:    "",
+				OpName:   opName,
+				OpNIK:    opNIK,
 				Tone:     tone,
 				Label:    label,
 				IsDigger: code == fs.Digger,
 			})
 		}
+
+		// Sort cards: breakdown (danger) first, then success, then standby (neutral)
+		// Matches FE fleetDisplayCards ranking
+		sortCards(cards)
 
 		result = append(result, FleetDisplayData{
 			ID:     fmt.Sprintf("%d", fs.ID),
@@ -255,6 +286,78 @@ func (s *DisplayService) GetDisplayFleet(fleetID string) ([]FleetDisplayData, er
 			Bus:    fs.Bus,
 			Units:  cards,
 		})
+	}
+
+	return result, nil
+}
+
+// sortCards orders fleet cards: danger (breakdown) first, then success, then neutral (standby)
+func sortCards(cards []FleetUnitCard) {
+	rank := func(tone string) int {
+		switch tone {
+		case "danger":
+			return 0
+		case "success":
+			return 1
+		default:
+			return 2
+		}
+	}
+	for i := 0; i < len(cards); i++ {
+		for j := i + 1; j < len(cards); j++ {
+			if rank(cards[j].Tone) < rank(cards[i].Tone) {
+				cards[i], cards[j] = cards[j], cards[i]
+			}
+		}
+	}
+}
+
+// DisplayMonitorData represents a monitor display with its fleet rotation
+type DisplayMonitorData struct {
+	ID        string             `json:"id"`
+	Name      string             `json:"name"`
+	Loc       string             `json:"loc"`
+	FleetIDs  []uint             `json:"fleetIds"`
+	RotateSec int                `json:"rotateSec"`
+	RunText   string             `json:"runtext"`
+	Online    bool               `json:"online"`
+	Active    bool               `json:"active"`
+	Fleets    []FleetDisplayData `json:"fleets,omitempty"`
+}
+
+// GetDisplayMonitor returns monitor display data with fleet rotation
+func (s *DisplayService) GetDisplayMonitor(monitorID string) ([]DisplayMonitorData, error) {
+	displays, err := s.settingsRepo.GetDisplays("monitor")
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]DisplayMonitorData, 0)
+	for _, d := range displays {
+		if monitorID != "" && d.Code != monitorID {
+			continue
+		}
+
+		md := DisplayMonitorData{
+			ID:        d.Code,
+			Name:      d.Name,
+			Loc:       d.Loc,
+			FleetIDs:  d.FleetIDs,
+			RotateSec: d.RotateSec,
+			RunText:   d.RunText,
+			Online:    d.Online,
+			Active:    d.Active,
+		}
+
+		// Load fleet data for each fleet in rotation
+		for _, fid := range d.FleetIDs {
+			fleetData, err := s.GetDisplayFleet(fmt.Sprintf("%d", fid), "", "")
+			if err == nil && len(fleetData) > 0 {
+				md.Fleets = append(md.Fleets, fleetData[0])
+			}
+		}
+
+		result = append(result, md)
 	}
 
 	return result, nil
@@ -270,18 +373,31 @@ type DisplayFpDevice struct {
 
 // GetDisplayFingerprint returns fingerprint device status for TV display
 func (s *DisplayService) GetDisplayFingerprint() ([]DisplayFpDevice, error) {
-	displays, err := s.settingsRepo.GetDisplays("finger")
+	if s.fpRepo == nil {
+		return []DisplayFpDevice{}, nil
+	}
+
+	devices, err := s.fpRepo.GetActiveDevices()
 	if err != nil {
 		return nil, err
 	}
 
 	result := make([]DisplayFpDevice, 0)
-	for _, d := range displays {
+	for _, d := range devices {
+		// Use code (string) as ID to match FE DisplayMachine.id (e.g. "FP-07")
+		id := d.Code
+		if id == "" {
+			id = fmt.Sprintf("%d", d.ID)
+		}
+		meta := "belum ada data scan"
+		if d.LastSync != nil {
+			meta = "terakhir sinkron " + d.LastSync.Format("02 Jan 15:04")
+		}
 		result = append(result, DisplayFpDevice{
-			ID:     fmt.Sprintf("%d", d.ID),
-			Loc:    d.Loc,
-			Online: d.Online,
-			Meta:   d.Heartbeat,
+			ID:     id,
+			Loc:    d.Location,
+			Online: d.IsOnline,
+			Meta:   meta,
 		})
 	}
 

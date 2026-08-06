@@ -72,7 +72,7 @@ func (s *RoleService) DeleteRole(id string) error {
 	return s.repo.Delete(uint(uid))
 }
 
-var umModules = []string{"employees", "ftw", "roster", "asset", "prestasi", "master", "users", "settings"}
+var umModules = []string{"dashboard", "display", "employees", "ftw", "roster", "asset", "prestasi", "master", "users", "settings"}
 
 // ExportRolesCSV generates CSV matching FE format: role;deskripsi;employees;ftw;roster;asset;prestasi;master;users;settings
 func (s *RoleService) ExportRolesCSV() ([]byte, error) {

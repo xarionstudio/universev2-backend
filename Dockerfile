@@ -10,8 +10,11 @@ RUN go mod download
 # Copy the rest of the source code
 COPY . .
 
-# Build the binary
+# Build the server binary
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/server ./cmd/server
+
+# Build the migrate binary
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/migrate ./cmd/migrate
 
 # ---- Runtime Stage ----
 FROM alpine:3.21
@@ -20,8 +23,9 @@ RUN apk add --no-cache ca-certificates tzdata wget
 
 WORKDIR /app
 
-# Copy binary from builder
+# Copy binaries from builder
 COPY --from=builder /app/server .
+COPY --from=builder /app/migrate .
 
 # Copy migrations directory
 COPY --from=builder /app/migrations ./migrations

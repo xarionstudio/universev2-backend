@@ -2,7 +2,9 @@ package export
 
 import (
 	"bytes"
+	"encoding/csv"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
@@ -10,6 +12,154 @@ import (
 
 	"universev2-backend/internal/model"
 )
+
+// ParseRosterExcel parses a roster Excel/CSV file and returns roster schedules
+// Expected format: NIK | Nama | Dept | Posisi | 01..31 (shift codes D/N/OFF/etc)
+func ParseRosterExcel(f io.Reader, month string) ([]model.RosterSchedule, error) {
+	// Read all bytes
+	data, err := io.ReadAll(f)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read roster file: %w", err)
+	}
+
+	// Detect format by extension/content
+	// Try Excel first
+	excelFile, err := excelize.OpenReader(bytes.NewReader(data))
+	if err == nil {
+		defer excelFile.Close()
+		return parseRosterExcelSheet(excelFile, month)
+	}
+
+	// Fallback to CSV
+	return parseRosterCSV(data, month)
+}
+
+func parseRosterExcelSheet(f *excelize.File, month string) ([]model.RosterSchedule, error) {
+	sheets := f.GetSheetList()
+	if len(sheets) == 0 {
+		return nil, fmt.Errorf("no sheets found in roster file")
+	}
+
+	rows, err := f.GetRows(sheets[0])
+	if err != nil {
+		return nil, fmt.Errorf("failed to read roster sheet: %w", err)
+	}
+
+	var schedules []model.RosterSchedule
+	// Skip header rows (first 3-4 rows typically)
+	for i := 3; i < len(rows); i++ {
+		row := rows[i]
+		if len(row) < 4 {
+			continue
+		}
+		nik := strings.TrimSpace(row[0])
+		if nik == "" || !isNumeric(nik) {
+			continue
+		}
+
+		// Parse day columns (index 4+ = day 1..31)
+		for dayIdx := 4; dayIdx < len(row) && dayIdx-3 <= 31; dayIdx++ {
+			code := strings.TrimSpace(row[dayIdx])
+			if code == "" {
+				continue
+			}
+			// Normalize shift code
+			code = normalizeShiftCode(code)
+			if code == "" {
+				continue
+			}
+
+			day := dayIdx - 3
+			dateStr := fmt.Sprintf("%s-%02d", month, day)
+			schedules = append(schedules, model.RosterSchedule{
+				EmployeeNIK:  nik,
+				ScheduleDate: dateStr,
+				ShiftCode:    code,
+			})
+		}
+	}
+	return schedules, nil
+}
+
+func parseRosterCSV(data []byte, month string) ([]model.RosterSchedule, error) {
+	reader := csv.NewReader(bytes.NewReader(data))
+	rows, err := reader.ReadAll()
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse CSV: %w", err)
+	}
+
+	var schedules []model.RosterSchedule
+	for i := 1; i < len(rows); i++ { // skip header
+		row := rows[i]
+		if len(row) < 4 {
+			continue
+		}
+		nik := strings.TrimSpace(row[0])
+		if nik == "" || !isNumeric(nik) {
+			continue
+		}
+
+		for dayIdx := 4; dayIdx < len(row) && dayIdx-3 <= 31; dayIdx++ {
+			code := strings.TrimSpace(row[dayIdx])
+			if code == "" {
+				continue
+			}
+			code = normalizeShiftCode(code)
+			if code == "" {
+				continue
+			}
+
+			day := dayIdx - 3
+			dateStr := fmt.Sprintf("%s-%02d", month, day)
+			schedules = append(schedules, model.RosterSchedule{
+				EmployeeNIK:  nik,
+				ScheduleDate: dateStr,
+				ShiftCode:    code,
+			})
+		}
+	}
+	return schedules, nil
+}
+
+func normalizeShiftCode(code string) string {
+	upper := strings.ToUpper(strings.TrimSpace(code))
+	switch upper {
+	// Shifts & attendance
+	case "D", "N", "R", "STB", "OFF":
+		return upper
+	// Leave & permits
+	case "CR", "AL", "LWP", "LWOP", "PH", "PHD":
+		return upper
+	// Sickness & absence
+	case "S", "A":
+		return upper
+	// Medical & quarantine
+	case "MCU", "MCR", "MCUF", "ISM", "OBC", "KRT":
+		return upper
+	// Assignment & training
+	case "TGS", "DNS", "TRV", "TR", "TRS", "IN":
+		return upper
+	// Employment status
+	case "TERM", "EOC", "RSG":
+		return upper
+	// Aliases
+	case "C", "CT":
+		return "CR"
+	case "O", "OFFD", "OFFN":
+		return "OFF"
+	default:
+		return ""
+	}
+}
+
+func isNumeric(s string) bool {
+	for _, c := range s {
+		if c < '0' || c > '9' {
+			return false
+		}
+	}
+	return len(s) > 0
+}
 
 // GenerateRosterExcel creates a real Excel file buffer containing Roster matrix data
 func GenerateRosterExcel(key string, month string, dept string, rows []model.RosterExportRow) ([]byte, error) {

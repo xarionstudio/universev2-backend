@@ -13,9 +13,9 @@ import (
 )
 
 type FingerprintHandler struct {
-	cfg     *config.Config
-	fpRepo  *repository.FingerprintRepo
-	worker  *worker.FingerprintWorker
+	cfg    *config.Config
+	fpRepo *repository.FingerprintRepo
+	worker *worker.FingerprintWorker
 }
 
 func NewFingerprintHandler(cfg *config.Config, fpRepo *repository.FingerprintRepo, worker *worker.FingerprintWorker) *FingerprintHandler {
@@ -47,7 +47,7 @@ func (h *FingerprintHandler) CreateDevice(c fiber.Ctx) error {
 	}
 
 	if dev.Port <= 0 {
-		dev.Port = 80
+		dev.Port = 4370 // ZKTeco/Solution default port
 	}
 
 	if err := h.fpRepo.CreateDevice(&dev); err != nil {

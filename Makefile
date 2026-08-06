@@ -55,7 +55,7 @@ dc-dev:
 # Start with custom env file, e.g.:
 #   make dc-env ENV_FILE=.env.staging
 dc-env:
-	docker compose up -d --build
+	docker compose --env-file $(ENV_FILE) up -d --build
 
 # Stop all containers
 dc-down:
@@ -75,7 +75,7 @@ dc-restart:
 
 # Run migrations inside container
 dc-migrate:
-	docker compose exec backend ./server migrate
+	docker compose exec backend ./migrate
 
 # psql inside database
 dc-psql:

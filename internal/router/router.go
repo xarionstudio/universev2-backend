@@ -31,7 +31,8 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB, fpWorker *work
 
 	// Initialize Services
 	masterSvc := service.NewMasterService(masterRepo)
-	displaySvc := service.NewDisplayService(attRepo, ftwRepo, fleetRepo, empRepo, settingsRepo)
+	fpRepo := repository.NewFingerprintRepo(db)
+	displaySvc := service.NewDisplayService(attRepo, ftwRepo, fleetRepo, empRepo, settingsRepo, fpRepo)
 	dashSvc := service.NewDashboardService(attRepo, ftwRepo, fleetRepo, rosterRepo, notifRepo, empRepo)
 
 	// Initialize Handlers
@@ -41,13 +42,12 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB, fpWorker *work
 	rosterH := handler.NewRosterHandler(rosterRepo, cfg.UploadDir)
 	attH := handler.NewAttendanceHandler(attRepo)
 	fleetH := handler.NewFleetHandler(fleetRepo)
-	prestasiH := handler.NewPrestasiHandler(prestasiRepo)
+	prestasiH := handler.NewPrestasiHandler(prestasiRepo, fleetRepo)
 	masterH := handler.NewMasterHandler(masterSvc)
 	userH := handler.NewUserHandler(userRepo, roleRepo)
 	roleH := handler.NewRoleHandler(roleRepo)
 	notifH := handler.NewNotificationHandler(notifRepo)
 	settingsH := handler.NewSettingsHandler(settingsRepo)
-	fpRepo := repository.NewFingerprintRepo(db)
 	fpH := handler.NewFingerprintHandler(cfg, fpRepo, fpWorker)
 	profileH := handler.NewProfileHandler(userRepo)
 	weatherH := handler.NewWeatherHandler()
@@ -200,18 +200,19 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB, fpWorker *work
 	settingsGroup.Delete("/displays/:id", rbac.RequirePermission("settings", "manage"), settingsH.DeleteDisplay)
 
 	// Display Heartbeat
-	api.Get("/displays/:id/heartbeat", settingsH.GetDisplayHeartbeat)
+	api.Get("/displays/:code/heartbeat", settingsH.GetDisplayHeartbeat)
 
 	// Display TV endpoints
 	displayH := handler.NewDisplayHandler(displaySvc)
-	protected.Get("/display/attendance", displayH.GetDisplayAttendance)
-	protected.Get("/display/ftw", displayH.GetDisplayFTW)
-	protected.Get("/display/fleet", displayH.GetDisplayFleet)
-	protected.Get("/display/fingerprint", displayH.GetDisplayFingerprint)
+	protected.Get("/display/attendance", rbac.RequirePermission("display", "view"), displayH.GetDisplayAttendance)
+	protected.Get("/display/ftw", rbac.RequirePermission("display", "view"), displayH.GetDisplayFTW)
+	protected.Get("/display/fleet", rbac.RequirePermission("display", "view"), displayH.GetDisplayFleet)
+	protected.Get("/display/monitor", rbac.RequirePermission("display", "view"), displayH.GetDisplayMonitor)
+	protected.Get("/display/fingerprint", rbac.RequirePermission("display", "view"), displayH.GetDisplayFingerprint)
 
 	// Dashboard summary
 	dashH := handler.NewDashboardHandler(dashSvc)
-	protected.Get("/dashboard/summary", dashH.GetDashboardSummary)
+	protected.Get("/dashboard/summary", rbac.RequirePermission("dashboard", "view"), dashH.GetDashboardSummary)
 
 	// Fingerprint Devices
 	fpGroup := protected.Group("/fingerprint")

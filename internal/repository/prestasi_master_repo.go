@@ -45,6 +45,31 @@ func (r *PrestasiRepo) GetLeaderboard(periodDays int) ([]model.PrestasiRecord, e
 			sleepRate = float64(s.SleepOkCount) / float64(s.TotalScheduledDays)
 		}
 
+		// Load daily history for this operator (for Eq. Class grouping)
+		var histEntries []model.PrestasiHistoryEntry
+		r.db.Where("employee_nik = ? AND period_days = ?", s.EmployeeNIK, periodDays).
+			Order("record_date ASC").Find(&histEntries)
+		var days []model.PrestasiDay
+		for _, h := range histEntries {
+			days = append(days, model.PrestasiDay{
+				ISO:             h.RecordDate,
+				Code:            h.ShiftCode,
+				UnitCode:        h.UnitCode,
+				Att:             h.AttStatus,
+				ClockIn:         h.ClockIn,
+				Late:            h.Late,
+				SleepMin:        h.SleepMin,
+				AttOk:           h.AttOk,
+				SleepOk:         h.SleepOk,
+				FtwStatus:       h.FtwStatus,
+				RestHours:       h.RestHours,
+				Outcome:         h.Outcome,
+				CounterpartNik:  h.CounterpartNik,
+				CounterpartName: h.CounterpartName,
+				Points:          h.Points,
+			})
+		}
+
 		records = append(records, model.PrestasiRecord{
 			NIK:           s.EmployeeNIK,
 			Name:          emp.Name,
@@ -66,6 +91,7 @@ func (r *PrestasiRepo) GetLeaderboard(periodDays int) ([]model.PrestasiRecord, e
 			QualifiedDays: s.QualifiedDays,
 			ScheduledDays: s.TotalScheduledDays,
 			CoverDays:     s.CoverDays,
+			Days:          days,
 		})
 	}
 
@@ -85,6 +111,13 @@ func (r *PrestasiRepo) GetOperatorHistory(nik string, days int) ([]model.Prestas
 func (r *PrestasiRepo) GetAllEmployeeNIKs() ([]model.Employee, error) {
 	var emps []model.Employee
 	err := r.db.Select("nik, name, dept, pos, photo_url").Order("nik ASC").Find(&emps).Error
+	return emps, err
+}
+
+// GetAllEmployeesWithCompetencies returns all employees with their competencies loaded
+func (r *PrestasiRepo) GetAllEmployeesWithCompetencies() ([]model.Employee, error) {
+	var emps []model.Employee
+	err := r.db.Preload("Komp").Order("nik ASC").Find(&emps).Error
 	return emps, err
 }
 
