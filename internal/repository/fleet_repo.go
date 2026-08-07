@@ -379,11 +379,18 @@ func (r *FleetRepo) CreateUnitDB(u *model.UnitDb) error {
 }
 
 func (r *FleetRepo) UpdateUnitDB(u *model.UnitDb) error {
-	return r.db.Model(&model.UnitDb{}).Where("id = ?", u.ID).Updates(u).Error
+	return r.db.Model(&model.UnitDb{}).Where("code = ?", u.Code).
+		Select("egi", "product", "class_name", "category", "work_area", "is_active", "is_standby", "is_breakdown", "location", "upd_date", "upd_by").
+		Updates(u).Error
 }
 
 func (r *FleetRepo) DeleteUnitDB(id uint) error {
 	return r.db.Where("id = ?", id).Delete(&model.UnitDb{}).Error
+}
+
+// DeleteUnitDBByCode deletes a unit DB entry by unit code
+func (r *FleetRepo) DeleteUnitDBByCode(code string) error {
+	return r.db.Where("code = ?", code).Delete(&model.UnitDb{}).Error
 }
 
 func (r *FleetRepo) BulkCreateUnitDB(units []model.UnitDb) (imported int, skipped int, rowErrors []string, err error) {

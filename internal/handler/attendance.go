@@ -7,6 +7,7 @@ import (
 
 	"universev/internal/dto"
 	"universev/internal/repository"
+	"universev/pkg/pagination"
 	"universev/pkg/response"
 )
 
@@ -26,8 +27,15 @@ func (h *AttendanceHandler) GetAttendanceToday(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch today attendance: "+err.Error())
 	}
 
-	meta := &response.Meta{Page: 1, Limit: 50, Total: len(rows), TotalPage: 1}
-	return response.SuccessWithMeta(c, fiber.StatusOK, "Success fetch today attendance", rows, meta)
+	return response.SuccessPaged(c, fiber.StatusOK, "Success fetch today attendance", response.PagedData{
+		Items: rows,
+		Pagination: pagination.Meta{
+			Page:       1,
+			PerPage:    50,
+			Total:      int64(len(rows)),
+			TotalPages: 1,
+		},
+	})
 }
 
 // GetAttendanceByDate — GET /api/attendance/date?date=YYYY-MM-DD

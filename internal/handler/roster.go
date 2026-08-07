@@ -83,10 +83,9 @@ func (h *RosterHandler) UploadRoster(c fiber.Ctx) error {
 		Month:   month,
 		Dept:    dept,
 		File:    file.Filename,
-		Emp:     "0",
+		Emp:     0,
 		Rows:    "0",
 		By:      createdBy,
-		Date:    time.Now().Format("2006-01-02"),
 		DateISO: time.Now().Format("2006-01-02"),
 		Status:  "aktif",
 	}
@@ -120,7 +119,7 @@ func (h *RosterHandler) UploadRoster(c fiber.Ctx) error {
 	}
 
 	// Update meta with counts
-	meta.Emp = fmt.Sprintf("%d", savedCount)
+	meta.Emp = savedCount
 	meta.Rows = fmt.Sprintf("%d", len(schedules))
 	_ = h.repo.UpdateRosterMeta(meta.ID, meta)
 

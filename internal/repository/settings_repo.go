@@ -118,7 +118,9 @@ func (r *SettingsRepo) UpdateAudioSchedule(id string, a *model.AudioSchedule) er
 	if err != nil {
 		return err
 	}
-	if err := r.db.Model(&model.AudioSchedule{}).Where("id = ?", uint(aid)).Updates(a).Error; err != nil {
+	if err := r.db.Model(&model.AudioSchedule{}).Where("id = ?", uint(aid)).
+		Select("title", "trigger_time", "frequency", "file_name", "is_active").
+		Updates(a).Error; err != nil {
 		return err
 	}
 	r.db.Where("audio_id = ?", uint(aid)).Delete(&model.AudioScheduleDisplay{})
@@ -182,7 +184,9 @@ func (r *SettingsRepo) UpdateDisplay(id string, d *model.DisplayDevice) error {
 	if err != nil {
 		return err
 	}
-	if err := r.db.Model(&model.DisplayDevice{}).Where("id = ?", uint(did)).Updates(d).Error; err != nil {
+	if err := r.db.Model(&model.DisplayDevice{}).Where("id = ?", uint(did)).
+		Select("code", "name", "location", "content_kind", "fleet_id", "rotate_sec", "running_text", "is_online", "is_active").
+		Updates(d).Error; err != nil {
 		return err
 	}
 	// Replace pivot for monitor displays

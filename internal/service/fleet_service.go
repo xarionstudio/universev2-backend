@@ -164,7 +164,18 @@ func (s *FleetService) CreateUnitDB(req dto.CreateUnitDBRequest) (*model.UnitDb,
 		return nil, fmt.Errorf("unit code is required")
 	}
 	u := &model.UnitDb{
-		Code: req.Code,
+		Code:      req.Code,
+		EGI:       req.EGI,
+		Product:   req.Product,
+		Cls:       req.Cls,
+		Category:  req.Category,
+		Area:      req.Area,
+		Active:    req.Active,
+		Standby:   req.Standby,
+		Breakdown: req.Breakdown,
+		Loc:       req.Loc,
+		Upd:       req.Upd,
+		By:        req.By,
 	}
 	if err := s.repo.CreateUnitDB(u); err != nil {
 		return nil, fmt.Errorf("failed to create unit DB: %w", err)
@@ -178,21 +189,28 @@ func (s *FleetService) UpdateUnitDB(req dto.UpdateUnitDBRequest) error {
 		return fmt.Errorf("unit code is required")
 	}
 	u := &model.UnitDb{
-		Code: req.Code,
+		Code:      req.Code,
+		EGI:       req.EGI,
+		Product:   req.Product,
+		Cls:       req.Cls,
+		Category:  req.Category,
+		Area:      req.Area,
+		Active:    req.Active,
+		Standby:   req.Standby,
+		Breakdown: req.Breakdown,
+		Loc:       req.Loc,
+		Upd:       req.Upd,
+		By:        req.By,
 	}
 	return s.repo.UpdateUnitDB(u)
 }
 
-// DeleteUnitDB deletes a unit DB entry
-func (s *FleetService) DeleteUnitDB(id string) error {
-	if internalpkg.IsTrimmedEmpty(id) {
-		return fmt.Errorf("unit ID is required")
+// DeleteUnitDB deletes a unit DB entry by unit code
+func (s *FleetService) DeleteUnitDB(code string) error {
+	if internalpkg.IsTrimmedEmpty(code) {
+		return fmt.Errorf("unit code is required")
 	}
-	uid, err := strconv.ParseUint(id, 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid unit ID")
-	}
-	return s.repo.DeleteUnitDB(uint(uid))
+	return s.repo.DeleteUnitDBByCode(code)
 }
 
 // ImportUnitDBFromExcel parses Excel file and saves unit DB entries

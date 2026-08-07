@@ -189,45 +189,44 @@ func buildEntryFromMap(cat string, body map[string]interface{}) interface{} {
 		active = v
 	}
 
+	// Generate a code if not provided (DB requires code UNIQUE NOT NULL)
+	genCode := func(prefix string) string {
+		if c, ok := body["code"].(string); ok && c != "" {
+			return c
+		}
+		return fmt.Sprintf("%s-%d", prefix, time.Now().UnixNano())
+	}
+
 	switch cat {
 	case "egi":
-		code, _ := body["code"].(string)
-		return &model.MasterEGIType{Code: code, Name: name, Active: active}
+		return &model.MasterEGIType{Code: genCode("egi"), Name: name, Active: active}
 	case "product":
-		code, _ := body["code"].(string)
-		return &model.MasterProduct{Code: code, Name: name, Active: active}
+		return &model.MasterProduct{Code: genCode("prod"), Name: name, Active: active}
 	case "eqclass":
-		code, _ := body["code"].(string)
 		desc, _ := body["description"].(string)
-		return &model.MasterEqClass{Code: code, Name: name, Description: desc, Active: active}
+		return &model.MasterEqClass{Code: genCode("eq"), Name: name, Description: desc, Active: active}
 	case "area":
-		code, _ := body["code"].(string)
 		category, _ := body["category"].(string)
-		return &model.MasterArea{Code: code, Name: name, Category: category, Active: active}
+		return &model.MasterArea{Code: genCode("area"), Name: name, Category: category, Active: active}
 	case "tempudo":
-		code, _ := body["code"].(string)
 		loc, _ := body["location"].(string)
 		pickup, _ := body["pickupType"].(string)
-		return &model.MasterTempudo{Code: code, Name: name, Location: loc, PickupType: pickup, Active: active}
+		return &model.MasterTempudo{Code: genCode("tp"), Name: name, Location: loc, PickupType: pickup, Active: active}
 	case "bus":
-		code, _ := body["code"].(string)
 		egiType, _ := body["egiType"].(string)
 		depTime, _ := body["departureTime"].(string)
-		return &model.MasterBus{Code: code, Name: name, EGIType: egiType, DepartureTime: depTime, Active: active}
+		return &model.MasterBus{Code: genCode("bus"), Name: name, EGIType: egiType, DepartureTime: depTime, Active: active}
 	case "lokasiex":
-		code, _ := body["code"].(string)
 		busCode, _ := body["busCode"].(string)
 		tempudoCode, _ := body["tempudoCode"].(string)
-		return &model.MasterLocationEx{Code: code, Name: name, BusCode: busCode, TempudoCode: tempudoCode, Active: active}
+		return &model.MasterLocationEx{Code: genCode("lex"), Name: name, BusCode: busCode, TempudoCode: tempudoCode, Active: active}
 	case "mess":
-		code, _ := body["code"].(string)
 		block, _ := body["block"].(string)
-		return &model.MasterMess{Code: code, Name: name, Block: block, Active: active}
+		return &model.MasterMess{Code: genCode("mess"), Name: name, Block: block, Active: active}
 	case "runtext":
-		code, _ := body["code"].(string)
 		target, _ := body["targetDisplay"].(string)
 		color, _ := body["textColor"].(string)
-		return &model.MasterRunningText{Code: code, Name: name, TargetDisplay: target, TextColor: color, Active: active}
+		return &model.MasterRunningText{Code: genCode("rt"), Name: name, TargetDisplay: target, TextColor: color, Active: active}
 	}
 	return nil
 }

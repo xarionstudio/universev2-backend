@@ -8,10 +8,9 @@ type RosterMeta struct {
 	Month     string    `json:"month" gorm:"column:month_period"`
 	Dept      string    `json:"dept" gorm:"column:dept"`
 	File      string    `json:"file" gorm:"column:filename"`
-	Emp       string    `json:"emp" gorm:"column:total_employees"`
+	Emp       int       `json:"emp" gorm:"column:total_employees"`
 	Rows      string    `json:"rows" gorm:"column:total_rows"`
 	By        string    `json:"by" gorm:"column:created_by"`
-	Date      string    `json:"date" gorm:"column:date_iso"`
 	DateISO   string    `json:"dateISO" gorm:"column:date_iso"`
 	Status    string    `json:"status" gorm:"column:status"`
 	CreatedAt time.Time `json:"createdAt" gorm:"column:created_at"`

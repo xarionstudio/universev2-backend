@@ -135,8 +135,8 @@ func setupTestDB() *gorm.DB {
 	// Seed test roster meta (ID auto-increment)
 	_ = db.Create(&model.RosterMeta{
 		Label: "July 2026", Month: "2026-07", Dept: "Operation",
-		File: "roster_jul.xlsx", Emp: "1", Rows: "1", By: "System",
-		Date: "2026-07-01", DateISO: "2026-07-01", Status: "aktif",
+		File: "roster_jul.xlsx", Emp: 1, Rows: "1", By: "System",
+		DateISO: "2026-07-01", Status: "aktif",
 	})
 
 	// Seed app settings (omit id so it uses auto-increment)

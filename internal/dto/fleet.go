@@ -35,18 +35,32 @@ type ReportBreakdownRequest struct {
 
 // CreateUnitDBRequest represents the unit DB creation payload
 type CreateUnitDBRequest struct {
-	Code     string `json:"code"`
-	Type     string `json:"type"`
-	Category string `json:"cat"`
-	Area     string `json:"area"`
-	Loc      string `json:"loc"`
+	Code      string `json:"code"`
+	EGI       string `json:"egi"`
+	Product   string `json:"product"`
+	Cls       string `json:"cls"`
+	Category  string `json:"cat"`
+	Area      string `json:"area"`
+	Active    bool   `json:"active"`
+	Standby   bool   `json:"standby"`
+	Breakdown bool   `json:"breakdown"`
+	Loc       string `json:"loc"`
+	Upd       string `json:"upd"`
+	By        string `json:"by"`
 }
 
 // UpdateUnitDBRequest represents the unit DB update payload
 type UpdateUnitDBRequest struct {
-	Code     string `json:"code"`
-	Type     string `json:"type"`
-	Category string `json:"cat"`
-	Area     string `json:"area"`
-	Loc      string `json:"loc"`
+	Code      string `json:"code"`
+	EGI       string `json:"egi"`
+	Product   string `json:"product"`
+	Cls       string `json:"cls"`
+	Category  string `json:"cat"`
+	Area      string `json:"area"`
+	Active    bool   `json:"active"`
+	Standby   bool   `json:"standby"`
+	Breakdown bool   `json:"breakdown"`
+	Loc       string `json:"loc"`
+	Upd       string `json:"upd"`
+	By        string `json:"by"`
 }

@@ -218,14 +218,12 @@ func (h *FleetHandler) UpdateUnitDB(c fiber.Ctx) error {
 }
 
 func (h *FleetHandler) DeleteUnitDB(c fiber.Ctx) error {
-	id := c.Query("id")
-	if err := h.fleetSvc.DeleteUnitDB(id); err != nil {
+	code := c.Query("id")
+	if err := h.fleetSvc.DeleteUnitDB(code); err != nil {
 		msg := err.Error()
 		switch msg {
-		case "unit ID is required":
-			return response.Error(c, fiber.StatusBadRequest, "Unit ID is required")
-		case "invalid unit ID":
-			return response.Error(c, fiber.StatusBadRequest, "Invalid unit ID")
+		case "unit code is required":
+			return response.Error(c, fiber.StatusBadRequest, "Unit code is required")
 		default:
 			return response.Error(c, fiber.StatusInternalServerError, msg)
 		}

@@ -48,7 +48,11 @@ func (r *EmployeeRepo) Create(emp *model.Employee) error {
 }
 
 func (r *EmployeeRepo) Update(nik string, emp *model.Employee) error {
-	return r.db.Model(&model.Employee{}).Where("nik = ?", nik).Updates(emp).Error
+	return r.db.Model(&model.Employee{}).Where("nik = ?", nik).
+		Select("name", "dept", "pos", "simper", "simper_exp", "status", "company", "equip_type",
+			"join_date", "exp_date", "license_type", "mcu_status", "med_history", "blood_type",
+			"bpjs_no", "mess_name", "room_no", "phone", "emergency_contact", "photo_url").
+		Updates(emp).Error
 }
 
 func (r *EmployeeRepo) Delete(nik string) error {
