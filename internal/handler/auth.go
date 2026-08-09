@@ -41,6 +41,14 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 		}
 	}
 
+	c.Cookie(&fiber.Cookie{
+		Name:     "jwt",
+		Value:    result.Token,
+		HTTPOnly: true,
+		SameSite: "Lax",
+		Path:     "/",
+	})
+
 	data := fiber.Map{
 		"token": result.Token,
 		"user":  result.User,
@@ -85,17 +93,23 @@ func (h *AuthHandler) Register(c fiber.Ctx) error {
 }
 
 func (h *AuthHandler) RefreshToken(c fiber.Ctx) error {
+	tokenStr := ""
 	authHeader := c.Get("Authorization")
-	if authHeader == "" {
-		return response.Error(c, fiber.StatusUnauthorized, "Missing authorization header")
+	if authHeader != "" {
+		parts := splitAuthHeader(authHeader)
+		if len(parts) == 2 {
+			tokenStr = parts[1]
+		}
+	}
+	if tokenStr == "" {
+		tokenStr = c.Cookies("jwt")
 	}
 
-	parts := splitAuthHeader(authHeader)
-	if parts == nil {
-		return response.Error(c, fiber.StatusUnauthorized, "Invalid authorization header format")
+	if tokenStr == "" {
+		return response.Error(c, fiber.StatusUnauthorized, "Missing authorization token or cookie")
 	}
 
-	result, err := h.authSvc.RefreshToken(parts[1])
+	result, err := h.authSvc.RefreshToken(tokenStr)
 	if err != nil {
 		msg := err.Error()
 		switch msg {
@@ -110,6 +124,14 @@ func (h *AuthHandler) RefreshToken(c fiber.Ctx) error {
 		}
 	}
 
+	c.Cookie(&fiber.Cookie{
+		Name:     "jwt",
+		Value:    result.Token,
+		HTTPOnly: true,
+		SameSite: "Lax",
+		Path:     "/",
+	})
+
 	data := fiber.Map{
 		"token": result.Token,
 		"user":  result.User,
@@ -119,5 +141,12 @@ func (h *AuthHandler) RefreshToken(c fiber.Ctx) error {
 }
 
 func (h *AuthHandler) Logout(c fiber.Ctx) error {
+	c.Cookie(&fiber.Cookie{
+		Name:     "jwt",
+		Value:    "",
+		HTTPOnly: true,
+		SameSite: "Lax",
+		Path:     "/",
+	})
 	return response.Success(c, fiber.StatusOK, "Logout successful", nil)
 }
