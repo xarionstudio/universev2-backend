@@ -235,15 +235,14 @@ func (s *PrestasiService) simulateDay(dateStr string, emps []model.Employee, all
 	rows := make([]Row, 0, len(emps))
 	for _, emp := range emps {
 		hVal := hashStr(emp.NIK + dateStr)
-		isScheduled := hVal%10 != 0
 
+		// Use real roster schedule from DB — fallback to OFF if no schedule exists
 		code := "OFF"
-		if isScheduled {
-			if hVal%2 == 0 {
-				code = "D"
-			} else {
-				code = "N"
-			}
+		if schedCode, err := s.repo.GetRosterSchedule(emp.NIK, dateStr); err == nil && schedCode != "" {
+			code = schedCode
+		} else {
+			// No roster data for this date — treat as OFF (not scheduled)
+			code = "OFF"
 		}
 
 		realAtt, _ := s.repo.GetAttendanceRecord(emp.NIK, dateStr)
@@ -257,14 +256,16 @@ func (s *PrestasiService) simulateDay(dateStr string, emps []model.Employee, all
 			isAttended = realAtt.St == "hadir" || realAtt.St == "terlambat"
 			isLate = realAtt.St == "terlambat"
 		} else {
-			isAttended = hVal%7 != 0
-			isLate = isAttended && (hVal%5 == 0)
+			// No attendance record — only mark as attended if scheduled
+			isAttended = false
+			isLate = false
 		}
 
 		if realFTW != nil && realFTW.SleepMin != nil {
 			sleepMin = *realFTW.SleepMin
 		} else {
-			sleepMin = 240 + int(hVal%240)
+			// No FTW log — treat as no log (belum)
+			sleepMin = 0
 		}
 
 		ftwEval := model.EvaluateFTW(&sleepMin)

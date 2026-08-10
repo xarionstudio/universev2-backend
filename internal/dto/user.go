@@ -11,10 +11,11 @@ type CreateUserRequest struct {
 
 // UpdateUserRequest represents the user update payload
 type UpdateUserRequest struct {
-	Name  string   `json:"name"`
-	Email string   `json:"email"`
-	NIK   string   `json:"nik"`
-	Roles []string `json:"roles"`
+	Name     string   `json:"name"`
+	Email    string   `json:"email"`
+	NIK      string   `json:"nik"`
+	Password string   `json:"password,omitempty"`
+	Roles    []string `json:"roles"`
 }
 
 // CreateRoleRequest represents the role creation payload

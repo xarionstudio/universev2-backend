@@ -35,7 +35,12 @@ func (h *NotificationHandler) MarkRead(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Notification ID is required")
 	}
 
-	if err := h.repo.MarkRead(id); err != nil {
+	claims, ok := c.Locals("user").(*pkg.JWTCustomClaims)
+	if !ok || claims == nil {
+		return response.Error(c, fiber.StatusUnauthorized, "Unauthorized")
+	}
+
+	if err := h.repo.MarkRead(id, claims.UserID); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to mark notification as read: "+err.Error())
 	}
 	return response.Success(c, fiber.StatusOK, "Notification marked as read", nil)

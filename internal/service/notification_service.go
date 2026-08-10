@@ -17,8 +17,8 @@ func (s *NotificationService) GetByUser(userID string) ([]model.Notification, er
 	return s.repo.GetByUser(userID)
 }
 
-func (s *NotificationService) MarkRead(id string) error {
-	return s.repo.MarkRead(id)
+func (s *NotificationService) MarkRead(id string, userID string) error {
+	return s.repo.MarkRead(id, userID)
 }
 
 func (s *NotificationService) MarkAllRead(userID string) error {

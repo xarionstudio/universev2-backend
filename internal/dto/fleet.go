@@ -22,6 +22,13 @@ type AutoAllocateRequest struct {
 	Shift string `json:"shift"`
 }
 
+// SaveAllocationRequest represents the manual allocation save payload
+type SaveAllocationRequest struct {
+	Date  string            `json:"date"`
+	Shift string            `json:"shift"`
+	Units map[string]string `json:"units"`
+}
+
 // UpdateUnitStatusRequest represents the unit status update payload
 type UpdateUnitStatusRequest struct {
 	Status string `json:"status"`

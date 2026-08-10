@@ -176,6 +176,22 @@ func (h *FleetHandler) AutoAllocate(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, "Auto allocation completed successfully", nil)
 }
 
+// SaveAllocation — saves manual allocation (assign/release changes) for a specific date+shift
+func (h *FleetHandler) SaveAllocation(c fiber.Ctx) error {
+	var req dto.SaveAllocationRequest
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
+	}
+
+	if err := h.fleetSvc.SaveAllocation(req); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to save allocation: "+err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Allocation saved successfully", fiber.Map{
+		"date":  req.Date,
+		"shift": req.Shift,
+	})
+}
+
 func (h *FleetHandler) GetUnitDB(c fiber.Ctx) error {
 	units, err := h.fleetSvc.GetUnitDB()
 	if err != nil {

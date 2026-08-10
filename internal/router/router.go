@@ -105,6 +105,7 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB, fpWorker *work
 	rosterGroup.Get("/:key/detail", rosterH.GetRosterDetail)
 	rosterGroup.Post("/upload", rbac.RequirePermission("roster", "manage"), rosterH.UploadRoster)
 
+	rosterGroup.Get("/codes", rosterH.GetShiftCodes)
 	rosterGroup.Get("/revisions", rosterH.GetRevisions)
 	rosterGroup.Get("/revisions/codes", rosterH.GetRevisionCodes)
 	rosterGroup.Post("/revisions/batch", rbac.RequirePermission("roster", "manage"), rosterH.SubmitBatchRevision)
@@ -133,6 +134,7 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB, fpWorker *work
 
 	fleetGroup.Get("/allocations", fleetH.GetAllocations)
 	fleetGroup.Post("/allocations/auto", rbac.RequirePermission("asset", "manage"), fleetH.AutoAllocate)
+	fleetGroup.Put("/allocations", rbac.RequirePermission("asset", "manage"), fleetH.SaveAllocation)
 
 	protected.Get("/units/status", rbac.RequirePermission("asset", "view"), fleetH.GetUnitStatuses)
 	protected.Put("/units/:code/status", rbac.RequirePermission("asset", "manage"), fleetH.UpdateUnitStatus)

@@ -16,6 +16,34 @@ type RosterRepo struct {
 	db *gorm.DB
 }
 
+// GetUserByID returns a user by ID (used for approver name resolution)
+func (r *RosterRepo) GetUserByID(id string) (*model.User, error) {
+	var user model.User
+	if err := r.db.Where("id = ?", id).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+// GetEmployeeNIKMap returns a map of NIK -> Employee Name for validation
+func (r *RosterRepo) GetEmployeeNIKMap() (map[string]string, error) {
+	type empInfo struct {
+		NIK  string
+		Name string
+	}
+	var emps []empInfo
+	err := r.db.Table("employees").Select("nik, name").Find(&emps).Error
+	if err != nil {
+		return nil, err
+	}
+	res := make(map[string]string, len(emps))
+	for _, e := range emps {
+		res[e.NIK] = e.Name
+	}
+	return res, nil
+}
+
+
 func NewRosterRepo(db *gorm.DB) *RosterRepo {
 	return &RosterRepo{db: db}
 }

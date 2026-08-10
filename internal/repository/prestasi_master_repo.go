@@ -157,6 +157,17 @@ func (r *PrestasiRepo) GetAttendanceRecord(nik string, dateStr string) (*model.A
 	return &att, nil
 }
 
+// GetRosterSchedule returns the roster shift code for an employee on a given date.
+// Returns empty string if no schedule exists (employee is OFF that day).
+func (r *PrestasiRepo) GetRosterSchedule(nik string, dateStr string) (string, error) {
+	var sched model.RosterSchedule
+	err := r.db.Where("employee_nik = ? AND schedule_date = ?", nik, dateStr).Limit(1).Find(&sched).Error
+	if err != nil {
+		return "", err
+	}
+	return sched.ShiftCode, nil
+}
+
 func (r *PrestasiRepo) GetFTWRecord(nik string, dateStr string) (*model.FTWRecord, error) {
 	var ftw model.FTWRecord
 	err := r.db.Where("employee_nik = ? AND log_date = ?", nik, dateStr).Limit(1).Find(&ftw).Error

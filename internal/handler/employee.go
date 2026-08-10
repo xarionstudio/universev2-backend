@@ -132,11 +132,21 @@ func (h *EmployeeHandler) GetCompetencies(c fiber.Ctx) error {
 
 func (h *EmployeeHandler) UpdateCompetencies(c fiber.Ctx) error {
 	nik := c.Params("nik")
-	var comps []model.Competency
-	if err := c.Bind().JSON(&comps); err != nil {
-		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
+
+	// Support both shapes: { competencies: [...] } and direct array
+	var body struct {
+		Competencies []model.Competency `json:"competencies"`
 	}
-	if err := h.empSvc.UpdateCompetencies(nik, comps); err != nil {
+	if err := c.Bind().JSON(&body); err != nil {
+		// Try direct array binding as fallback
+		var comps []model.Competency
+		if err2 := c.Bind().JSON(&comps); err2 != nil {
+			return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
+		}
+		body.Competencies = comps
+	}
+
+	if err := h.empSvc.UpdateCompetencies(nik, body.Competencies); err != nil {
 		msg := err.Error()
 		if msg == "NIK must be exactly 9 digits" {
 			return sendValidationError(c, "nik", msg)

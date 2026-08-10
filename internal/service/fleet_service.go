@@ -224,3 +224,14 @@ func (s *FleetService) ImportUnitDBFromExcel(data []byte) (imported int, skipped
 	}
 	return s.repo.BulkCreateUnitDB(units)
 }
+
+// SaveAllocation saves manual allocation (assign/release) for a date+shift
+func (s *FleetService) SaveAllocation(req dto.SaveAllocationRequest) error {
+	if internalpkg.IsTrimmedEmpty(req.Date) {
+		return fmt.Errorf("date is required")
+	}
+	if internalpkg.IsTrimmedEmpty(req.Shift) {
+		return fmt.Errorf("shift is required")
+	}
+	return s.repo.SaveAllocation(req.Date, req.Shift, req.Units)
+}

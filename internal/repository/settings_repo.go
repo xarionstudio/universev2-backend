@@ -212,3 +212,12 @@ func (r *SettingsRepo) UpdateHeartbeat(code string, hb string) error {
 	return r.db.Model(&model.DisplayDevice{}).Where("code = ?", code).
 		Updates(map[string]interface{}{"is_online": true, "last_heartbeat": hb}).Error
 }
+
+// GetDeviceByCode returns a display device by its code.
+func (r *SettingsRepo) GetDeviceByCode(code string) (*model.DisplayDevice, error) {
+	var dev model.DisplayDevice
+	if err := r.db.Where("code = ?", code).First(&dev).Error; err != nil {
+		return nil, err
+	}
+	return &dev, nil
+}

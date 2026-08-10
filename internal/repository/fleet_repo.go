@@ -285,6 +285,43 @@ func (r *FleetRepo) AutoAllocate(date, shift string) error {
 	return nil
 }
 
+// SaveAllocation saves manual allocation: deletes existing allocation for date+shift, then creates new
+func (r *FleetRepo) SaveAllocation(date, shift string, units map[string]string) error {
+	// Delete existing allocation + operators for this date+shift
+	var allocs []model.FleetAlloc
+	if err := r.db.Where("alloc_date = ? AND shift = ?", date, shift).Find(&allocs).Error; err != nil {
+		return err
+	}
+	for _, a := range allocs {
+		r.db.Where("allocation_id = ?", a.ID).Delete(&model.FleetAllocOperator{})
+		r.db.Delete(&a)
+	}
+
+	// Create new allocation
+	alloc := model.FleetAlloc{
+		Date:  date,
+		Shift: shift,
+	}
+	if err := r.db.Create(&alloc).Error; err != nil {
+		return err
+	}
+
+	// Save operators for each unit
+	for code, nik := range units {
+		if nik == "" {
+			continue
+		}
+		if err := r.db.Create(&model.FleetAllocOperator{
+			AllocationID: alloc.ID,
+			UnitCode:     code,
+			OperatorNIK:  nik,
+		}).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // typeiEgi maps unit EGI model to competency class name (same logic as FE typeOfEgi)
 func typeiEgi(egi string) string {
 	e := egi

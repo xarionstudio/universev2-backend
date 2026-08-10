@@ -26,12 +26,18 @@ func (r *NotificationRepo) GetByUser(userID string) ([]model.Notification, error
 	return notifs, err
 }
 
-func (r *NotificationRepo) MarkRead(id string) error {
+func (r *NotificationRepo) MarkRead(id string, userID string) error {
 	nid, err := strconv.ParseUint(id, 10, 64)
 	if err != nil {
 		return err
 	}
-	return r.db.Model(&model.Notification{}).Where("id = ?", uint(nid)).Update("is_read", true).Error
+	uid, err := strconv.ParseUint(userID, 10, 64)
+	if err != nil {
+		return err
+	}
+	return r.db.Model(&model.Notification{}).
+		Where("id = ? AND user_id = ?", uint(nid), uint(uid)).
+		Update("is_read", true).Error
 }
 
 func (r *NotificationRepo) MarkAllRead(userID string) error {

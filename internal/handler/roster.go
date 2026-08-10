@@ -13,6 +13,7 @@ import (
 	"universev/internal/dto"
 	"universev/internal/export"
 	"universev/internal/model"
+	internalpkg "universev/internal/pkg"
 	"universev/internal/repository"
 	"universev/pkg/filter"
 	"universev/pkg/pagination"
@@ -102,11 +103,16 @@ func (h *RosterHandler) UploadRoster(c fiber.Ctx) error {
 	}
 	defer f.Close()
 
-	// Parse roster schedules from the file
-	schedules, parseErr := export.ParseRosterExcel(f, month)
+	empMap, _ := h.repo.GetEmployeeNIKMap()
+
+	// Parse roster schedules and validation from the file
+	schedules, valResult, parseErr := export.ParseRosterWithValidation(f, month, empMap)
 	if parseErr != nil {
 		// File saved but parsing failed — return warning
-		return response.Success(c, fiber.StatusCreated, "Roster uploaded but parsing failed: "+parseErr.Error(), meta)
+		return response.Success(c, fiber.StatusCreated, "Roster uploaded but parsing failed: "+parseErr.Error(), fiber.Map{
+			"meta":       meta,
+			"validation": valResult,
+		})
 	}
 
 	// Save schedules to DB with roster_file_id
@@ -119,11 +125,14 @@ func (h *RosterHandler) UploadRoster(c fiber.Ctx) error {
 	}
 
 	// Update meta with counts
-	meta.Emp = savedCount
-	meta.Rows = fmt.Sprintf("%d", len(schedules))
+	meta.Emp = valResult.ValidCount
+	meta.Rows = fmt.Sprintf("%d", len(valResult.Preview))
 	_ = h.repo.UpdateRosterMeta(meta.ID, meta)
 
-	return response.Success(c, fiber.StatusCreated, "Roster uploaded and processed successfully", meta)
+	return response.Success(c, fiber.StatusCreated, "Roster uploaded and processed successfully", fiber.Map{
+		"meta":       meta,
+		"validation": valResult,
+	})
 }
 
 func (h *RosterHandler) ExportRoster(c fiber.Ctx) error {
@@ -189,16 +198,93 @@ func (h *RosterHandler) GetRevisions(c fiber.Ctx) error {
 	})
 }
 
+func (h *RosterHandler) GetShiftCodes(c fiber.Ctx) error {
+	groups := []fiber.Map{
+		{
+			"group":   "Shift & kehadiran",
+			"groupEn": "Shifts & attendance",
+			"codes": []fiber.Map{
+				{"k": "D", "v": "Day shift", "vEn": "Day shift"},
+				{"k": "N", "v": "Night shift", "vEn": "Night shift"},
+				{"k": "R", "v": "Reguler", "vEn": "Regular"},
+				{"k": "STB", "v": "Standby", "vEn": "Standby"},
+				{"k": "OFF", "v": "OFF", "vEn": "OFF"},
+			},
+		},
+		{
+			"group":   "Cuti & izin",
+			"groupEn": "Leave & permits",
+			"codes": []fiber.Map{
+				{"k": "CR", "v": "Cuti roster", "vEn": "Roster leave"},
+				{"k": "AL", "v": "Annual leave", "vEn": "Annual leave"},
+				{"k": "LWP", "v": "Izin dengan upah", "vEn": "Paid leave"},
+				{"k": "LWOP", "v": "Izin tanpa upah", "vEn": "Unpaid leave"},
+				{"k": "PH", "v": "Public holiday", "vEn": "Public holiday"},
+				{"k": "PHD", "v": "Public holiday siang", "vEn": "Public holiday (day)"},
+			},
+		},
+		{
+			"group":   "Sakit & ketidakhadiran",
+			"groupEn": "Sickness & absence",
+			"codes": []fiber.Map{
+				{"k": "S", "v": "Sakit", "vEn": "Sick"},
+				{"k": "A", "v": "Alpha", "vEn": "Alpha / no notice"},
+			},
+		},
+		{
+			"group":   "Medis & karantina",
+			"groupEn": "Medical & quarantine",
+			"codes": []fiber.Map{
+				{"k": "MCU", "v": "Medical check up", "vEn": "Medical check up"},
+				{"k": "MCR", "v": "Reguler MCU", "vEn": "Regular MCU"},
+				{"k": "MCUF", "v": "Follow up MCU", "vEn": "MCU follow-up"},
+				{"k": "ISM", "v": "Isolasi mandiri", "vEn": "Self-isolation"},
+				{"k": "OBC", "v": "Observasi COVID", "vEn": "COVID observation"},
+				{"k": "KRT", "v": "Karantina", "vEn": "Quarantine"},
+			},
+		},
+		{
+			"group":   "Tugas & training",
+			"groupEn": "Assignment & training",
+			"codes": []fiber.Map{
+				{"k": "TGS", "v": "Tugas", "vEn": "Assignment"},
+				{"k": "DNS", "v": "Dinas", "vEn": "Official duty"},
+				{"k": "TRV", "v": "Travel", "vEn": "Travel"},
+				{"k": "TR", "v": "Training di luar site", "vEn": "Off-site training"},
+				{"k": "TRS", "v": "Training onsite", "vEn": "On-site training"},
+				{"k": "IN", "v": "Induksi", "vEn": "Induction"},
+			},
+		},
+		{
+			"group":   "Status kepegawaian",
+			"groupEn": "Employment status",
+			"codes": []fiber.Map{
+				{"k": "TERM", "v": "Termination", "vEn": "Termination"},
+				{"k": "EOC", "v": "Kontrak berakhir", "vEn": "Contract ended"},
+				{"k": "RSG", "v": "Resign", "vEn": "Resign"},
+			},
+		},
+	}
+	return response.Success(c, fiber.StatusOK, "Success fetch shift codes", groups)
+}
+
 func (h *RosterHandler) GetRevisionCodes(c fiber.Ctx) error {
 	codes := []fiber.Map{
 		{"id": "D", "label": "Day Shift"},
 		{"id": "N", "label": "Night Shift"},
+		{"id": "R", "label": "Reguler"},
+		{"id": "STB", "label": "Standby"},
 		{"id": "OFF", "label": "Off / Libur"},
-		{"id": "C", "label": "Cuti Tahunan"},
+		{"id": "CR", "label": "Cuti Roster"},
+		{"id": "AL", "label": "Annual Leave"},
 		{"id": "S", "label": "Sakit"},
+		{"id": "A", "label": "Alpha / Tanpa Keterangan"},
+		{"id": "LWP", "label": "Izin Dengan Upah"},
+		{"id": "LWOP", "label": "Izin Tanpa Upah"},
 	}
 	return response.Success(c, fiber.StatusOK, "Success fetch revision codes", codes)
 }
+
 
 func (h *RosterHandler) SubmitBatchRevision(c fiber.Ctx) error {
 	var req struct {
@@ -261,7 +347,20 @@ func (h *RosterHandler) ApproveRevision(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid revision ID")
 	}
 
-	if err := h.repo.ApproveRevision(id, "Disetujui oleh Supervisor", "Approved by Supervisor"); err != nil {
+	// Use the authenticated user's name as approver
+	approver := "Supervisor"
+	if u := c.Locals("user"); u != nil {
+		if claims, ok := u.(*internalpkg.JWTCustomClaims); ok && claims != nil {
+			// Look up user name from DB using claims.UserID
+			if user, err := h.repo.GetUserByID(claims.UserID); err == nil && user != nil && user.Name != "" {
+				approver = user.Name
+			}
+		}
+	}
+	byId := "Disetujui oleh " + approver
+	byEn := "Approved by " + approver
+
+	if err := h.repo.ApproveRevision(id, byId, byEn); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to approve revision: "+err.Error())
 	}
 	return response.Success(c, fiber.StatusOK, "Revision approved", nil)
@@ -279,11 +378,24 @@ func (h *RosterHandler) ApproveRevisionWithNote(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}
 
+	// Use the authenticated user's name as approver
+	approver := "Supervisor"
+	if u := c.Locals("user"); u != nil {
+		if claims, ok := u.(*internalpkg.JWTCustomClaims); ok && claims != nil {
+			// Look up user name from DB using claims.UserID
+			if user, err := h.repo.GetUserByID(claims.UserID); err == nil && user != nil && user.Name != "" {
+				approver = user.Name
+			}
+		}
+	}
+
 	note := req.Note
 	if note == "" {
 		note = "Disetujui dengan catatan"
 	}
-	if err := h.repo.ApproveRevision(id, note, note); err != nil {
+	byId := note + " — " + approver
+	byEn := note + " — " + approver
+	if err := h.repo.ApproveRevision(id, byId, byEn); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to approve revision: "+err.Error())
 	}
 	return response.Success(c, fiber.StatusOK, "Revision approved with specific note", nil)
@@ -296,7 +408,20 @@ func (h *RosterHandler) RejectRevision(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid revision ID")
 	}
 
-	if err := h.repo.RejectRevision(id, "Ditolak", "Rejected"); err != nil {
+	// Use the authenticated user's name as approver
+	approver := "Supervisor"
+	if u := c.Locals("user"); u != nil {
+		if claims, ok := u.(*internalpkg.JWTCustomClaims); ok && claims != nil {
+			// Look up user name from DB using claims.UserID
+			if user, err := h.repo.GetUserByID(claims.UserID); err == nil && user != nil && user.Name != "" {
+				approver = user.Name
+			}
+		}
+	}
+	byId := "Ditolak oleh " + approver
+	byEn := "Rejected by " + approver
+
+	if err := h.repo.RejectRevision(id, byId, byEn); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to reject revision: "+err.Error())
 	}
 	return response.Success(c, fiber.StatusOK, "Revision rejected", nil)

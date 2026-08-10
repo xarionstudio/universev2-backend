@@ -116,6 +116,15 @@ func (s *UserService) UpdateUser(id string, req dto.UpdateUserRequest) error {
 	}
 	existing.Roles = req.Roles
 
+	if req.Password != "" {
+		salt := internalpkg.GenerateSalt()
+		hash := internalpkg.HashPasswordFE(req.Password, salt)
+		now := time.Now()
+		existing.PasswordSalt = salt
+		existing.PasswordHash = hash
+		existing.PasswordChangedAt = &now
+	}
+
 	return s.userRepo.Update(uint(uid), existing)
 }
 

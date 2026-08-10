@@ -176,9 +176,23 @@ func (h *SettingsHandler) GetDisplayHeartbeat(c fiber.Ctx) error {
 	}
 
 	_ = h.repo.UpdateHeartbeat(code, "Sekarang")
-	data := fiber.Map{
-		"online": true,
-		"hb":     "1 dtk lalu",
+
+	// Read actual device status from DB
+	dev, err := h.repo.GetDeviceByCode(code)
+	if err != nil {
+		// Device not found — return default online status
+		return response.Success(c, fiber.StatusOK, "Success ping heartbeat", fiber.Map{
+			"online": true,
+			"hb":     "1 dtk lalu",
+		})
 	}
-	return response.Success(c, fiber.StatusOK, "Success ping heartbeat", data)
+
+	hb := "1 dtk lalu"
+	if dev.Heartbeat != "" {
+		hb = dev.Heartbeat
+	}
+	return response.Success(c, fiber.StatusOK, "Success ping heartbeat", fiber.Map{
+		"online": dev.Online,
+		"hb":     hb,
+	})
 }

@@ -16,110 +16,270 @@ import (
 // ParseRosterExcel parses a roster Excel/CSV file and returns roster schedules
 // Expected format: NIK | Nama | Dept | Posisi | 01..31 (shift codes D/N/OFF/etc)
 func ParseRosterExcel(f io.Reader, month string) ([]model.RosterSchedule, error) {
-	// Read all bytes
+	schedules, _, err := ParseRosterWithValidation(f, month, nil)
+	return schedules, err
+}
+
+// ParseRosterWithValidation parses a roster Excel/CSV file, validates rows against rules and employee DB map, and returns schedules + validation result
+func ParseRosterWithValidation(f io.Reader, month string, empMap map[string]string) ([]model.RosterSchedule, model.RosterValidationResult, error) {
 	data, err := io.ReadAll(f)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read roster file: %w", err)
+		return nil, model.RosterValidationResult{}, fmt.Errorf("failed to read roster file: %w", err)
 	}
 
-	// Detect format by extension/content
-	// Try Excel first
 	excelFile, err := excelize.OpenReader(bytes.NewReader(data))
 	if err == nil {
 		defer excelFile.Close()
-		return parseRosterExcelSheet(excelFile, month)
+		return parseRosterExcelSheetWithValidation(excelFile, month, empMap)
 	}
 
-	// Fallback to CSV
-	return parseRosterCSV(data, month)
+	return parseRosterCSVWithValidation(data, month, empMap)
 }
 
-func parseRosterExcelSheet(f *excelize.File, month string) ([]model.RosterSchedule, error) {
+func processRosterRows(rawRows [][]string, month string, empMap map[string]string, headerRows int) ([]model.RosterSchedule, model.RosterValidationResult) {
+	var schedules []model.RosterSchedule
+	var preview []model.RosterPreviewRow
+	var errors []model.RosterError
+
+	seenNIKs := make(map[string]int) // NIK -> first row index
+	validCount := 0
+	dupCount := 0
+	errCount := 0
+
+	// Parse days headers
+	var days []string
+	t, parseErr := time.Parse("2006-01", month)
+	daysInMonth := 31
+	monthName := "Jul"
+	if parseErr == nil {
+		daysInMonth = time.Date(t.Year(), t.Month()+1, 0, 0, 0, 0, 0, time.UTC).Day()
+		monthName = t.Format("Jan")
+	}
+
+	for d := 1; d <= daysInMonth; d++ {
+		days = append(days, fmt.Sprintf("%02d %s", d, monthName))
+	}
+
+	for i := headerRows; i < len(rawRows); i++ {
+		row := rawRows[i]
+		rowNum := i + 1
+		if len(row) < 2 {
+			continue
+		}
+
+		rawNIK := strings.TrimSpace(row[0])
+		rawName := ""
+		if len(row) > 1 {
+			rawName = strings.TrimSpace(row[1])
+		}
+
+		if rawNIK == "" && rawName == "" {
+			continue
+		}
+
+		rowHasError := false
+
+		// Rule 1: Numeric NIK
+		if !isNumeric(rawNIK) {
+			rowHasError = true
+			errors = append(errors, model.RosterError{
+				Row:          fmt.Sprintf("%d", rowNum),
+				NIK:          rawNIK,
+				Emp:          rawName,
+				Issue:        fmt.Sprintf("Format NIK bukan angka (\"%s\")", rawNIK),
+				IssueEn:      fmt.Sprintf("NIK is not numeric (\"%s\")", rawNIK),
+				BadgeVariant: "danger",
+				Badge:        "Error",
+			})
+		}
+
+		// Rule 2: Employee DB Check (if empMap is provided)
+		empNameFromDB := ""
+		if empMap != nil && rawNIK != "" {
+			var exists bool
+			empNameFromDB, exists = empMap[rawNIK]
+			if !exists && isNumeric(rawNIK) {
+				rowHasError = true
+				errors = append(errors, model.RosterError{
+					Row:          fmt.Sprintf("%d", rowNum),
+					NIK:          rawNIK,
+					Emp:          rawName,
+					Issue:        "NIK tidak terdaftar di data karyawan",
+					IssueEn:      "NIK not found in employee data",
+					BadgeVariant: "danger",
+					Badge:        "Error",
+				})
+			}
+		}
+
+		empName := rawName
+		if empName == "" {
+			empName = empNameFromDB
+		}
+		if empName == "" {
+			empName = "—"
+		}
+
+		// Rule 3: Duplicate NIK
+		if firstRow, exists := seenNIKs[rawNIK]; exists && rawNIK != "" {
+			dupCount++
+			errors = append(errors, model.RosterError{
+				Row:          fmt.Sprintf("%d & %d", firstRow, rowNum),
+				NIK:          rawNIK,
+				Emp:          empName,
+				Issue:        fmt.Sprintf("Baris ganda — baris %d yang dipakai", rowNum),
+				IssueEn:      fmt.Sprintf("Duplicate rows — row %d is used", rowNum),
+				BadgeVariant: "warning",
+				Badge:        "Duplikat",
+			})
+		} else if rawNIK != "" {
+			seenNIKs[rawNIK] = rowNum
+		}
+
+		// Parse Days Codes
+		codesMap := make(map[int]string)
+		consecutiveN := 0
+		maxConsecutiveN := 0
+
+		for dayIdx := 4; dayIdx < len(row) && dayIdx-3 <= daysInMonth; dayIdx++ {
+			day := dayIdx - 3
+			rawCode := strings.TrimSpace(row[dayIdx])
+
+			if rawCode == "" {
+				codesMap[day] = "—"
+				if !rowHasError {
+					// Blank day warning/error
+					rowHasError = true
+					errors = append(errors, model.RosterError{
+						Row:          fmt.Sprintf("%d", rowNum),
+						NIK:          rawNIK,
+						Emp:          empName,
+						Issue:        fmt.Sprintf("Tanggal %d kosong — semua hari wajib berkode", day),
+						IssueEn:      fmt.Sprintf("Day %d empty — every day must have a code", day),
+						BadgeVariant: "danger",
+						Badge:        "Error",
+					})
+				}
+				continue
+			}
+
+			normCode := normalizeShiftCode(rawCode)
+			if normCode == "" {
+				codesMap[day] = rawCode
+				rowHasError = true
+				errors = append(errors, model.RosterError{
+					Row:          fmt.Sprintf("%d", rowNum),
+					NIK:          rawNIK,
+					Emp:          empName,
+					Issue:        fmt.Sprintf("Kode \"%s\" pada %d %s — bukan kode roster yang dikenal", rawCode, day, monthName),
+					IssueEn:      fmt.Sprintf("Code \"%s\" on %d %s — not a known roster code", rawCode, day, monthName),
+					BadgeVariant: "danger",
+					Badge:        "Error",
+				})
+				continue
+			}
+
+			codesMap[day] = normCode
+
+			if normCode == "N" {
+				consecutiveN++
+				if consecutiveN > maxConsecutiveN {
+					maxConsecutiveN = consecutiveN
+				}
+			} else {
+				consecutiveN = 0
+			}
+
+			dateStr := fmt.Sprintf("%s-%02d", month, day)
+			schedules = append(schedules, model.RosterSchedule{
+				EmployeeNIK:  rawNIK,
+				ScheduleDate: dateStr,
+				ShiftCode:    normCode,
+			})
+		}
+
+		// Rule 4: Consecutive Night shift rule (> 14 days)
+		if maxConsecutiveN > 14 {
+			rowHasError = true
+			errors = append(errors, model.RosterError{
+				Row:          fmt.Sprintf("%d", rowNum),
+				NIK:          rawNIK,
+				Emp:          empName,
+				Issue:        fmt.Sprintf("N berurutan (%d hari) > 14 hari — melanggar aturan roster", maxConsecutiveN),
+				IssueEn:      fmt.Sprintf("N consecutive (%d days) > 14 days — violates roster rules", maxConsecutiveN),
+				BadgeVariant: "danger",
+				Badge:        "Error",
+			})
+		}
+
+		if rowHasError {
+			errCount++
+		} else {
+			validCount++
+		}
+
+		preview = append(preview, model.RosterPreviewRow{
+			NIK:   rawNIK,
+			Name:  empName,
+			Codes: codesMap,
+		})
+	}
+
+	valResult := model.RosterValidationResult{
+		Preview:    preview,
+		Days:       days,
+		Errors:     errors,
+		ValidCount: validCount,
+		DupCount:   dupCount,
+		ErrCount:   errCount,
+	}
+
+	return schedules, valResult
+}
+
+func parseRosterExcelSheetWithValidation(f *excelize.File, month string, empMap map[string]string) ([]model.RosterSchedule, model.RosterValidationResult, error) {
 	sheets := f.GetSheetList()
 	if len(sheets) == 0 {
-		return nil, fmt.Errorf("no sheets found in roster file")
+		return nil, model.RosterValidationResult{}, fmt.Errorf("no sheets found in roster file")
 	}
 
 	rows, err := f.GetRows(sheets[0])
 	if err != nil {
-		return nil, fmt.Errorf("failed to read roster sheet: %w", err)
+		return nil, model.RosterValidationResult{}, fmt.Errorf("failed to read roster sheet: %w", err)
 	}
 
-	var schedules []model.RosterSchedule
-	// Skip header rows (first 3-4 rows typically)
-	for i := 3; i < len(rows); i++ {
-		row := rows[i]
-		if len(row) < 4 {
-			continue
-		}
-		nik := strings.TrimSpace(row[0])
-		if nik == "" || !isNumeric(nik) {
-			continue
-		}
-
-		// Parse day columns (index 4+ = day 1..31)
-		for dayIdx := 4; dayIdx < len(row) && dayIdx-3 <= 31; dayIdx++ {
-			code := strings.TrimSpace(row[dayIdx])
-			if code == "" {
-				continue
-			}
-			// Normalize shift code
-			code = normalizeShiftCode(code)
-			if code == "" {
-				continue
-			}
-
-			day := dayIdx - 3
-			dateStr := fmt.Sprintf("%s-%02d", month, day)
-			schedules = append(schedules, model.RosterSchedule{
-				EmployeeNIK:  nik,
-				ScheduleDate: dateStr,
-				ShiftCode:    code,
-			})
+	// Detect header row index
+	headerRows := 3
+	for idx, r := range rows {
+		if len(r) > 0 && strings.EqualFold(strings.TrimSpace(r[0]), "NIK") {
+			headerRows = idx + 1
+			break
 		}
 	}
-	return schedules, nil
+
+	schedules, validation := processRosterRows(rows, month, empMap, headerRows)
+	return schedules, validation, nil
 }
 
-func parseRosterCSV(data []byte, month string) ([]model.RosterSchedule, error) {
+func parseRosterCSVWithValidation(data []byte, month string, empMap map[string]string) ([]model.RosterSchedule, model.RosterValidationResult, error) {
 	reader := csv.NewReader(bytes.NewReader(data))
 	rows, err := reader.ReadAll()
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse CSV: %w", err)
+		return nil, model.RosterValidationResult{}, fmt.Errorf("failed to parse CSV: %w", err)
 	}
 
-	var schedules []model.RosterSchedule
-	for i := 1; i < len(rows); i++ { // skip header
-		row := rows[i]
-		if len(row) < 4 {
-			continue
-		}
-		nik := strings.TrimSpace(row[0])
-		if nik == "" || !isNumeric(nik) {
-			continue
-		}
-
-		for dayIdx := 4; dayIdx < len(row) && dayIdx-3 <= 31; dayIdx++ {
-			code := strings.TrimSpace(row[dayIdx])
-			if code == "" {
-				continue
-			}
-			code = normalizeShiftCode(code)
-			if code == "" {
-				continue
-			}
-
-			day := dayIdx - 3
-			dateStr := fmt.Sprintf("%s-%02d", month, day)
-			schedules = append(schedules, model.RosterSchedule{
-				EmployeeNIK:  nik,
-				ScheduleDate: dateStr,
-				ShiftCode:    code,
-			})
+	headerRows := 1
+	for idx, r := range rows {
+		if len(r) > 0 && strings.EqualFold(strings.TrimSpace(r[0]), "NIK") {
+			headerRows = idx + 1
+			break
 		}
 	}
-	return schedules, nil
+
+	schedules, validation := processRosterRows(rows, month, empMap, headerRows)
+	return schedules, validation, nil
 }
+
 
 func normalizeShiftCode(code string) string {
 	upper := strings.ToUpper(strings.TrimSpace(code))

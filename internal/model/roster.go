@@ -68,3 +68,29 @@ type RosterExportRow struct {
 	Pos       string         `json:"pos"`
 	Schedules map[int]string `json:"schedules"`
 }
+
+type RosterPreviewRow struct {
+	NIK   string         `json:"nik"`
+	Name  string         `json:"name"`
+	Codes map[int]string `json:"codes"`
+}
+
+type RosterError struct {
+	Row          string `json:"row"`
+	NIK          string `json:"nik"`
+	Emp          string `json:"emp"`
+	Issue        string `json:"issue"`
+	IssueEn      string `json:"issueEn"`
+	BadgeVariant string `json:"badgeVariant"` // "danger" | "warning"
+	Badge        string `json:"badge"`
+}
+
+type RosterValidationResult struct {
+	Preview    []RosterPreviewRow `json:"preview"`
+	Days       []string           `json:"days"`
+	Errors     []RosterError      `json:"errors"`
+	ValidCount int                `json:"validCount"`
+	DupCount   int                `json:"dupCount"`
+	ErrCount   int                `json:"errCount"`
+}
+
