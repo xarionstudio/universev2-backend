@@ -47,9 +47,8 @@ const (
 
 func (s *PrestasiService) GetLeaderboard(periodDays int) ([]model.PrestasiRecord, error) {
 	records, err := s.repo.GetLeaderboard(periodDays)
-	if err != nil || len(records) == 0 {
-		_ = s.Recalculate(30)
-		return s.repo.GetLeaderboard(periodDays)
+	if err != nil {
+		return nil, err
 	}
 	return records, nil
 }
