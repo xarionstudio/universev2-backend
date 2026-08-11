@@ -64,7 +64,7 @@ func (s *DisplayService) GetDisplayAttendance() ([]DisplayAttRow, error) {
 		"belum":     {"danger", "Belum absen"},
 		"terlambat": {"warning", "Terlambat"},
 		"hadir":     {"success", "Hadir"},
-		"unfit":     {"danger", "Unfit"},
+        "unfit":     {"success", "Hadir"},
 		"off":       {"neutral", "Off"},
 	}
 

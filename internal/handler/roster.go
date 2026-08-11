@@ -199,6 +199,36 @@ func (h *RosterHandler) GetRevisions(c fiber.Ctx) error {
 }
 
 func (h *RosterHandler) GetShiftCodes(c fiber.Ctx) error {
+	// Try to fetch from master_shift_codes table
+	if masterCodes, err := h.repo.GetMasterByCategory("shift_codes"); err == nil && len(masterCodes) > 0 {
+		// Convert master data to expected format
+		groups := []fiber.Map{}
+		groupMap := make(map[string][]fiber.Map)
+
+		for _, code := range masterCodes {
+			group := code.GroupID
+			if group == "" {
+				group = "Other"
+			}
+			groupMap[group] = append(groupMap[group], fiber.Map{
+				"k":   code.Code,
+				"v":   code.Name,
+				"vEn": code.NameEn,
+			})
+		}
+
+		for group, codes := range groupMap {
+			groups = append(groups, fiber.Map{
+				"group":   group,
+				"groupEn": group,
+				"codes":   codes,
+			})
+		}
+
+		return response.Success(c, fiber.StatusOK, "Success fetch shift codes", groups)
+	}
+
+	// Fallback to hardcoded defaults if master data not available
 	groups := []fiber.Map{
 		{
 			"group":   "Shift & kehadiran",
@@ -285,7 +315,6 @@ func (h *RosterHandler) GetRevisionCodes(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, "Success fetch revision codes", codes)
 }
 
-
 func (h *RosterHandler) SubmitBatchRevision(c fiber.Ctx) error {
 	var req struct {
 		Revisions []model.RosterRevision `json:"revisions"`
@@ -348,7 +377,7 @@ func (h *RosterHandler) ApproveRevision(c fiber.Ctx) error {
 	}
 
 	// Use the authenticated user's name as approver
-	approver := "Supervisor"
+	approver := "System"
 	if u := c.Locals("user"); u != nil {
 		if claims, ok := u.(*internalpkg.JWTCustomClaims); ok && claims != nil {
 			// Look up user name from DB using claims.UserID
@@ -379,7 +408,7 @@ func (h *RosterHandler) ApproveRevisionWithNote(c fiber.Ctx) error {
 	}
 
 	// Use the authenticated user's name as approver
-	approver := "Supervisor"
+	approver := "System"
 	if u := c.Locals("user"); u != nil {
 		if claims, ok := u.(*internalpkg.JWTCustomClaims); ok && claims != nil {
 			// Look up user name from DB using claims.UserID
@@ -409,7 +438,7 @@ func (h *RosterHandler) RejectRevision(c fiber.Ctx) error {
 	}
 
 	// Use the authenticated user's name as approver
-	approver := "Supervisor"
+	approver := "System"
 	if u := c.Locals("user"); u != nil {
 		if claims, ok := u.(*internalpkg.JWTCustomClaims); ok && claims != nil {
 			// Look up user name from DB using claims.UserID
@@ -442,6 +471,9 @@ func (h *RosterHandler) GetRosterDetail(c fiber.Ctx) error {
 
 func (h *RosterHandler) GetAttendance(c fiber.Ctx) error {
 	date := c.Query("date")
+	if date == "" {
+		date = time.Now().Format("2006-01-02")
+	}
 	rows, err := h.repo.GetAttendance(date)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch attendance: "+err.Error())

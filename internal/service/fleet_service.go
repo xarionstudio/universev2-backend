@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -14,12 +15,13 @@ import (
 
 // FleetService handles fleet and unit business logic
 type FleetService struct {
-	repo *repository.FleetRepo
+	repo         *repository.FleetRepo
+	settingsRepo *repository.SettingsRepo
 }
 
 // NewFleetService creates a new FleetService
-func NewFleetService(repo *repository.FleetRepo) *FleetService {
-	return &FleetService{repo: repo}
+func NewFleetService(repo *repository.FleetRepo, settingsRepo *repository.SettingsRepo) *FleetService {
+	return &FleetService{repo: repo, settingsRepo: settingsRepo}
 }
 
 // GetFleetSettings returns all fleet settings
@@ -101,6 +103,30 @@ func (s *FleetService) AutoAllocate(req dto.AutoAllocateRequest) error {
 	if internalpkg.IsTrimmedEmpty(req.Shift) {
 		return fmt.Errorf("shift is required")
 	}
+
+	// Validate max units (default 13, can be overridden by business rules)
+	maxUnits := 13
+	if s.settingsRepo != nil {
+		if rule, err := s.settingsRepo.GetBusinessRuleByCategory("fleet"); err == nil && rule != nil {
+			var fleetRules struct {
+				MaxUnits int `json:"max_units"`
+			}
+			if json.Unmarshal([]byte(rule.Rules), &fleetRules) == nil && fleetRules.MaxUnits > 0 {
+				maxUnits = fleetRules.MaxUnits
+			}
+		}
+	}
+
+	// Check current allocation count
+	allocations, err := s.repo.GetAllocations(req.Date, req.Shift)
+	if err != nil {
+		return fmt.Errorf("failed to check current allocations: %w", err)
+	}
+
+	if len(allocations) >= maxUnits {
+		return fmt.Errorf("maximum fleet allocation reached (%d units)", maxUnits)
+	}
+
 	return s.repo.AutoAllocate(req.Date, req.Shift)
 }
 

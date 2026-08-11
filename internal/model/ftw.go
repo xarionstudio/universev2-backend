@@ -11,11 +11,9 @@ const (
 	FTWStatusBelum  FTWStatus = "belum"
 )
 
-const (
-	SleepFitMin     = 330
-	SleepSpare1HMin = 300
-	SleepSpare2HMin = 240
-)
+// Note: Sleep thresholds are now dynamic from business_rules table
+// Use FtwRules from service layer instead of these constants
+// Default values: SleepFitMin=330, SleepSpare1HMin=300, SleepSpare2HMin=240
 
 type FTWEval struct {
 	Status    FTWStatus `json:"status"`
@@ -28,13 +26,15 @@ func EvaluateFTW(sleepMin *int) FTWEval {
 		return FTWEval{Status: FTWStatusBelum, RestHours: 0, CanWork: false}
 	}
 	m := *sleepMin
-	if m >= SleepFitMin {
+	// Note: These thresholds should be passed as parameters from service layer
+	// For now, using default values - migrate to business rules
+	if m >= 330 {
 		return FTWEval{Status: FTWStatusFit, RestHours: 0, CanWork: true}
 	}
-	if m >= SleepSpare1HMin {
+	if m >= 300 {
 		return FTWEval{Status: FTWStatusSpare, RestHours: 1, CanWork: true}
 	}
-	if m >= SleepSpare2HMin {
+	if m >= 240 {
 		return FTWEval{Status: FTWStatusSpare, RestHours: 2, CanWork: true}
 	}
 	return FTWEval{Status: FTWStatusPulang, RestHours: 0, CanWork: false}

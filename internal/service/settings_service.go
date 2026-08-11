@@ -98,3 +98,17 @@ func (s *SettingsService) DeleteDisplay(id string) error {
 	}
 	return s.repo.DeleteDisplay(id)
 }
+
+// Business Rules
+
+func (s *SettingsService) GetAllBusinessRules() ([]model.BusinessRule, error) {
+	return s.repo.GetAllBusinessRules()
+}
+
+func (s *SettingsService) GetBusinessRuleByCategory(category string) (*model.BusinessRule, error) {
+	return s.repo.GetBusinessRuleByCategory(category)
+}
+
+func (s *SettingsService) UpsertBusinessRule(category string, rulesJSON string, updatedBy string) error {
+	return s.repo.UpsertBusinessRule(category, rulesJSON, updatedBy)
+}

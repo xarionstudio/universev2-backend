@@ -81,7 +81,7 @@ func (h *AttendanceHandler) RecordCheckIn(c fiber.Ctx) error {
 	}
 
 	if isTrimmedEmpty(req.Machine) {
-		req.Machine = "FP-01"
+		req.Machine = "FP-01" // Default machine, can be made configurable via business rules
 	}
 
 	row, err := h.repo.RecordCheckIn(req.NIK, req.Machine)

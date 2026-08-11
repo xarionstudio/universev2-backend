@@ -34,6 +34,8 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB, fpWorker *work
 	fpRepo := repository.NewFingerprintRepo(db)
 	displaySvc := service.NewDisplayService(attRepo, ftwRepo, fleetRepo, empRepo, settingsRepo, fpRepo)
 	dashSvc := service.NewDashboardService(attRepo, ftwRepo, fleetRepo, rosterRepo, notifRepo, empRepo)
+	prestasiSvc := service.NewPrestasiService(prestasiRepo, fleetRepo, settingsRepo)
+	fleetSvc := service.NewFleetService(fleetRepo, settingsRepo)
 
 	// Initialize Handlers
 	authH := handler.NewAuthHandler(cfg, userRepo, roleRepo)
@@ -41,8 +43,8 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB, fpWorker *work
 	ftwH := handler.NewFitworkHandler(ftwRepo)
 	rosterH := handler.NewRosterHandler(rosterRepo, cfg.UploadDir)
 	attH := handler.NewAttendanceHandler(attRepo)
-	fleetH := handler.NewFleetHandler(fleetRepo)
-	prestasiH := handler.NewPrestasiHandler(prestasiRepo, fleetRepo)
+	fleetH := handler.NewFleetHandler(fleetSvc)
+	prestasiH := handler.NewPrestasiHandler(prestasiSvc)
 	masterH := handler.NewMasterHandler(masterSvc)
 	userH := handler.NewUserHandler(userRepo, roleRepo)
 	roleH := handler.NewRoleHandler(roleRepo)
@@ -97,6 +99,7 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB, fpWorker *work
 	ftwGroup.Get("/history", ftwH.GetHistory)
 	ftwGroup.Get("/export", ftwH.ExportFTW)
 	ftwGroup.Post("/submit", rbac.RequirePermission("ftw", "manage"), ftwH.SubmitLog)
+	ftwGroup.Post("/evaluate", ftwH.EvaluateFTW)
 
 	// Roster module
 	rosterGroup := protected.Group("/rosters", rbac.RequirePermission("roster", "view"))
@@ -203,6 +206,11 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB, fpWorker *work
 
 	// Display Heartbeat
 	api.Get("/displays/:code/heartbeat", settingsH.GetDisplayHeartbeat)
+
+	// Business Rules endpoints
+	settingsGroup.Get("/business-rules", settingsH.GetAllBusinessRules)
+	settingsGroup.Get("/business-rules/:category", settingsH.GetBusinessRule)
+	settingsGroup.Put("/business-rules/:category", rbac.RequirePermission("settings", "manage"), settingsH.UpsertBusinessRule)
 
 	// Display TV endpoints
 	displayH := handler.NewDisplayHandler(displaySvc)

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/json"
+
 	"github.com/gofiber/fiber/v3"
 
 	"universev/internal/model"
@@ -195,4 +197,79 @@ func (h *SettingsHandler) GetDisplayHeartbeat(c fiber.Ctx) error {
 		"online": dev.Online,
 		"hb":     hb,
 	})
+}
+
+// Business Rules
+
+func (h *SettingsHandler) GetAllBusinessRules(c fiber.Ctx) error {
+	rules, err := h.settingsSvc.GetAllBusinessRules()
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch business rules: "+err.Error())
+	}
+
+	// Parse JSON rules into map
+	result := make([]model.BusinessRulesResponse, 0, len(rules))
+	for _, rule := range rules {
+		var rulesMap map[string]interface{}
+		if err := json.Unmarshal([]byte(rule.Rules), &rulesMap); err != nil {
+			continue
+		}
+		result = append(result, model.BusinessRulesResponse{
+			Category: rule.Category,
+			Rules:    rulesMap,
+		})
+	}
+
+	return response.Success(c, fiber.StatusOK, "Success fetch business rules", result)
+}
+
+func (h *SettingsHandler) GetBusinessRule(c fiber.Ctx) error {
+	category := c.Params("category")
+	if isTrimmedEmpty(category) {
+		return response.Error(c, fiber.StatusBadRequest, "Category is required")
+	}
+
+	rule, err := h.settingsSvc.GetBusinessRuleByCategory(category)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch business rule: "+err.Error())
+	}
+
+	var rulesMap map[string]interface{}
+	if err := json.Unmarshal([]byte(rule.Rules), &rulesMap); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to parse business rule")
+	}
+
+	return response.Success(c, fiber.StatusOK, "Success fetch business rule", model.BusinessRulesResponse{
+		Category: rule.Category,
+		Rules:    rulesMap,
+	})
+}
+
+func (h *SettingsHandler) UpsertBusinessRule(c fiber.Ctx) error {
+	category := c.Params("category")
+	if isTrimmedEmpty(category) {
+		return response.Error(c, fiber.StatusBadRequest, "Category is required")
+	}
+
+	var rulesMap map[string]interface{}
+	if err := c.Bind().JSON(&rulesMap); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
+	}
+
+	rulesJSON, err := json.Marshal(rulesMap)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid rules format")
+	}
+
+	// Get user info from context (if available)
+	updatedBy := "system"
+	if username, ok := c.Locals("username").(string); ok && username != "" {
+		updatedBy = username
+	}
+
+	if err := h.settingsSvc.UpsertBusinessRule(category, string(rulesJSON), updatedBy); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to upsert business rule: "+err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Business rule updated successfully", nil)
 }

@@ -5,7 +5,6 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"universev/internal/repository"
 	"universev/internal/service"
 	"universev/pkg/response"
 )
@@ -14,8 +13,8 @@ type PrestasiHandler struct {
 	svc *service.PrestasiService
 }
 
-func NewPrestasiHandler(repo *repository.PrestasiRepo, fleetRepo *repository.FleetRepo) *PrestasiHandler {
-	return &PrestasiHandler{svc: service.NewPrestasiService(repo, fleetRepo)}
+func NewPrestasiHandler(svc *service.PrestasiService) *PrestasiHandler {
+	return &PrestasiHandler{svc: svc}
 }
 
 func (h *PrestasiHandler) GetLeaderboard(c fiber.Ctx) error {

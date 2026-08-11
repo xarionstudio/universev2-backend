@@ -25,6 +25,13 @@ func (r *RosterRepo) GetUserByID(id string) (*model.User, error) {
 	return &user, nil
 }
 
+// GetMasterByCategory returns master shift codes (for shift codes dropdown, etc.)
+func (r *RosterRepo) GetMasterByCategory(category string) ([]model.MasterShiftCode, error) {
+	var entries []model.MasterShiftCode
+	err := r.db.Order("sort_order ASC, code ASC").Find(&entries).Error
+	return entries, err
+}
+
 // GetEmployeeNIKMap returns a map of NIK -> Employee Name for validation
 func (r *RosterRepo) GetEmployeeNIKMap() (map[string]string, error) {
 	type empInfo struct {
@@ -42,7 +49,6 @@ func (r *RosterRepo) GetEmployeeNIKMap() (map[string]string, error) {
 	}
 	return res, nil
 }
-
 
 func NewRosterRepo(db *gorm.DB) *RosterRepo {
 	return &RosterRepo{db: db}

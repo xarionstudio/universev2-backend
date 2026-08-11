@@ -8,7 +8,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"universev/internal/dto"
-	"universev/internal/repository"
 	"universev/internal/service"
 	"universev/pkg/response"
 )
@@ -17,9 +16,9 @@ type FleetHandler struct {
 	fleetSvc *service.FleetService
 }
 
-func NewFleetHandler(repo *repository.FleetRepo) *FleetHandler {
+func NewFleetHandler(fleetSvc *service.FleetService) *FleetHandler {
 	return &FleetHandler{
-		fleetSvc: service.NewFleetService(repo),
+		fleetSvc: fleetSvc,
 	}
 }
 

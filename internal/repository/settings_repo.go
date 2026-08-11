@@ -221,3 +221,41 @@ func (r *SettingsRepo) GetDeviceByCode(code string) (*model.DisplayDevice, error
 	}
 	return &dev, nil
 }
+
+// Business Rules
+
+func (r *SettingsRepo) GetAllBusinessRules() ([]model.BusinessRule, error) {
+	var rules []model.BusinessRule
+	if err := r.db.Find(&rules).Error; err != nil {
+		return nil, err
+	}
+	return rules, nil
+}
+
+func (r *SettingsRepo) GetBusinessRuleByCategory(category string) (*model.BusinessRule, error) {
+	var rule model.BusinessRule
+	if err := r.db.Where("category = ?", category).First(&rule).Error; err != nil {
+		return nil, err
+	}
+	return &rule, nil
+}
+
+func (r *SettingsRepo) UpsertBusinessRule(category string, rulesJSON string, updatedBy string) error {
+	var existing model.BusinessRule
+	err := r.db.Where("category = ?", category).First(&existing).Error
+
+	if err != nil {
+		// Create new
+		rule := model.BusinessRule{
+			Category:  category,
+			Rules:     rulesJSON,
+			UpdatedBy: updatedBy,
+		}
+		return r.db.Create(&rule).Error
+	}
+
+	// Update existing
+	existing.Rules = rulesJSON
+	existing.UpdatedBy = updatedBy
+	return r.db.Save(&existing).Error
+}

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -9,23 +10,96 @@ import (
 )
 
 type PrestasiService struct {
-	repo      *repository.PrestasiRepo
-	fleetRepo *repository.FleetRepo
+	repo         *repository.PrestasiRepo
+	fleetRepo    *repository.FleetRepo
+	settingsRepo *repository.SettingsRepo
 }
 
-func NewPrestasiService(repo *repository.PrestasiRepo, fleetRepo *repository.FleetRepo) *PrestasiService {
-	return &PrestasiService{repo: repo, fleetRepo: fleetRepo}
+func NewPrestasiService(repo *repository.PrestasiRepo, fleetRepo *repository.FleetRepo, settingsRepo *repository.SettingsRepo) *PrestasiService {
+	return &PrestasiService{repo: repo, fleetRepo: fleetRepo, settingsRepo: settingsRepo}
 }
 
-const (
-	PtsBase       = 10
-	PtsOntime     = 2
-	PtsSleep      = 3
-	PtsStreakStep = 2
-	PtsStreakCap  = 10
-	PtsCover      = 5
-	PtsPenalty    = -15
-)
+// PrestasiRules holds dynamic prestasi point rules from business_rules table
+type PrestasiRules struct {
+	PtsBase                int
+	PtsOntime              int
+	PtsSleep               int
+	PtsStreakStep          int
+	PtsStreakCap           int
+	PtsCover               int
+	PtsPenalty             int
+	SleepMinGreat          int
+	BadgeStreak7Threshold  int
+	BadgeStreak14Threshold int
+}
+
+// DefaultPrestasiRules returns fallback values if business rules not found
+func DefaultPrestasiRules() PrestasiRules {
+	return PrestasiRules{
+		PtsBase:                10,
+		PtsOntime:              2,
+		PtsSleep:               3,
+		PtsStreakStep:          2,
+		PtsStreakCap:           10,
+		PtsCover:               5,
+		PtsPenalty:             -15,
+		SleepMinGreat:          420,
+		BadgeStreak7Threshold:  7,
+		BadgeStreak14Threshold: 14,
+	}
+}
+
+// GetPrestasiRules fetches prestasi rules from business_rules table
+func (s *PrestasiService) GetPrestasiRules() (PrestasiRules, error) {
+	if s.settingsRepo == nil {
+		return DefaultPrestasiRules(), nil
+	}
+
+	rule, err := s.settingsRepo.GetBusinessRuleByCategory("prestasi")
+	if err != nil {
+		return DefaultPrestasiRules(), nil // Fallback to defaults
+	}
+
+	var rules PrestasiRules
+	if err := json.Unmarshal([]byte(rule.Rules), &rules); err != nil {
+		return DefaultPrestasiRules(), nil // Fallback to defaults
+	}
+
+	// Ensure all fields have values (use defaults if missing)
+	defaults := DefaultPrestasiRules()
+	if rules.PtsBase == 0 {
+		rules.PtsBase = defaults.PtsBase
+	}
+	if rules.PtsOntime == 0 {
+		rules.PtsOntime = defaults.PtsOntime
+	}
+	if rules.PtsSleep == 0 {
+		rules.PtsSleep = defaults.PtsSleep
+	}
+	if rules.PtsStreakStep == 0 {
+		rules.PtsStreakStep = defaults.PtsStreakStep
+	}
+	if rules.PtsStreakCap == 0 {
+		rules.PtsStreakCap = defaults.PtsStreakCap
+	}
+	if rules.PtsCover == 0 {
+		rules.PtsCover = defaults.PtsCover
+	}
+	if rules.PtsPenalty == 0 {
+		rules.PtsPenalty = defaults.PtsPenalty
+	}
+	if rules.SleepMinGreat == 0 {
+		rules.SleepMinGreat = defaults.SleepMinGreat
+	}
+	if rules.BadgeStreak7Threshold == 0 {
+		rules.BadgeStreak7Threshold = defaults.BadgeStreak7Threshold
+	}
+	if rules.BadgeStreak14Threshold == 0 {
+		rules.BadgeStreak14Threshold = defaults.BadgeStreak14Threshold
+	}
+
+	return rules, nil
+}
 
 // Outcome enumerations matching FE PrestasiDay.outcome
 const (
@@ -64,6 +138,12 @@ func (s *PrestasiService) Recalculate(periodDays int) error {
 		periodDays = 30
 	}
 
+	// Load dynamic business rules
+	rules, err := s.GetPrestasiRules()
+	if err != nil {
+		return err
+	}
+
 	emps, err := s.repo.GetAllEmployeesWithCompetencies()
 	if err != nil {
 		return err
@@ -84,7 +164,7 @@ func (s *PrestasiService) Recalculate(periodDays int) error {
 	dayResults := make(map[string]map[string]model.PrestasiHistoryEntry)
 	for d := periodDays; d >= 1; d-- {
 		dateStr := time.Now().AddDate(0, 0, -d).Format("2006-01-02")
-		dayResults[dateStr] = s.simulateDay(dateStr, emps, allocByDate[dateStr], unitCodes)
+		dayResults[dateStr] = s.simulateDay(dateStr, emps, allocByDate[dateStr], unitCodes, rules)
 	}
 
 	// Aggregate per operator
@@ -150,9 +230,9 @@ func (s *PrestasiService) Recalculate(periodDays int) error {
 
 		// Add streak bonus (capped)
 		if bestStreak > 1 {
-			bonus := (bestStreak - 1) * PtsStreakStep
-			if bonus > PtsStreakCap {
-				bonus = PtsStreakCap
+			bonus := (bestStreak - 1) * rules.PtsStreakStep
+			if bonus > rules.PtsStreakCap {
+				bonus = rules.PtsStreakCap
 			}
 			totalPoints += bonus
 		}
@@ -185,10 +265,18 @@ func (s *PrestasiService) Recalculate(periodDays int) error {
 		}
 		scores = append(scores, sRow)
 
-		// Assign Badges (matching FE keys)
-		if bestStreak >= 14 {
+		// Assign Badges (matching FE keys) - using configurable thresholds
+		badgeStreak7 := rules.BadgeStreak7Threshold
+		badgeStreak14 := rules.BadgeStreak14Threshold
+		if badgeStreak7 <= 0 {
+			badgeStreak7 = 7
+		}
+		if badgeStreak14 <= 0 {
+			badgeStreak14 = 14
+		}
+		if bestStreak >= badgeStreak14 {
 			badges = append(badges, model.PrestasiBadge{EmployeeNIK: emp.NIK, BadgeKey: BadgeStreak14})
-		} else if bestStreak >= 7 {
+		} else if bestStreak >= badgeStreak7 {
 			badges = append(badges, model.PrestasiBadge{EmployeeNIK: emp.NIK, BadgeKey: BadgeStreak7})
 		}
 		if totalScheduled > 0 && sleepOkCount == totalScheduled {
@@ -214,7 +302,7 @@ func (s *PrestasiService) Recalculate(periodDays int) error {
 
 // simulateDay simulates one date for ALL operators simultaneously.
 // Handles replacement pairing: unfit operator gets penalty, replacement gets cover bonus.
-func (s *PrestasiService) simulateDay(dateStr string, emps []model.Employee, alloc map[string]string, unitCodes []string) map[string]model.PrestasiHistoryEntry {
+func (s *PrestasiService) simulateDay(dateStr string, emps []model.Employee, alloc map[string]string, unitCodes []string, rules PrestasiRules) map[string]model.PrestasiHistoryEntry {
 	result := make(map[string]model.PrestasiHistoryEntry)
 
 	type Row struct {
@@ -328,16 +416,16 @@ func (s *PrestasiService) simulateDay(dateStr string, emps []model.Employee, all
 
 	// 1. Fit operators get points
 	for _, r := range fit {
-		pts := PtsBase
+		pts := rules.PtsBase
 		if !r.Late {
-			pts += PtsOntime
+			pts += rules.PtsOntime
 		}
-		if r.SleepMin >= 420 {
-			pts += PtsSleep
+		if r.SleepMin >= rules.SleepMinGreat {
+			pts += rules.PtsSleep
 		}
 		// Spare: base points only (no ontime/sleep bonus)
 		if r.FtwStatus == "spare" {
-			pts = PtsBase
+			pts = rules.PtsBase
 		}
 
 		result[r.NIK] = model.PrestasiHistoryEntry{
@@ -399,7 +487,7 @@ func (s *PrestasiService) simulateDay(dateStr string, emps []model.Employee, all
 			FtwStatus:   r.FtwStatus,
 			RestHours:   r.RestHours,
 			Outcome:     outcome,
-			Points:      PtsPenalty,
+			Points:      rules.PtsPenalty,
 		}
 		if cover != nil {
 			entry := result[r.NIK]
@@ -410,15 +498,15 @@ func (s *PrestasiService) simulateDay(dateStr string, emps []model.Employee, all
 
 		// 3. Replacement gets cover bonus
 		if cover != nil {
-			pts := PtsBase + PtsCover
+			pts := rules.PtsBase + rules.PtsCover
 			if !cover.Late {
-				pts += PtsOntime
+				pts += rules.PtsOntime
 			}
-			if cover.SleepMin >= 420 {
-				pts += PtsSleep
+			if cover.SleepMin >= rules.SleepMinGreat {
+				pts += rules.PtsSleep
 			}
 			if cover.FtwStatus == "spare" {
-				pts = PtsBase + PtsCover
+				pts = rules.PtsBase + rules.PtsCover
 			}
 
 			result[cover.NIK] = model.PrestasiHistoryEntry{

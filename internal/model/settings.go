@@ -55,3 +55,33 @@ type AppSettings struct {
 	Lang        string          `json:"lang"`
 	MenuVis     map[string]bool `json:"menuVis"`
 }
+
+type BusinessRule struct {
+	ID        uint      `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
+	Category  string    `json:"category" gorm:"column:category;uniqueIndex"`
+	Rules     string    `json:"rules" gorm:"column:rules"` // JSON string
+	UpdatedAt time.Time `json:"updatedAt" gorm:"column:updated_at"`
+	UpdatedBy string    `json:"updatedBy" gorm:"column:updated_by"`
+}
+
+func (BusinessRule) TableName() string { return "business_rules" }
+
+type BusinessRulesResponse struct {
+	Category string                 `json:"category"`
+	Rules    map[string]interface{} `json:"rules"`
+}
+
+// MasterShiftCode represents a shift code entry
+type MasterShiftCode struct {
+	ID        int       `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
+	GroupID   string    `json:"groupId,omitempty" gorm:"column:group_id"`
+	Code      string    `json:"code" gorm:"column:code;uniqueIndex"`
+	Name      string    `json:"name" gorm:"column:name"`
+	NameEn    string    `json:"nameEn,omitempty" gorm:"column:name_en"`
+	SortOrder int       `json:"sortOrder,omitempty" gorm:"column:sort_order;default:0"`
+	Active    bool      `json:"active" gorm:"column:is_active;default:true"`
+	CreatedAt time.Time `json:"-" gorm:"column:created_at"`
+	UpdatedAt time.Time `json:"-" gorm:"column:updated_at"`
+}
+
+func (MasterShiftCode) TableName() string { return "master_shift_codes" }

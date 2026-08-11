@@ -97,12 +97,5 @@ type PrestasiHistoryEntry struct {
 
 func (PrestasiHistoryEntry) TableName() string { return "prestasi_history" }
 
-const (
-	PtsBase      = 10
-	PtsSleep     = 3
-	PtsOnTime    = 2
-	PtsCover     = 5
-	PtsStreak    = 2
-	PtsStreakCap = 10
-	PtsPenalty   = -15
-)
+// Note: Point values are now dynamic from business_rules table
+// Use PrestasiRules from service layer instead of these constants
