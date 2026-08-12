@@ -2,6 +2,9 @@ package handler
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -14,12 +17,14 @@ import (
 type SettingsHandler struct {
 	settingsSvc *service.SettingsService
 	repo        *repository.SettingsRepo
+	uploadDir   string
 }
 
-func NewSettingsHandler(repo *repository.SettingsRepo) *SettingsHandler {
+func NewSettingsHandler(repo *repository.SettingsRepo, uploadDir string) *SettingsHandler {
 	return &SettingsHandler{
 		settingsSvc: service.NewSettingsService(repo),
 		repo:        repo,
+		uploadDir:   uploadDir,
 	}
 }
 
@@ -42,6 +47,107 @@ func (h *SettingsHandler) UpdateSettings(c fiber.Ctx) error {
 	}
 
 	return response.Success(c, fiber.StatusOK, "Settings updated successfully", nil)
+}
+
+// UploadLogo handles logo file upload for company branding.
+// POST /api/settings/logo  (multipart/form-data, field: "file")
+func (h *SettingsHandler) UploadLogo(c fiber.Ctx) error {
+	return h.uploadBrandFile(c, "logo")
+}
+
+// UploadFavicon handles favicon file upload for browser tab icon.
+// POST /api/settings/favicon  (multipart/form-data, field: "file")
+func (h *SettingsHandler) UploadFavicon(c fiber.Ctx) error {
+	return h.uploadBrandFile(c, "favicon")
+}
+
+// uploadBrandFile is a shared helper for logo & favicon uploads.
+func (h *SettingsHandler) uploadBrandFile(c fiber.Ctx, kind string) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "File is required (field: 'file')")
+	}
+
+	// Sanitize filename to prevent path traversal
+	safeFilename := strings.ReplaceAll(file.Filename, "..", "")
+	safeFilename = strings.ReplaceAll(safeFilename, "/", "")
+	safeFilename = strings.ReplaceAll(safeFilename, "\\", "")
+	ext := strings.ToLower(filepath.Ext(safeFilename))
+
+	// Validate by MIME and/or extension (browsers often send empty/octet-stream for .ico)
+	contentType := file.Header.Get("Content-Type")
+	allowedMIME := map[string]bool{
+		"image/jpeg":               true,
+		"image/jpg":                true,
+		"image/png":                true,
+		"image/svg+xml":            true,
+		"image/x-icon":             true,
+		"image/vnd.microsoft.icon": true,
+		"image/webp":               true,
+		"application/octet-stream": true, // allow if extension is valid
+	}
+	allowedExt := map[string]bool{
+		".jpg": true, ".jpeg": true, ".png": true, ".svg": true, ".ico": true, ".webp": true,
+	}
+	if !allowedExt[ext] && !allowedMIME[contentType] {
+		return response.Error(c, fiber.StatusBadRequest, "Only image files (PNG, JPG, SVG, ICO, WEBP) are allowed")
+	}
+	if ext != "" && !allowedExt[ext] {
+		return response.Error(c, fiber.StatusBadRequest, "Only image files (PNG, JPG, SVG, ICO, WEBP) are allowed")
+	}
+
+	// Validate file size (max 5MB)
+	const maxFileSize = 5 << 20 // 5MB
+	if file.Size > maxFileSize {
+		return response.Error(c, fiber.StatusBadRequest, "File size exceeds maximum limit of 5MB")
+	}
+
+	// Save to uploads/branding directory
+	brandDir := filepath.Join(h.uploadDir, "branding")
+	if err := os.MkdirAll(brandDir, 0755); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to create upload directory: "+err.Error())
+	}
+
+	// Use fixed filename so old file gets replaced (avoid stale cache/DB bugs)
+	if ext == "" {
+		switch contentType {
+		case "image/png":
+			ext = ".png"
+		case "image/svg+xml":
+			ext = ".svg"
+		case "image/x-icon", "image/vnd.microsoft.icon":
+			ext = ".ico"
+		case "image/webp":
+			ext = ".webp"
+		default:
+			ext = ".jpg"
+		}
+	}
+	fileName := kind + ext
+	filePath := filepath.Join(brandDir, fileName)
+	if err := c.SaveFile(file, filePath); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to save file: "+err.Error())
+	}
+
+	// Build a browser-accessible URL
+	relPath, err := filepath.Rel(h.uploadDir, filePath)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to resolve file path: "+err.Error())
+	}
+	fileURL := "/uploads/" + filepath.ToSlash(relPath)
+
+	// Only logo updates companyLogo in app_settings.
+	// Favicon is served from a fixed path and must not overwrite the logo URL.
+	if kind == "logo" {
+		settings := model.AppSettings{CompanyLogo: fileURL}
+		if err := h.settingsSvc.UpdateAppSettings(settings); err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "Failed to save branding URL: "+err.Error())
+		}
+	}
+
+	return response.Success(c, fiber.StatusOK, "File uploaded successfully", fiber.Map{
+		"url": fileURL,
+	})
 }
 
 func (h *SettingsHandler) GetAudioSchedules(c fiber.Ctx) error {

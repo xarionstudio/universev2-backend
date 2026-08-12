@@ -20,6 +20,7 @@ func NewSettingsRepo(db *gorm.DB) *SettingsRepo {
 type AppSettingsDB struct {
 	ID          uint   `gorm:"column:id;primaryKey;autoIncrement"`
 	AppName     string `gorm:"column:app_name"`
+	AppDesc     string `gorm:"column:app_desc"`
 	AppEnv      string `gorm:"column:app_env"`
 	CompanyLogo string `gorm:"column:company_logo"`
 	Theme       string `gorm:"column:theme"`
@@ -38,7 +39,7 @@ func (r *SettingsRepo) GetAppSettings() (model.AppSettings, error) {
 			"asset": true, "prestasi": true, "master": true, "users": true, "settings": true,
 		}
 		return model.AppSettings{
-			AppName: "universev", AppEnv: "development", CompanyLogo: "",
+			AppName: "universev", AppDesc: "", AppEnv: "development", CompanyLogo: "",
 			Theme: "dark", Lang: "id", MenuVis: defaultVis,
 		}, nil
 	}
@@ -48,6 +49,7 @@ func (r *SettingsRepo) GetAppSettings() (model.AppSettings, error) {
 
 	return model.AppSettings{
 		AppName:     dbRow.AppName,
+		AppDesc:     dbRow.AppDesc,
 		AppEnv:      dbRow.AppEnv,
 		CompanyLogo: dbRow.CompanyLogo,
 		Theme:       dbRow.Theme,
@@ -57,29 +59,71 @@ func (r *SettingsRepo) GetAppSettings() (model.AppSettings, error) {
 }
 
 func (r *SettingsRepo) UpdateAppSettings(s model.AppSettings) error {
-	visBytes, _ := json.Marshal(s.MenuVis)
 	// Try to get existing record
 	var existing AppSettingsDB
 	if err := r.db.First(&existing).Error; err != nil {
-		// No existing record, create new one
+		// No existing record, create new one with defaults
+		visBytes, _ := json.Marshal(s.MenuVis)
 		dbRow := AppSettingsDB{
 			AppName:     s.AppName,
+			AppDesc:     s.AppDesc,
 			AppEnv:      s.AppEnv,
 			CompanyLogo: s.CompanyLogo,
 			Theme:       s.Theme,
 			Lang:        s.Lang,
 			MenuVisJSON: string(visBytes),
 		}
+		if dbRow.AppName == "" {
+			dbRow.AppName = "universev"
+		}
+		if dbRow.AppEnv == "" {
+			dbRow.AppEnv = "development"
+		}
+		if dbRow.Theme == "" {
+			dbRow.Theme = "dark"
+		}
+		if dbRow.Lang == "" {
+			dbRow.Lang = "id"
+		}
+		if dbRow.MenuVisJSON == "" || dbRow.MenuVisJSON == "null" {
+			defaultVis, _ := json.Marshal(map[string]bool{
+				"display": true, "roster": true, "employees": true, "ftw": true,
+				"asset": true, "prestasi": true, "master": true, "users": true, "settings": true,
+			})
+			dbRow.MenuVisJSON = string(defaultVis)
+		}
 		return r.db.Create(&dbRow).Error
 	}
-	// Update existing
-	existing.AppName = s.AppName
-	existing.AppEnv = s.AppEnv
-	existing.CompanyLogo = s.CompanyLogo
-	existing.Theme = s.Theme
-	existing.Lang = s.Lang
-	existing.MenuVisJSON = string(visBytes)
-	return r.db.Save(&existing).Error
+
+	// Partial update: only overwrite fields that are non-empty / provided
+	updates := map[string]interface{}{}
+	if s.AppName != "" {
+		updates["app_name"] = s.AppName
+	}
+	if s.AppDesc != "" {
+		updates["app_desc"] = s.AppDesc
+	}
+	if s.AppEnv != "" {
+		updates["app_env"] = s.AppEnv
+	}
+	if s.CompanyLogo != "" {
+		updates["company_logo"] = s.CompanyLogo
+	}
+	if s.Theme != "" {
+		updates["theme"] = s.Theme
+	}
+	if s.Lang != "" {
+		updates["lang"] = s.Lang
+	}
+	if s.MenuVis != nil {
+		visBytes, _ := json.Marshal(s.MenuVis)
+		updates["menu_vis_json"] = string(visBytes)
+	}
+
+	if len(updates) == 0 {
+		return nil
+	}
+	return r.db.Model(&AppSettingsDB{}).Where("id = ?", existing.ID).Updates(updates).Error
 }
 
 // Audio Schedules

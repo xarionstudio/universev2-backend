@@ -44,7 +44,27 @@ func (r *EmployeeRepo) GetByNIK(nik string) (*model.Employee, error) {
 }
 
 func (r *EmployeeRepo) Create(emp *model.Employee) error {
-	return r.db.Create(emp).Error
+	// Convert empty strings to NULL for date fields to avoid PostgreSQL errors
+	// GORM will skip fields with empty strings, so we use a map to set NULL explicitly
+	updates := map[string]interface{}{
+		"nik": emp.NIK, "name": emp.Name, "dept": emp.Dept, "pos": emp.Pos,
+		"simper": emp.Simper, "status": emp.Status, "company": emp.Company,
+		"equip_type": emp.Equip, "join_date": nullIfEmpty(emp.Join),
+		"exp_date": nullIfEmpty(emp.Exp), "license_type": emp.License,
+		"mcu_status": emp.MCU, "med_history": emp.Medis, "blood_type": emp.Blood,
+		"bpjs_no": emp.BPJS, "mess_name": emp.Mess, "room_no": emp.Kamar,
+		"phone": emp.HP, "emergency_contact": emp.Emergency, "photo_url": emp.Foto,
+		"simper_exp": nullIfEmpty(emp.SimperExp),
+	}
+	return r.db.Model(&model.Employee{}).Create(updates).Error
+}
+
+// nullIfEmpty returns nil if the string is empty, otherwise returns the string
+func nullIfEmpty(s string) interface{} {
+	if s == "" {
+		return nil
+	}
+	return s
 }
 
 func (r *EmployeeRepo) Update(nik string, emp *model.Employee) error {

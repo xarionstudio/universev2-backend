@@ -49,7 +49,7 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB, fpWorker *work
 	userH := handler.NewUserHandler(userRepo, roleRepo)
 	roleH := handler.NewRoleHandler(roleRepo)
 	notifH := handler.NewNotificationHandler(notifRepo)
-	settingsH := handler.NewSettingsHandler(settingsRepo)
+	settingsH := handler.NewSettingsHandler(settingsRepo, cfg.UploadDir)
 	fpH := handler.NewFingerprintHandler(cfg, fpRepo, fpWorker)
 	profileH := handler.NewProfileHandler(userRepo)
 	weatherH := handler.NewWeatherHandler()
@@ -193,6 +193,10 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB, fpWorker *work
 	settingsGroup := protected.Group("/settings", rbac.RequirePermission("settings", "view"))
 	settingsGroup.Get("/", settingsH.GetSettings)
 	settingsGroup.Put("/", rbac.RequirePermission("settings", "manage"), settingsH.UpdateSettings)
+
+	// Branding uploads (logo & favicon)
+	settingsGroup.Post("/logo", rbac.RequirePermission("settings", "manage"), settingsH.UploadLogo)
+	settingsGroup.Post("/favicon", rbac.RequirePermission("settings", "manage"), settingsH.UploadFavicon)
 
 	settingsGroup.Get("/audio", settingsH.GetAudioSchedules)
 	settingsGroup.Post("/audio", rbac.RequirePermission("settings", "manage"), settingsH.CreateAudioSchedule)

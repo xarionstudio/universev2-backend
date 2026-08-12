@@ -47,6 +47,12 @@ func (s *EmployeeService) CreateEmployee(req dto.CreateEmployeeRequest) (*model.
 	if internalpkg.IsTrimmedEmpty(req.Name) {
 		return nil, fmt.Errorf("name is required")
 	}
+	if internalpkg.IsTrimmedEmpty(req.Join) {
+		return nil, fmt.Errorf("join date is required")
+	}
+	if internalpkg.IsTrimmedEmpty(req.Exp) {
+		return nil, fmt.Errorf("expiry date is required")
+	}
 
 	existing, _ := s.repo.GetByNIK(req.NIK)
 	if existing != nil {
@@ -56,10 +62,15 @@ func (s *EmployeeService) CreateEmployee(req dto.CreateEmployeeRequest) (*model.
 	if req.Status != "" && req.Status != "aktif" && req.Status != "cuti" && req.Status != "nonaktif" {
 		return nil, fmt.Errorf("invalid status: must be aktif, cuti, or nonaktif")
 	}
+	// Default status to "aktif" if not provided (DB CHECK constraint requires aktif|cuti|nonaktif)
+	status := req.Status
+	if status == "" {
+		status = "aktif"
+	}
 
 	newEmp := &model.Employee{
 		NIK: req.NIK, Name: req.Name, Dept: req.Dept, Pos: req.Pos,
-		Simper: req.Simper, SimperExp: req.SimperExp, Status: req.Status,
+		Simper: req.Simper, SimperExp: req.SimperExp, Status: status,
 		Company: req.Company, Equip: req.Equip, Join: req.Join, Exp: req.Exp,
 		License: req.License, MCU: req.MCU, Medis: req.Medis, Blood: req.Blood,
 		BPJS: req.BPJS, Mess: req.Mess, Kamar: req.Kamar, HP: req.HP,
@@ -89,10 +100,15 @@ func (s *EmployeeService) UpdateEmployee(nik string, req dto.UpdateEmployeeReque
 	if req.Status != "" && req.Status != "aktif" && req.Status != "cuti" && req.Status != "nonaktif" {
 		return fmt.Errorf("invalid status: must be aktif, cuti, or nonaktif")
 	}
+	// Default status to "aktif" if not provided (DB CHECK constraint requires aktif|cuti|nonaktif)
+	status := req.Status
+	if status == "" {
+		status = "aktif"
+	}
 
 	emp := &model.Employee{
 		Name: req.Name, Dept: req.Dept, Pos: req.Pos,
-		Simper: req.Simper, SimperExp: req.SimperExp, Status: req.Status,
+		Simper: req.Simper, SimperExp: req.SimperExp, Status: status,
 		Company: req.Company, Equip: req.Equip, Join: req.Join, Exp: req.Exp,
 		License: req.License, MCU: req.MCU, Medis: req.Medis, Blood: req.Blood,
 		BPJS: req.BPJS, Mess: req.Mess, Kamar: req.Kamar, HP: req.HP,

@@ -49,6 +49,7 @@ func (DisplayFleet) TableName() string { return "display_fleets" }
 
 type AppSettings struct {
 	AppName     string          `json:"appName"`
+	AppDesc     string          `json:"appDesc"`
 	AppEnv      string          `json:"appEnv"`
 	CompanyLogo string          `json:"companyLogo"`
 	Theme       string          `json:"theme"`

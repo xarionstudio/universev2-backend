@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/cors"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/recover"
+	"github.com/gofiber/fiber/v3/middleware/static"
 
 	"universev/internal/config"
 	"universev/internal/database"
@@ -86,6 +87,9 @@ func main() {
 
 	// Setup all API v1 routes with GORM DB
 	router.SetupRoutes(app, cfg, db, fpWorker)
+
+	// Serve uploaded files (photos, rosters, etc.) statically
+	app.Use("/uploads", static.New(cfg.UploadDir))
 
 	log.Printf("Server starting on port %s", cfg.AppPort)
 	if err := app.Listen(":" + cfg.AppPort); err != nil {

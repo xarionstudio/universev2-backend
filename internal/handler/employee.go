@@ -90,6 +90,7 @@ func (h *EmployeeHandler) UpdateEmployee(c fiber.Ctx) error {
 	nik := c.Params("nik")
 	var req dto.UpdateEmployeeRequest
 	if err := c.Bind().JSON(&req); err != nil {
+		fmt.Printf("[DEBUG] UpdateEmployee bind error: %v | Raw body: %s\n", err, string(c.Body()))
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}
 
@@ -194,7 +195,12 @@ func (h *EmployeeHandler) UploadPhoto(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to save photo: "+err.Error())
 	}
 
-	photoURL := "/" + photoPath
+	// Build a browser-accessible URL relative to the static /uploads mount
+	relPath, err := filepath.Rel(h.uploadDir, photoPath)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to resolve photo path: "+err.Error())
+	}
+	photoURL := "/uploads/" + filepath.ToSlash(relPath)
 	if err := h.empSvc.UpdatePhoto(nik, photoURL); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update photo URL: "+err.Error())
 	}
