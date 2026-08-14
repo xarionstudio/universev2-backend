@@ -57,10 +57,8 @@ func (r *FTWRepo) GetLogsPaginated(f filter.Params, p pagination.Params) ([]mode
 }
 
 func (r *FTWRepo) Submit(rec *model.FTWRecord) error {
-	ev := model.EvaluateFTW(rec.SleepMin)
-	rec.St = ev.Status
-	rec.RestHours = ev.RestHours
-	rec.CanWork = ev.CanWork
+	// Status/RestHours/CanWork are pre-computed by the handler/service
+	// using dynamic business rules. Do not recompute here with hardcoded values.
 	return r.db.Create(rec).Error
 }
 

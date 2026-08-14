@@ -30,7 +30,7 @@ func TestFTWEndpoints(t *testing.T) {
 	})
 
 	t.Run("POST /api/ftw/submit", func(t *testing.T) {
-		body, _ := json.Marshal(map[string]interface{}{"nik": "503264133", "sleepMin": 440, "shift": "siang"})
+		body, _ := json.Marshal(map[string]interface{}{"nik": "503264133", "sleepMin": 440, "shift": "pagi"})
 		req := httptest.NewRequest("POST", "/api/ftw/submit", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)

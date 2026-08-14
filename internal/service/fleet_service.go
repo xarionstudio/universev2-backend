@@ -39,6 +39,7 @@ func (s *FleetService) CreateFleetSetting(req dto.CreateFleetSettingRequest) (*m
 		Loc:    req.Loc,
 		Bus:    req.Bus,
 		Units:  req.Units,
+		Active: req.Active,
 	}
 	if err := s.repo.CreateFleetSetting(f); err != nil {
 		return nil, fmt.Errorf("failed to create fleet setting: %w", err)
@@ -63,6 +64,7 @@ func (s *FleetService) UpdateFleetSetting(id string, req dto.UpdateFleetSettingR
 		Loc:    req.Loc,
 		Bus:    req.Bus,
 		Units:  req.Units,
+		Active: req.Active,
 	}
 	return s.repo.UpdateFleetSetting(uint(uid), f)
 }
@@ -95,13 +97,13 @@ func (s *FleetService) GetAllocations(date, shift string) (model.FleetAllocRespo
 	return result, nil
 }
 
-// AutoAllocate performs auto allocation
-func (s *FleetService) AutoAllocate(req dto.AutoAllocateRequest) error {
+// AutoAllocate performs auto allocation and returns the fresh allocations map
+func (s *FleetService) AutoAllocate(req dto.AutoAllocateRequest) (model.FleetAllocResponse, error) {
 	if internalpkg.IsTrimmedEmpty(req.Date) {
-		return fmt.Errorf("date is required")
+		return nil, fmt.Errorf("date is required")
 	}
 	if internalpkg.IsTrimmedEmpty(req.Shift) {
-		return fmt.Errorf("shift is required")
+		return nil, fmt.Errorf("shift is required")
 	}
 
 	// Validate max units (default 13, can be overridden by business rules)
@@ -120,14 +122,20 @@ func (s *FleetService) AutoAllocate(req dto.AutoAllocateRequest) error {
 	// Check current allocation count
 	allocations, err := s.repo.GetAllocations(req.Date, req.Shift)
 	if err != nil {
-		return fmt.Errorf("failed to check current allocations: %w", err)
+		return nil, fmt.Errorf("failed to check current allocations: %w", err)
 	}
 
 	if len(allocations) >= maxUnits {
-		return fmt.Errorf("maximum fleet allocation reached (%d units)", maxUnits)
+		return nil, fmt.Errorf("maximum fleet allocation reached (%d units)", maxUnits)
 	}
 
-	return s.repo.AutoAllocate(req.Date, req.Shift)
+	if err := s.repo.AutoAllocate(req.Date, req.Shift); err != nil {
+		return nil, err
+	}
+
+	// Return fresh allocations for the requested date+shift so the UI can
+	// reflect the server-side result immediately (single round-trip).
+	return s.GetAllocations(req.Date, req.Shift)
 }
 
 // GetUnitStatuses returns all unit statuses

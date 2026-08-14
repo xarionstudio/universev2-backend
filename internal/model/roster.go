@@ -27,6 +27,7 @@ type RosterRevision struct {
 	WhatEn       string    `json:"whatEn" gorm:"column:what_en"`
 	WhenId       string    `json:"whenId" gorm:"column:when_id"`
 	WhenEn       string    `json:"whenEn" gorm:"column:when_en"`
+	TargetDate   string    `json:"targetDate" gorm:"column:target_date"`
 	Status       string    `json:"status" gorm:"column:status"`
 	ById         string    `json:"byId,omitempty" gorm:"column:by_id"`
 	ByEn         string    `json:"byEn,omitempty" gorm:"column:by_en"`
@@ -93,4 +94,3 @@ type RosterValidationResult struct {
 	DupCount   int                `json:"dupCount"`
 	ErrCount   int                `json:"errCount"`
 }
-

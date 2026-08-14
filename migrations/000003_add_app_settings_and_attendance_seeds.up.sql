@@ -34,13 +34,13 @@ INSERT INTO attendance_logs (employee_nik, attendance_date, shift_code, check_in
 
 -- 4. SEED FTW LOGS (matches FE initialFtwRows)
 INSERT INTO ftw_logs (employee_nik, shift, sleep_minutes, sleep_formatted, status, rest_hours, can_work, send_time, log_date) VALUES
-('503264133', 'siang', 440, '7 j 20 m', 'fit',    0, TRUE,  '05:12', CURRENT_DATE),
-('503264134', 'siang', 405, '6 j 45 m', 'fit',    0, TRUE,  '05:30', CURRENT_DATE),
-('503264135', 'siang', 220, '3 j 40 m', 'pulang', 0, FALSE, '05:01', CURRENT_DATE),
-('503264136', 'siang', 315, '5 j 15 m', 'spare',  1, TRUE,  '05:22', CURRENT_DATE),
-('503264137', 'siang', 390, '6 j 30 m', 'fit',    0, TRUE,  '06:15', CURRENT_DATE),
-('503264138', 'siang', 430, '7 j 10 m', 'fit',    0, TRUE,  '05:40', CURRENT_DATE),
-('503264141', 'siang', 270, '4 j 30 m', 'spare',  2, TRUE,  '05:10', CURRENT_DATE);
+('503264133', 'pagi', 440, '7 j 20 m', 'fit',    0, TRUE,  '05:12', CURRENT_DATE),
+('503264134', 'pagi', 405, '6 j 45 m', 'fit',    0, TRUE,  '05:30', CURRENT_DATE),
+('503264135', 'pagi', 220, '3 j 40 m', 'pulang', 0, FALSE, '05:01', CURRENT_DATE),
+('503264136', 'pagi', 315, '5 j 15 m', 'spare',  1, TRUE,  '05:22', CURRENT_DATE),
+('503264137', 'pagi', 390, '6 j 30 m', 'fit',    0, TRUE,  '06:15', CURRENT_DATE),
+('503264138', 'pagi', 430, '7 j 10 m', 'fit',    0, TRUE,  '05:40', CURRENT_DATE),
+('503264141', 'pagi', 270, '4 j 30 m', 'spare',  2, TRUE,  '05:10', CURRENT_DATE);
 
 -- 5. SEED ROSTER METAS & REVISIONS (matches FE rosterMeta & initialRevisions)
 INSERT INTO roster_files (id, label, month_period, dept, filename, total_employees, total_rows, created_by, date_iso, status) VALUES

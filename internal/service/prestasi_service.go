@@ -143,6 +143,7 @@ func (s *PrestasiService) Recalculate(periodDays int) error {
 	if err != nil {
 		return err
 	}
+	ftwRules := GetFtwRules(s.settingsRepo)
 
 	emps, err := s.repo.GetAllEmployeesWithCompetencies()
 	if err != nil {
@@ -164,7 +165,7 @@ func (s *PrestasiService) Recalculate(periodDays int) error {
 	dayResults := make(map[string]map[string]model.PrestasiHistoryEntry)
 	for d := periodDays; d >= 1; d-- {
 		dateStr := time.Now().AddDate(0, 0, -d).Format("2006-01-02")
-		dayResults[dateStr] = s.simulateDay(dateStr, emps, allocByDate[dateStr], unitCodes, rules)
+		dayResults[dateStr] = s.simulateDay(dateStr, emps, allocByDate[dateStr], unitCodes, rules, ftwRules)
 	}
 
 	// Aggregate per operator
@@ -302,7 +303,7 @@ func (s *PrestasiService) Recalculate(periodDays int) error {
 
 // simulateDay simulates one date for ALL operators simultaneously.
 // Handles replacement pairing: unfit operator gets penalty, replacement gets cover bonus.
-func (s *PrestasiService) simulateDay(dateStr string, emps []model.Employee, alloc map[string]string, unitCodes []string, rules PrestasiRules) map[string]model.PrestasiHistoryEntry {
+func (s *PrestasiService) simulateDay(dateStr string, emps []model.Employee, alloc map[string]string, unitCodes []string, rules PrestasiRules, ftwRules FtwRules) map[string]model.PrestasiHistoryEntry {
 	result := make(map[string]model.PrestasiHistoryEntry)
 
 	type Row struct {
@@ -355,7 +356,7 @@ func (s *PrestasiService) simulateDay(dateStr string, emps []model.Employee, all
 			sleepMin = 0
 		}
 
-		ftwEval := model.EvaluateFTW(&sleepMin)
+		ftwEval := FtwEvaluateWithRules(&sleepMin, ftwRules)
 
 		unitCode := ""
 		if alloc != nil {

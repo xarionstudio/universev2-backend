@@ -43,6 +43,9 @@ func (s *UserService) CreateUser(req dto.CreateUserRequest) (*model.User, error)
 	if len(req.Roles) == 0 {
 		return nil, fmt.Errorf("at least one role is required")
 	}
+	if len(req.Password) < 8 {
+		return nil, fmt.Errorf("password must be at least 8 characters")
+	}
 	if req.NIK != "" && !internalpkg.IsValidNIK(req.NIK) {
 		return nil, fmt.Errorf("NIK must be exactly 9 digits")
 	}

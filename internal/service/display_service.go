@@ -64,7 +64,7 @@ func (s *DisplayService) GetDisplayAttendance() ([]DisplayAttRow, error) {
 		"belum":     {"danger", "Belum absen"},
 		"terlambat": {"warning", "Terlambat"},
 		"hadir":     {"success", "Hadir"},
-        "unfit":     {"success", "Hadir"},
+		"unfit":     {"success", "Hadir"},
 		"off":       {"neutral", "Off"},
 	}
 
@@ -235,6 +235,9 @@ func (s *DisplayService) GetDisplayFleet(fleetID, shift, date string) ([]FleetDi
 
 	result := make([]FleetDisplayData, 0)
 	for _, fs := range settings {
+		if !fs.Active {
+			continue
+		}
 		if fleetID != "" && fmt.Sprintf("%d", fs.ID) != fleetID {
 			continue
 		}

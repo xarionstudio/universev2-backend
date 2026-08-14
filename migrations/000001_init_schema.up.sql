@@ -164,8 +164,8 @@ CREATE TABLE IF NOT EXISTS attendance_logs (
 CREATE TABLE IF NOT EXISTS ftw_logs (
     id SERIAL PRIMARY KEY,
     employee_nik VARCHAR(50) REFERENCES employees(nik) ON DELETE CASCADE,
-    -- shift matches FE FtwRecord.shift: siang|malam
-    shift VARCHAR(20) CHECK (shift IN ('siang', 'malam')),
+    -- shift matches FE FtwRecord.shift: pagi|malam
+    shift VARCHAR(20) CHECK (shift IN ('pagi', 'malam')),
     -- sleep_minutes = sleepMin in FE
     sleep_minutes INTEGER,
     -- sleep_formatted = sleep in FE (display string "7 j 20 m")

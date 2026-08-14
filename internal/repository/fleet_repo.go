@@ -61,8 +61,16 @@ func (r *FleetRepo) GetUnitHistory(code string) ([]model.UnitHist, error) {
 }
 
 func (r *FleetRepo) UpdateUnitStatus(code string, status model.UnitStatus, note string) error {
-	return r.db.Model(&model.UnitStatusRow{}).Where("unit_code = ?", code).
-		Updates(map[string]interface{}{"status": string(status), "updated_note": note}).Error
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&model.UnitStatusRow{}).Where("unit_code = ?", code).
+			Updates(map[string]interface{}{"status": string(status), "updated_note": note}).Error; err != nil {
+			return err
+		}
+		return tx.Model(&model.UnitDb{}).Where("code = ?", code).Updates(map[string]interface{}{
+			"is_breakdown": status == model.UnitStatusBreakdown,
+			"is_standby":   status == model.UnitStatusStandby,
+		}).Error
+	})
 }
 
 func (r *FleetRepo) AddUnitHistory(code, when, what, why, status string) error {
@@ -101,7 +109,12 @@ func (r *FleetRepo) CreateFleetSetting(f *model.FleetSetting) error {
 }
 
 func (r *FleetRepo) UpdateFleetSetting(id uint, f *model.FleetSetting) error {
-	if err := r.db.Model(&model.FleetSetting{}).Where("id = ?", id).Updates(f).Error; err != nil {
+	if err := r.db.Model(&model.FleetSetting{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"digger_code": f.Digger,
+		"location":    f.Loc,
+		"bus_code":    f.Bus,
+		"is_active":   f.Active,
+	}).Error; err != nil {
 		return err
 	}
 	r.db.Where("fleet_setting_id = ?", id).Delete(&model.FleetSettingUnit{})
@@ -207,19 +220,35 @@ func (r *FleetRepo) AutoAllocate(date, shift string) error {
 		NIK       string
 		Name      string
 		ClassName string
+		Expiry    string
 	}
 	var empComps []EmpComp
 	if err := r.db.Table("employees").
-		Select("employees.nik, employees.name, employee_competencies.class_name").
+		Select("employees.nik, employees.name, employee_competencies.class_name, employee_competencies.expiry_date").
 		Joins("JOIN employee_competencies ON employee_competencies.employee_id = employees.id").
 		Where("employees.status = ?", "aktif").
 		Scan(&empComps).Error; err != nil {
 		return err
 	}
 
-	// Build operator competency map: nik -> []class
+	// Load FTW status for the target date (skip "belum"/"pulang" operators, same as FE)
+	ftwUnfit := make(map[string]bool)
+	var ftwLogs []model.FTWRecord
+	r.db.Select("employee_nik, status").Where("log_date = ?", date).Find(&ftwLogs)
+	for _, l := range ftwLogs {
+		if l.St == model.FTWStatusBelum || l.St == model.FTWStatusPulang {
+			ftwUnfit[l.NIK] = true
+		}
+	}
+
+	// Build operator competency map: nik -> []class (only non-expired competencies)
+	today := time.Now().Format("2006-01-02")
 	opClasses := make(map[string][]string)
 	for _, e := range empComps {
+		// Skip expired competency (same as FE validKomp check)
+		if e.Expiry != "" && e.Expiry < today {
+			continue
+		}
 		if _, ok := opClasses[e.NIK]; !ok {
 			opClasses[e.NIK] = []string{}
 		}
@@ -259,6 +288,10 @@ func (r *FleetRepo) AutoAllocate(date, shift string) error {
 			nik := ""
 			for opNik, classes := range opClasses {
 				if usedOps[opNik] {
+					continue
+				}
+				// Skip operators who are unfit (belum/pulang) — same as FE
+				if ftwUnfit[opNik] {
 					continue
 				}
 				for _, cls := range classes {

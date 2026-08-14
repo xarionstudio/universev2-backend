@@ -48,6 +48,8 @@ func (h *UserHandler) CreateUser(c fiber.Ctx) error {
 			return sendValidationError(c, "email", "Invalid email format")
 		case "at least one role is required":
 			return sendValidationError(c, "roles", "At least one role is required")
+		case "password must be at least 8 characters":
+			return sendValidationError(c, "password", msg)
 		case "NIK must be exactly 9 digits":
 			return sendValidationError(c, "nik", msg)
 		case "email is already in use":
@@ -177,5 +179,3 @@ func (h *UserHandler) ExportUsers(c fiber.Ctx) error {
 	c.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, fileName))
 	return c.Send(csvData)
 }
-
-

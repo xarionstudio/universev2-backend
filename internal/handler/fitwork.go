@@ -10,17 +10,19 @@ import (
 	"universev/internal/export"
 	"universev/internal/model"
 	"universev/internal/repository"
+	"universev/internal/service"
 	"universev/pkg/filter"
 	"universev/pkg/pagination"
 	"universev/pkg/response"
 )
 
 type FitworkHandler struct {
-	repo *repository.FTWRepo
+	repo         *repository.FTWRepo
+	settingsRepo *repository.SettingsRepo
 }
 
-func NewFitworkHandler(repo *repository.FTWRepo) *FitworkHandler {
-	return &FitworkHandler{repo: repo}
+func NewFitworkHandler(repo *repository.FTWRepo, settingsRepo *repository.SettingsRepo) *FitworkHandler {
+	return &FitworkHandler{repo: repo, settingsRepo: settingsRepo}
 }
 
 // GetTodayLog godoc
@@ -66,19 +68,24 @@ func (h *FitworkHandler) SubmitLog(c fiber.Ctx) error {
 		return sendValidationError(c, "shift", "Shift is required")
 	}
 	shift := req.Shift
-	if shift == "pagi" {
-		shift = "siang"
-	}
-	if shift != "siang" && shift != "malam" {
-		return sendValidationError(c, "shift", "Shift must be 'siang' or 'malam'")
+	if shift != "pagi" && shift != "malam" {
+		return sendValidationError(c, "shift", "Shift must be 'pagi' or 'malam'")
 	}
 
-	eval := model.EvaluateFTW(req.SleepMin)
+	rules := service.GetFtwRules(h.settingsRepo)
+	eval := service.FtwEvaluateWithRules(req.SleepMin, rules)
+	date := req.Date
+	if date == "" {
+		date = time.Now().Format("2006-01-02")
+	}
+	if _, err := time.Parse("2006-01-02", date); err != nil {
+		return sendValidationError(c, "date", "Date must use YYYY-MM-DD format")
+	}
 	rec := &model.FTWRecord{
 		NIK: req.NIK, Shift: shift, SleepMin: req.SleepMin,
 		Sleep: req.Sleep, SendTime: req.SendTime,
-		Date: time.Now().Format("2006-01-02"),
-		St:   eval.Status, RestHours: eval.RestHours, CanWork: eval.CanWork,
+		Date: date,
+		St:   model.FTWStatus(eval.Status), RestHours: eval.RestHours, CanWork: eval.CanWork,
 	}
 	if err := h.repo.Submit(rec); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to submit FTW log: "+err.Error())
@@ -91,7 +98,26 @@ func (h *FitworkHandler) SubmitLog(c fiber.Ctx) error {
 func (h *FitworkHandler) GetHistory(c fiber.Ctx) error {
 	nik := c.Query("nik")
 	if isTrimmedEmpty(nik) {
-		return response.Error(c, fiber.StatusBadRequest, "Query parameter 'nik' is required")
+		f := filter.ParseFromCtx(c)
+		if f.DateFrom == "" && f.DateTo == "" {
+			return response.Error(c, fiber.StatusBadRequest, "Query parameter 'nik' or a date range is required")
+		}
+		logs, err := h.repo.GetAllFiltered(f)
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch history: "+err.Error())
+		}
+		return response.Success(c, fiber.StatusOK, "Success fetch history", logs)
+	}
+
+	// If a date range is provided, use it; otherwise default to last 30 days
+	f := filter.ParseFromCtx(c)
+	if f.DateFrom != "" || f.DateTo != "" {
+		f.NIK = nik
+		logs, err := h.repo.GetAllFiltered(f)
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch history: "+err.Error())
+		}
+		return response.Success(c, fiber.StatusOK, "Success fetch history", logs)
 	}
 
 	logs, err := h.repo.GetHistory(nik, 30)
@@ -112,7 +138,8 @@ func (h *FitworkHandler) EvaluateFTW(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}
 
-	eval := model.EvaluateFTW(req.SleepMin)
+	rules := service.GetFtwRules(h.settingsRepo)
+	eval := service.FtwEvaluateWithRules(req.SleepMin, rules)
 	return response.Success(c, fiber.StatusOK, "FTW evaluation result", eval)
 }
 
@@ -121,6 +148,17 @@ func (h *FitworkHandler) EvaluateFTW(c fiber.Ctx) error {
 // Accepts same filter params as GetTodayLog; returns an xlsx download.
 func (h *FitworkHandler) ExportFTW(c fiber.Ctx) error {
 	f := filter.ParseFromCtx(c)
+
+	// Frontend sends `q` for search and `shift` as a filter — map them
+	if f.Search == "" {
+		f.Search = c.Query("q")
+	}
+	if c.Query("shift") != "" {
+		if f.Fields == nil {
+			f.Fields = make(map[string]string)
+		}
+		f.Fields["shift"] = c.Query("shift")
+	}
 
 	// Default to today if no date range provided
 	if f.DateFrom == "" && f.DateTo == "" {

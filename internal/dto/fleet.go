@@ -6,6 +6,7 @@ type CreateFleetSettingRequest struct {
 	Loc    string   `json:"loc"`
 	Bus    string   `json:"bus"`
 	Units  []string `json:"units"`
+	Active bool     `json:"active"`
 }
 
 // UpdateFleetSettingRequest represents the fleet setting update payload
@@ -14,6 +15,7 @@ type UpdateFleetSettingRequest struct {
 	Loc    string   `json:"loc"`
 	Bus    string   `json:"bus"`
 	Units  []string `json:"units"`
+	Active bool     `json:"active"`
 }
 
 // AutoAllocateRequest represents the auto allocation payload

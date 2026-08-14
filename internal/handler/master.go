@@ -67,7 +67,11 @@ func (h *MasterHandler) CreateMasterEntry(c fiber.Ctx) error {
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to create master entry: "+err.Error())
 	}
-	return response.Success(c, fiber.StatusCreated, "Master entry created", created)
+	createdEntries, ok := created.([]interface{})
+	if !ok || len(createdEntries) != 1 {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to build created master entry")
+	}
+	return response.Success(c, fiber.StatusCreated, "Master entry created", createdEntries[0])
 }
 
 func (h *MasterHandler) UpdateMasterEntry(c fiber.Ctx) error {

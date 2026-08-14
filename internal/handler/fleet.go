@@ -161,7 +161,8 @@ func (h *FleetHandler) AutoAllocate(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body")
 	}
 
-	if err := h.fleetSvc.AutoAllocate(req); err != nil {
+	result, err := h.fleetSvc.AutoAllocate(req)
+	if err != nil {
 		msg := err.Error()
 		switch msg {
 		case "date is required":
@@ -172,7 +173,7 @@ func (h *FleetHandler) AutoAllocate(c fiber.Ctx) error {
 			return response.Error(c, fiber.StatusInternalServerError, msg)
 		}
 	}
-	return response.Success(c, fiber.StatusOK, "Auto allocation completed successfully", nil)
+	return response.Success(c, fiber.StatusOK, "Auto allocation completed successfully", result)
 }
 
 // SaveAllocation — saves manual allocation (assign/release changes) for a specific date+shift
@@ -233,7 +234,12 @@ func (h *FleetHandler) UpdateUnitDB(c fiber.Ctx) error {
 }
 
 func (h *FleetHandler) DeleteUnitDB(c fiber.Ctx) error {
-	code := c.Query("id")
+	code := c.Query("code")
+	// Keep the legacy parameter accepted while frontend callers use the
+	// canonical, unambiguous unit code.
+	if code == "" {
+		code = c.Query("id")
+	}
 	if err := h.fleetSvc.DeleteUnitDB(code); err != nil {
 		msg := err.Error()
 		switch msg {

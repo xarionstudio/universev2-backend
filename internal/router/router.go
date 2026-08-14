@@ -40,7 +40,7 @@ func SetupRoutes(app *fiber.App, cfg *config.Config, db *gorm.DB, fpWorker *work
 	// Initialize Handlers
 	authH := handler.NewAuthHandler(cfg, userRepo, roleRepo)
 	empH := handler.NewEmployeeHandler(empRepo, cfg.UploadDir)
-	ftwH := handler.NewFitworkHandler(ftwRepo)
+	ftwH := handler.NewFitworkHandler(ftwRepo, settingsRepo)
 	rosterH := handler.NewRosterHandler(rosterRepo, cfg.UploadDir)
 	attH := handler.NewAttendanceHandler(attRepo)
 	fleetH := handler.NewFleetHandler(fleetSvc)

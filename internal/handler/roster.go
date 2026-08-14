@@ -331,6 +331,9 @@ func (h *RosterHandler) SubmitBatchRevision(c fiber.Ctx) error {
 			if isTrimmedEmpty(rev.SubmissionID) {
 				return sendValidationError(c, "sid", "Submission ID is required")
 			}
+			if _, err := time.Parse("2006-01-02", rev.TargetDate); err != nil {
+				return sendValidationError(c, "targetDate", "Target date must use YYYY-MM-DD format")
+			}
 			rev.Status = "pending"
 			if err := h.repo.CreateRevision(&rev); err != nil {
 				return response.Error(c, fiber.StatusInternalServerError, "Failed to submit revision: "+err.Error())
@@ -389,7 +392,7 @@ func (h *RosterHandler) ApproveRevision(c fiber.Ctx) error {
 	byId := "Disetujui oleh " + approver
 	byEn := "Approved by " + approver
 
-	if err := h.repo.ApproveRevision(id, byId, byEn); err != nil {
+	if err := h.repo.ApplyAndApproveRevision(id, byId, byEn); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to approve revision: "+err.Error())
 	}
 	return response.Success(c, fiber.StatusOK, "Revision approved", nil)
@@ -424,7 +427,7 @@ func (h *RosterHandler) ApproveRevisionWithNote(c fiber.Ctx) error {
 	}
 	byId := note + " — " + approver
 	byEn := note + " — " + approver
-	if err := h.repo.ApproveRevision(id, byId, byEn); err != nil {
+	if err := h.repo.ApplyAndApproveRevision(id, byId, byEn); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to approve revision: "+err.Error())
 	}
 	return response.Success(c, fiber.StatusOK, "Revision approved with specific note", nil)
@@ -437,6 +440,12 @@ func (h *RosterHandler) RejectRevision(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid revision ID")
 	}
 
+	// Read optional rejection reason from body
+	var req struct {
+		Reason string `json:"reason"`
+	}
+	_ = c.Bind().JSON(&req)
+
 	// Use the authenticated user's name as approver
 	approver := "System"
 	if u := c.Locals("user"); u != nil {
@@ -447,8 +456,14 @@ func (h *RosterHandler) RejectRevision(c fiber.Ctx) error {
 			}
 		}
 	}
+
+	reason := strings.TrimSpace(req.Reason)
 	byId := "Ditolak oleh " + approver
 	byEn := "Rejected by " + approver
+	if reason != "" {
+		byId = byId + " — " + reason
+		byEn = byEn + " — " + reason
+	}
 
 	if err := h.repo.RejectRevision(id, byId, byEn); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to reject revision: "+err.Error())

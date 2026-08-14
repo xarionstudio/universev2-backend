@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -169,6 +170,43 @@ func (r *RosterRepo) CountPendingRevisions() (int, error) {
 func (r *RosterRepo) ApproveRevision(id int, byId, byEn string) error {
 	return r.db.Model(&model.RosterRevision{}).Where("id = ?", id).
 		Updates(map[string]interface{}{"status": "approved", "by_id": byId, "by_en": byEn}).Error
+}
+
+// ApplyAndApproveRevision makes an approved revision effective in the active roster.
+func (r *RosterRepo) ApplyAndApproveRevision(id int, byId, byEn string) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		var rev model.RosterRevision
+		if err := tx.First(&rev, id).Error; err != nil {
+			return err
+		}
+		if rev.Status != "pending" {
+			return fmt.Errorf("only pending revisions can be approved")
+		}
+		if rev.TargetDate == "" {
+			return fmt.Errorf("revision has no target date")
+		}
+		var schedule model.RosterSchedule
+		err := tx.Table("roster_schedules").
+			Joins("JOIN roster_files ON roster_files.id = roster_schedules.roster_file_id").
+			Where("roster_schedules.employee_nik = ? AND roster_schedules.schedule_date = ? AND roster_files.status = ?", rev.NIK, rev.TargetDate, "aktif").
+			Order("roster_files.created_at DESC").First(&schedule).Error
+		if err == nil {
+			if err := tx.Model(&schedule).Update("shift_code", rev.WhatId).Error; err != nil {
+				return err
+			}
+		} else if err == gorm.ErrRecordNotFound {
+			var roster model.RosterMeta
+			if err := tx.Where("status = ? AND month_period = ?", "aktif", rev.TargetDate[:7]).Order("created_at DESC").First(&roster).Error; err != nil {
+				return fmt.Errorf("no active roster found for revision date")
+			}
+			if err := tx.Create(&model.RosterSchedule{RosterFileID: roster.ID, EmployeeNIK: rev.NIK, ScheduleDate: rev.TargetDate, ShiftCode: rev.WhatId}).Error; err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+		return tx.Model(&model.RosterRevision{}).Where("id = ?", id).Updates(map[string]interface{}{"status": "approved", "by_id": byId, "by_en": byEn}).Error
+	})
 }
 
 func (r *RosterRepo) RejectRevision(id int, byId, byEn string) error {

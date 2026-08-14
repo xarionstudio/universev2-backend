@@ -7,4 +7,5 @@ type SubmitFTWLogRequest struct {
 	SleepMin *int   `json:"sleepMin"`
 	Sleep    string `json:"sleep"`
 	SendTime string `json:"sendTime"`
+	Date     string `json:"date"`
 }
