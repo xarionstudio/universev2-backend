@@ -86,7 +86,7 @@ func TestRostersAndAttendanceEndpoints(t *testing.T) {
 	})
 
 	t.Run("PUT /api/rosters/approvals/:id/approve", func(t *testing.T) {
-		req := httptest.NewRequest("PUT", "/api/rosters/approvals/1/approve", nil)
+		req := httptest.NewRequest("PUT", "/api/rosters/approvals/2/approve", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {
@@ -96,7 +96,7 @@ func TestRostersAndAttendanceEndpoints(t *testing.T) {
 
 	t.Run("PATCH /api/rosters/approvals/:id/note", func(t *testing.T) {
 		body, _ := json.Marshal(map[string]string{"note": "Approved with note"})
-		req := httptest.NewRequest("PATCH", "/api/rosters/approvals/1/note", bytes.NewReader(body))
+		req := httptest.NewRequest("PATCH", "/api/rosters/approvals/3/note", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
@@ -106,7 +106,7 @@ func TestRostersAndAttendanceEndpoints(t *testing.T) {
 	})
 
 	t.Run("PUT /api/rosters/approvals/:id/reject", func(t *testing.T) {
-		req := httptest.NewRequest("PUT", "/api/rosters/approvals/1/reject", nil)
+		req := httptest.NewRequest("PUT", "/api/rosters/approvals/4/reject", nil)
 		req.Header.Set("Authorization", "Bearer "+token)
 		resp, _ := app.Test(req)
 		if resp.StatusCode != http.StatusOK {

@@ -19,18 +19,21 @@ func NewPrestasiService(repo *repository.PrestasiRepo, fleetRepo *repository.Fle
 	return &PrestasiService{repo: repo, fleetRepo: fleetRepo, settingsRepo: settingsRepo}
 }
 
-// PrestasiRules holds dynamic prestasi point rules from business_rules table
+// PrestasiRules holds dynamic prestasi point rules from business_rules table.
+// JSON keys MUST use snake_case (pts_base, pts_ontime, ...) and match what the
+// frontend business-rules provider reads — otherwise the dynamic values are
+// silently ignored and the backend falls back to defaults.
 type PrestasiRules struct {
-	PtsBase                int
-	PtsOntime              int
-	PtsSleep               int
-	PtsStreakStep          int
-	PtsStreakCap           int
-	PtsCover               int
-	PtsPenalty             int
-	SleepMinGreat          int
-	BadgeStreak7Threshold  int
-	BadgeStreak14Threshold int
+	PtsBase                int `json:"pts_base"`
+	PtsOntime              int `json:"pts_ontime"`
+	PtsSleep               int `json:"pts_sleep"`
+	PtsStreakStep          int `json:"pts_streak_step"`
+	PtsStreakCap           int `json:"pts_streak_cap"`
+	PtsCover               int `json:"pts_cover"`
+	PtsPenalty             int `json:"pts_penalty"`
+	SleepMinGreat          int `json:"sleep_min_great"`
+	BadgeStreak7Threshold  int `json:"badge_streak7_threshold"`
+	BadgeStreak14Threshold int `json:"badge_streak14_threshold"`
 }
 
 // DefaultPrestasiRules returns fallback values if business rules not found

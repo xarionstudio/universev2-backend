@@ -46,7 +46,17 @@ func (h *ProfileHandler) UpdateProfile(c fiber.Ctx) error {
 	}
 
 	if err := h.profileSvc.UpdateProfile(claims.UserID, req); err != nil {
-		return sendValidationError(c, "name", "Name is required")
+		msg := err.Error()
+		switch msg {
+		case "name is required":
+			return sendValidationError(c, "name", "Name is required")
+		case "invalid email format":
+			return sendValidationError(c, "email", "Invalid email format")
+		case "email is already in use":
+			return response.Error(c, fiber.StatusConflict, "Email is already in use")
+		default:
+			return response.Error(c, fiber.StatusInternalServerError, msg)
+		}
 	}
 
 	return response.Success(c, fiber.StatusOK, "Profile updated successfully", nil)

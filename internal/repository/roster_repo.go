@@ -74,7 +74,7 @@ func (r *RosterRepo) GetExportRosterData(fileId string, deptFilter string) ([]mo
 		Name         string
 		Dept         string
 		Pos          string
-		ScheduleDate time.Time
+		ScheduleDate string
 		ShiftCode    string
 	}
 	var dbRows []dbRow
@@ -107,8 +107,21 @@ func (r *RosterRepo) GetExportRosterData(fileId string, deptFilter string) ([]mo
 				}
 				empOrder = append(empOrder, row.NIK)
 			}
-			day := row.ScheduleDate.Day()
-			empMap[row.NIK].Schedules[day] = row.ShiftCode
+			var day int
+			if parsedDate, parseErr := time.Parse("2006-01-02", row.ScheduleDate); parseErr == nil {
+				day = parsedDate.Day()
+			} else {
+				// Fallback if parsing fails or formatted differently
+				if len(row.ScheduleDate) >= 10 {
+					var y, m, d int
+					if _, scanErr := fmt.Sscanf(row.ScheduleDate[:10], "%d-%d-%d", &y, &m, &d); scanErr == nil {
+						day = d
+					}
+				}
+			}
+			if day > 0 {
+				empMap[row.NIK].Schedules[day] = row.ShiftCode
+			}
 		}
 	} else {
 		// Fallback: If no custom schedules uploaded for fileId, fetch active employees from DB

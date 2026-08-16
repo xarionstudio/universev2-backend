@@ -77,6 +77,8 @@ func setupTestDB() *gorm.DB {
 		&model.MasterMess{},
 		&model.MasterRunningText{},
 		&model.FingerprintDevice{},
+		&model.BusinessRule{},
+		&model.MasterShiftCode{},
 	)
 	if err != nil {
 		panic("Failed to auto-migrate: " + err.Error())
@@ -129,14 +131,50 @@ func setupTestDB() *gorm.DB {
 	// Seed test employee
 	_ = db.Create(&model.Employee{
 		NIK: "503264133", Name: "Angel Test", Dept: "Operation", Pos: "Operator",
-		Status: "active", Company: "PT Unggul",
+		Status: "aktif", Company: "PT Unggul",
 	})
 
-	// Seed test roster meta (ID auto-increment)
-	_ = db.Create(&model.RosterMeta{
+	// Seed test roster meta & schedules
+	meta := &model.RosterMeta{
 		Label: "July 2026", Month: "2026-07", Dept: "Operation",
 		File: "roster_jul.xlsx", Emp: 1, Rows: "1", By: "System",
 		DateISO: "2026-07-01", Status: "aktif",
+	}
+	_ = db.Create(meta)
+
+	_ = db.Create(&model.RosterSchedule{
+		RosterFileID: meta.ID, EmployeeNIK: "503264133", ScheduleDate: "2026-07-15", ShiftCode: "D",
+	})
+	_ = db.Create(&model.RosterSchedule{
+		RosterFileID: meta.ID, EmployeeNIK: "503264133", ScheduleDate: "2026-07-16", ShiftCode: "D",
+	})
+	_ = db.Create(&model.RosterSchedule{
+		RosterFileID: meta.ID, EmployeeNIK: "503264133", ScheduleDate: "2026-07-17", ShiftCode: "D",
+	})
+	_ = db.Create(&model.RosterSchedule{
+		RosterFileID: meta.ID, EmployeeNIK: "503264133", ScheduleDate: "2026-07-18", ShiftCode: "D",
+	})
+
+	// Seed test roster revisions
+	_ = db.Create(&model.RosterRevision{
+		ID: 1, SubmissionID: "SID-001", NIK: "503264133", Name: "Angel Test",
+		WhatId: "Day Shift", WhatEn: "Day Shift", WhenId: "2026-07-15", WhenEn: "2026-07-15",
+		Status: "pending", TargetDate: "2026-07-15",
+	})
+	_ = db.Create(&model.RosterRevision{
+		ID: 2, SubmissionID: "SID-002", NIK: "503264133", Name: "Angel Test",
+		WhatId: "Night Shift", WhatEn: "Night Shift", WhenId: "2026-07-16", WhenEn: "2026-07-16",
+		Status: "pending", TargetDate: "2026-07-16",
+	})
+	_ = db.Create(&model.RosterRevision{
+		ID: 3, SubmissionID: "SID-003", NIK: "503264133", Name: "Angel Test",
+		WhatId: "Night Shift", WhatEn: "Night Shift", WhenId: "2026-07-17", WhenEn: "2026-07-17",
+		Status: "pending", TargetDate: "2026-07-17",
+	})
+	_ = db.Create(&model.RosterRevision{
+		ID: 4, SubmissionID: "SID-004", NIK: "503264133", Name: "Angel Test",
+		WhatId: "Off", WhatEn: "Off", WhenId: "2026-07-18", WhenEn: "2026-07-18",
+		Status: "pending", TargetDate: "2026-07-18",
 	})
 
 	// Seed app settings (omit id so it uses auto-increment)

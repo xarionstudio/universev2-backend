@@ -70,7 +70,10 @@ func TestProfileEndpoints(t *testing.T) {
 	})
 
 	t.Run("PUT /api/profile", func(t *testing.T) {
-		body, _ := json.Marshal(map[string]string{"name": "Updated Name"})
+		body, _ := json.Marshal(map[string]string{
+			"name":  "Updated Name",
+			"email": "angel@unggul.co.id",
+		})
 		req := httptest.NewRequest("PUT", "/api/profile/", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Authorization", "Bearer "+token)

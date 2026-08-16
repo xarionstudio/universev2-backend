@@ -12,16 +12,28 @@ import (
 )
 
 type AttendanceHandler struct {
-	repo *repository.AttendanceRepo
+	repo   *repository.AttendanceRepo
+	fpRepo *repository.FingerprintRepo
 }
 
-func NewAttendanceHandler(repo *repository.AttendanceRepo) *AttendanceHandler {
-	return &AttendanceHandler{repo: repo}
+func NewAttendanceHandler(repo *repository.AttendanceRepo, fpRepo *repository.FingerprintRepo) *AttendanceHandler {
+	return &AttendanceHandler{repo: repo, fpRepo: fpRepo}
+}
+
+func (h *AttendanceHandler) resolveDefaultMachine() string {
+	if h.fpRepo != nil {
+		devices, err := h.fpRepo.GetActiveDevices()
+		if err == nil && len(devices) > 0 && devices[0].Code != "" {
+			return devices[0].Code
+		}
+	}
+	return "WEB_MANUAL"
 }
 
 // GetAttendanceToday — GET /api/attendance/today
 func (h *AttendanceHandler) GetAttendanceToday(c fiber.Ctx) error {
 	today := time.Now().Format("2006-01-02")
+	_ = h.repo.SyncAttendanceBoard(today)
 	rows, err := h.repo.GetLogsByDate(today)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch today attendance: "+err.Error())
@@ -40,17 +52,14 @@ func (h *AttendanceHandler) GetAttendanceToday(c fiber.Ctx) error {
 
 // GetAttendanceByDate — GET /api/attendance/date?date=YYYY-MM-DD
 func (h *AttendanceHandler) GetAttendanceByDate(c fiber.Ctx) error {
-	date := c.Query("date")
-	if isTrimmedEmpty(date) {
-		date = time.Now().Format("2006-01-02")
-	}
-
+	date := c.Query("date", time.Now().Format("2006-01-02"))
+	_ = h.repo.SyncAttendanceBoard(date)
 	rows, err := h.repo.GetLogsByDate(date)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch attendance by date: "+err.Error())
 	}
 
-	return response.Success(c, fiber.StatusOK, "Success fetch attendance for date", rows)
+	return response.Success(c, fiber.StatusOK, "Success fetch attendance by date", rows)
 }
 
 // GetAttendanceRange — GET /api/attendance/range?from=YYYY-MM-DD&to=YYYY-MM-DD
@@ -58,9 +67,10 @@ func (h *AttendanceHandler) GetAttendanceRange(c fiber.Ctx) error {
 	from := c.Query("from")
 	to := c.Query("to")
 	if isTrimmedEmpty(from) || isTrimmedEmpty(to) {
-		return response.Error(c, fiber.StatusBadRequest, "Query parameters 'from' and 'to' are required")
+		return sendValidationError(c, "from/to", "Date range 'from' and 'to' are required")
 	}
 
+	_ = h.repo.SyncAttendanceRange(from, to)
 	rows, err := h.repo.GetLogsRange(from, to)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch attendance range: "+err.Error())
@@ -81,7 +91,7 @@ func (h *AttendanceHandler) RecordCheckIn(c fiber.Ctx) error {
 	}
 
 	if isTrimmedEmpty(req.Machine) {
-		req.Machine = "FP-01" // Default machine, can be made configurable via business rules
+		req.Machine = h.resolveDefaultMachine()
 	}
 
 	row, err := h.repo.RecordCheckIn(req.NIK, req.Machine)
@@ -104,7 +114,7 @@ func (h *AttendanceHandler) RecordCheckOut(c fiber.Ctx) error {
 	}
 
 	if isTrimmedEmpty(req.Machine) {
-		req.Machine = "FP-01"
+		req.Machine = h.resolveDefaultMachine()
 	}
 
 	row, err := h.repo.RecordCheckOut(req.NIK, req.Machine)

@@ -47,13 +47,6 @@ func (s *EmployeeService) CreateEmployee(req dto.CreateEmployeeRequest) (*model.
 	if internalpkg.IsTrimmedEmpty(req.Name) {
 		return nil, fmt.Errorf("name is required")
 	}
-	if internalpkg.IsTrimmedEmpty(req.Join) {
-		return nil, fmt.Errorf("join date is required")
-	}
-	if internalpkg.IsTrimmedEmpty(req.Exp) {
-		return nil, fmt.Errorf("expiry date is required")
-	}
-
 	existing, _ := s.repo.GetByNIK(req.NIK)
 	if existing != nil {
 		return nil, fmt.Errorf("employee with this NIK already exists")

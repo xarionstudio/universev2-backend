@@ -4,4 +4,5 @@ package dto
 type CheckInOutRequest struct {
 	NIK     string `json:"nik"`
 	Machine string `json:"machine"`
+	Time    string `json:"time,omitempty"`
 }

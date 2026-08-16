@@ -78,6 +78,11 @@ func (s *DashboardService) GetSummary(date string) (*DashboardSummary, error) {
 	summary := &DashboardSummary{}
 
 	// Attendance summary
+	// Rebuild the attendance board first so statuses (belum/terlambat/off) are
+	// consistent with the attendance page & Display TV.
+	if s.attRepo != nil {
+		_ = s.attRepo.SyncAttendanceBoard(date)
+	}
 	attRows, err := s.attRepo.GetLogsByDate(date)
 	if err == nil {
 		for _, row := range attRows {

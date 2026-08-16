@@ -87,6 +87,9 @@ func (h *FingerprintHandler) UpdateDevice(c fiber.Ctx) error {
 	if req.Port > 0 {
 		existing.Port = req.Port
 	}
+	if req.ComKey > 0 {
+		existing.ComKey = req.ComKey
+	}
 	if req.Location != "" {
 		existing.Location = req.Location
 	}

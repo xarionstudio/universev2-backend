@@ -762,7 +762,7 @@ func GenerateFTWExcel(records []model.FTWRecord) ([]byte, error) {
 // ── Unit DB Excel ────────────────────────────────────────────────────────────
 
 // ParseUnitDBExcel reads an xlsx file and returns a slice of UnitDb models.
-// Columns: Code | Class | EGI | Product | Work Area | Location
+// Columns: Code | Class | EGI | Product | Work Area | Location | Category (opsional)
 func ParseUnitDBExcel(data []byte) ([]model.UnitDb, error) {
 	f, err := excelize.OpenReader(bytes.NewReader(data))
 	if err != nil {
@@ -820,6 +820,9 @@ func ParseUnitDBExcel(data []byte) ([]model.UnitDb, error) {
 		}
 		if len(row) > 5 {
 			unit.Loc = strings.TrimSpace(row[5])
+		}
+		if len(row) > 6 {
+			unit.Category = strings.TrimSpace(row[6])
 		}
 
 		units = append(units, unit)

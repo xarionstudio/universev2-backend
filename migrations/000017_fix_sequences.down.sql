@@ -1,0 +1,11 @@
+-- Migration Down: 000017_fix_sequences
+--
+-- Migrasi ini bersifat korektif (hanya menyejajarkan sequence).  Sequence
+-- tidak merekam nilai "sebelum", sehingga mengembalikan posisinya sempurna
+-- tidak dapat dilakukan otomatis.  Tidak benar-benar ada skema/data yang
+-- dimasukkan atau dihapus oleh migrasi ini.
+--
+-- Untuk merekalibrasi lagi, cukup jalankan kembali migration 000017 (up).
+--
+-- No-op:
+SELECT 1;

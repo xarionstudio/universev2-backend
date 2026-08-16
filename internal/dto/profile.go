@@ -2,7 +2,8 @@ package dto
 
 // UpdateProfileRequest represents the profile update payload
 type UpdateProfileRequest struct {
-	Name string `json:"name"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 // UpdatePasswordRequest represents the password change payload

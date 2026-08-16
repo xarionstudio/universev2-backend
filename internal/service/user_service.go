@@ -285,10 +285,13 @@ func (s *ProfileService) GetProfile(userID string) (*model.User, error) {
 	return user, nil
 }
 
-// UpdateProfile updates a user's profile name
+// UpdateProfile updates a user's profile name & email
 func (s *ProfileService) UpdateProfile(userID string, req dto.UpdateProfileRequest) error {
 	if internalpkg.IsTrimmedEmpty(req.Name) {
 		return fmt.Errorf("name is required")
+	}
+	if !internalpkg.IsValidEmail(req.Email) {
+		return fmt.Errorf("invalid email format")
 	}
 
 	if s.userRepo != nil {
@@ -296,9 +299,14 @@ func (s *ProfileService) UpdateProfile(userID string, req dto.UpdateProfileReque
 		if err != nil {
 			return fmt.Errorf("invalid user ID")
 		}
+		// Email tidak boleh dipakai akun lain
+		if other, err := s.userRepo.GetByEmail(req.Email); err == nil && other != nil && other.ID != uint(uid) {
+			return fmt.Errorf("email is already in use")
+		}
 		user, err := s.userRepo.GetByID(uint(uid))
 		if err == nil && user != nil {
 			user.Name = req.Name
+			user.Email = req.Email
 			return s.userRepo.Update(uint(uid), user)
 		}
 	}

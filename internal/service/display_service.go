@@ -55,6 +55,11 @@ type DisplayAttRow struct {
 
 // GetDisplayAttendance returns attendance data for TV display
 func (s *DisplayService) GetDisplayAttendance() ([]DisplayAttRow, error) {
+	// Rebuild the attendance board so the TV shows the same statuses as the
+	// attendance page and dashboard (belum/terlambat/off included).
+	if s.attRepo != nil {
+		_ = s.attRepo.SyncAttendanceBoard("")
+	}
 	rows, err := s.attRepo.GetLogsByDate("")
 	if err != nil {
 		return nil, err
@@ -108,16 +113,17 @@ func (s *DisplayService) GetDisplayAttendance() ([]DisplayAttRow, error) {
 
 // DisplayFtwRow represents FTW data for TV display
 type DisplayFtwRow struct {
-	NIK   string `json:"nik"`
-	Name  string `json:"name"`
-	Pos   string `json:"pos"`
-	Dept  string `json:"dept"`
-	Sleep string `json:"sleep"`
-	Shift string `json:"shift"`
-	St    string `json:"st"`
-	Tone  string `json:"tone"`
-	Label string `json:"label"`
-	Note  string `json:"note"`
+	NIK       string `json:"nik"`
+	Name      string `json:"name"`
+	Pos       string `json:"pos"`
+	Dept      string `json:"dept"`
+	Sleep     string `json:"sleep"`
+	Shift     string `json:"shift"`
+	St        string `json:"st"`
+	Tone      string `json:"tone"`
+	Label     string `json:"label"`
+	Note      string `json:"note"`
+	RestHours int    `json:"restHours"`
 }
 
 // GetDisplayFTW returns fit-to-work data for TV display
@@ -167,16 +173,17 @@ func (s *DisplayService) GetDisplayFTW() ([]DisplayFtwRow, error) {
 		}
 
 		result = append(result, DisplayFtwRow{
-			NIK:   l.NIK,
-			Name:  name,
-			Pos:   pos,
-			Dept:  dept,
-			Sleep: l.Sleep,
-			Shift: l.Shift,
-			St:    string(l.St),
-			Tone:  tone,
-			Label: label,
-			Note:  note,
+			NIK:       l.NIK,
+			Name:      name,
+			Pos:       pos,
+			Dept:      dept,
+			Sleep:     l.Sleep,
+			Shift:     l.Shift,
+			St:        string(l.St),
+			Tone:      tone,
+			Label:     label,
+			Note:      note,
+			RestHours: l.RestHours,
 		})
 	}
 

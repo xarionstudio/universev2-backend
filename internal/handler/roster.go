@@ -22,11 +22,12 @@ import (
 
 type RosterHandler struct {
 	repo      *repository.RosterRepo
+	attRepo   *repository.AttendanceRepo
 	uploadDir string
 }
 
-func NewRosterHandler(repo *repository.RosterRepo, uploadDir string) *RosterHandler {
-	return &RosterHandler{repo: repo, uploadDir: uploadDir}
+func NewRosterHandler(repo *repository.RosterRepo, attRepo *repository.AttendanceRepo, uploadDir string) *RosterHandler {
+	return &RosterHandler{repo: repo, attRepo: attRepo, uploadDir: uploadDir}
 }
 
 // GetRosters godoc
@@ -488,6 +489,9 @@ func (h *RosterHandler) GetAttendance(c fiber.Ctx) error {
 	date := c.Query("date")
 	if date == "" {
 		date = time.Now().Format("2006-01-02")
+	}
+	if h.attRepo != nil {
+		_ = h.attRepo.SyncAttendanceBoard(date)
 	}
 	rows, err := h.repo.GetAttendance(date)
 	if err != nil {
